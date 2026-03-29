@@ -123,6 +123,7 @@ A smart microservice that extracts product prices from receipt images using OCR 
 | Component | Purpose |
 |-----------|---------|
 | **PostgreSQL** | Relational data storage |
+| **Flyway** | Database migrations (auto-run on startup) |
 | **Partitioning** | Monthly partitions for price_records |
 | **Indexes** | Optimized queries for product/store lookups |
 
@@ -187,6 +188,34 @@ price_records (100K-10M records)
 - ✅ Easy to maintain
 - ✅ Scalable to millions of records
 - ✅ Simple OCR integration
+
+### Database Migrations (Flyway)
+
+**No manual execution required!** Flyway runs automatically on application startup.
+
+**How it works:**
+1. Place SQL migration files in `src/main/resources/db/migration/`
+2. Name format: `V1__create_stores_table.sql`
+3. Spring Boot auto-detects and executes them
+4. Flyway tracks applied migrations in `flyway_schema_history` table
+
+**Example migration:**
+```sql
+-- V1__create_stores_table.sql
+CREATE TABLE stores (
+    store_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    location VARCHAR(200),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+**Benefits:**
+- ✅ Zero manual database setup
+- ✅ Version controlled schema
+- ✅ Auto-applies on startup
+- ✅ Rollback support
+- ✅ Works in all environments (dev, staging, prod)
 
 ---
 
