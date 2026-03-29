@@ -64,7 +64,8 @@ ehthumbs.db
 Thumbs.db
 
 # Application properties with secrets
-application-local.properties
+# Note: application-local.properties is intentionally NOT ignored to provide
+# a working local development configuration with H2 database
 application-prod.properties
 application-dev.properties
 .env
