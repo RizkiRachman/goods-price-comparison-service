@@ -153,6 +153,20 @@ A smart microservice that extracts product prices from receipt images using OCR 
 
 ---
 
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [API Documentation](docs/API.md) | REST API endpoints, request/response examples, error codes |
+| [Project Roadmap](docs/ROADMAP.md) | Development phases, milestones, and timeline |
+| [Architecture & Design](docs/ARCHITECTURE.md) | System architecture, diagrams, design decisions |
+| [Database Schema](docs/DATABASE.md) | Schema details, migrations, optimization |
+| [Testing Guide](docs/TESTING.md) | Test strategy, examples, coverage requirements |
+| [Deployment Guide](docs/DEPLOYMENT.md) | Docker, Kubernetes, production setup |
+| [AI Agent Guidelines](.ai/AGENTS.md) | For AI agents: coding standards, PR requirements |
+
+---
+
 ## 📊 Database Schema (3 Tables)
 
 ```
@@ -253,42 +267,6 @@ CREATE TABLE stores (
 
 ---
 
-## 📱 API Endpoints (Planned)
-
-```
-POST /api/receipts/upload
-  - Upload receipt image
-  - Returns: extraction job ID
-
-GET /api/receipts/{id}/status
-  - Check OCR processing status
-  - Returns: processing / completed / failed
-
-GET /api/receipts/{id}/results
-  - Get extracted data
-  - Returns: list of products with prices
-
-POST /api/prices/search
-  - Search for product prices
-  - Body: { productName, dateRange, location }
-  - Returns: prices across stores
-
-POST /api/shopping/optimize
-  - Optimize shopping route
-  - Body: { items: [...] }
-  - Returns: { stores: [...], route: [...], totalCost }
-
-GET /api/products/trend/{productId}
-  - Get price history
-  - Returns: time-series price data
-
-POST /api/alerts/subscribe
-  - Subscribe to price alerts
-  - Body: { productId, targetPrice }
-```
-
----
-
 ## 🏁 Getting Started
 
 ### Prerequisites
@@ -352,29 +330,6 @@ upload.temp.dir=/tmp/receipts
 - **Integration Tests**: Database, API endpoints
 - **End-to-End Tests**: Full receipt upload → query flow
 - **Load Tests**: Handle 1000+ receipts/day
-
----
-
-## 🗺️ Roadmap
-
-### Phase 1: MVP (Weeks 1-4)
-- [ ] Database setup (3 tables)
-- [ ] Receipt upload endpoint
-- [ ] OCR integration (Google Vision)
-- [ ] Price search API
-- [ ] Basic web UI
-
-### Phase 2: Core Features (Weeks 5-8)
-- [ ] Shopping optimization algorithm
-- [ ] Price history tracking
-- [ ] Mobile app (React Native)
-- [ ] User authentication
-
-### Phase 3: Advanced Features (Weeks 9-12)
-- [ ] Price alerts
-- [ ] Machine learning for price prediction
-- [ ] Store locator with GPS
-- [ ] Social features (share deals)
 
 ---
 
