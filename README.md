@@ -50,16 +50,18 @@ A smart microservice that extracts product prices from receipt images using OCR 
 │  └──────────────┘  └──────────────┘  └──────────────┘      │
 │                                                               │
 └──────────────────────┬──────────────────────────────────────┘
-                       │
-                       │ JDBC
-                       ▼
+                        │
+                        │ JDBC
+                        ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              PostgreSQL Database                             │
+│              PostgreSQL Database*                            │
 │  ┌────────────┐  ┌────────────┐  ┌────────────────────┐    │
 │  │   stores   │  │  products  │  │   price_records    │    │
 │  │   (50-100) │  │  (1K-10K)  │  │    (100K-10M)      │    │
 │  └────────────┘  └────────────┘  └────────────────────┘    │
 └─────────────────────────────────────────────────────────────┘
+
+*For local development, H2 in-memory database can be used instead
 ```
 
 ### Flow Steps:
@@ -150,6 +152,20 @@ A smart microservice that extracts product prices from receipt images using OCR 
 | **Docker** | Containerization |
 | **Docker Compose** | Local development stack |
 | **GitHub Actions** | CI/CD pipeline |
+
+---
+
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [API Documentation](docs/API.md) | REST API endpoints, request/response examples, error codes |
+| [Project Roadmap](docs/ROADMAP.md) | Development phases, milestones, and timeline |
+| [Architecture & Design](docs/ARCHITECTURE.md) | System architecture, diagrams, design decisions |
+| [Database Schema](docs/DATABASE.md) | Schema details, migrations, optimization |
+| [Testing Guide](docs/TESTING.md) | Test strategy, examples, coverage requirements |
+| [Deployment Guide](docs/DEPLOYMENT.md) | Docker, Kubernetes, production setup |
+| [AI Agent Guidelines](.ai/AGENTS.md) | For AI agents: coding standards, PR requirements |
 
 ---
 
@@ -253,42 +269,6 @@ CREATE TABLE stores (
 
 ---
 
-## 📱 API Endpoints (Planned)
-
-```
-POST /api/receipts/upload
-  - Upload receipt image
-  - Returns: extraction job ID
-
-GET /api/receipts/{id}/status
-  - Check OCR processing status
-  - Returns: processing / completed / failed
-
-GET /api/receipts/{id}/results
-  - Get extracted data
-  - Returns: list of products with prices
-
-POST /api/prices/search
-  - Search for product prices
-  - Body: { productName, dateRange, location }
-  - Returns: prices across stores
-
-POST /api/shopping/optimize
-  - Optimize shopping route
-  - Body: { items: [...] }
-  - Returns: { stores: [...], route: [...], totalCost }
-
-GET /api/products/trend/{productId}
-  - Get price history
-  - Returns: time-series price data
-
-POST /api/alerts/subscribe
-  - Subscribe to price alerts
-  - Body: { productId, targetPrice }
-```
-
----
-
 ## 🏁 Getting Started
 
 ### Prerequisites
@@ -297,12 +277,93 @@ POST /api/alerts/subscribe
 # Required software
 - Java 17+
 - Maven 3.9+
-- PostgreSQL 14+
+- PostgreSQL 14+ (for production only)
 - Docker (optional, for local dev)
 
 # Shared libraries (must be installed first)
 - common-utils-java
 - common-exception-java
+```
+
+### Quick Start (Local Development)
+
+Run the application with H2 in-memory database (no PostgreSQL required):
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/RizkiRachman/goods-price-comparison-service.git
+cd goods-price-comparison-service
+
+# 2. Install shared libraries (skip if already installed)
+cd ../common-utils-java && mvn clean install
+cd ../common-exception-java && mvn clean install
+
+# 3. Run with local profile (H2 database)
+cd ../goods-price-comparison-service
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+
+# 4. Access H2 Console (optional)
+open http://localhost:8080/h2-console
+# JDBC URL: jdbc:h2:mem:price_comparison
+```
+
+### Production Setup (PostgreSQL)
+
+For production deployment with PostgreSQL:
+
+```bash
+# 1. Setup database
+createdb price_comparison
+psql price_comparison < schema.sql
+
+# 2. Run with default profile (uses application.properties)
+mvn spring-boot:run
+```
+
+### Configuration Profiles
+
+**Local Development** (`application-local.properties`):
+- Uses H2 in-memory database
+- No PostgreSQL required
+- H2 console enabled at `/h2-console`
+- Flyway disabled (auto DDL)
+
+**Production** (`application.properties`):
+- Uses PostgreSQL database
+- Flyway migrations enabled
+- All security features active
+
+### Build & Test
+
+```bash
+# Build and run tests
+mvn clean verify
+
+# Run tests only
+mvn clean test
+
+# Build JAR
+mvn clean package
+
+# Run JAR with local profile
+java -jar target/goods-price-comparison-service-1.0.0-SNAPSHOT.jar --spring.profiles.active=local
+```
+
+### Environment Variables
+
+Create `.env` file for local development:
+
+```properties
+# Database (only needed for production profile)
+DATABASE_URL=jdbc:postgresql://localhost:5432/price_comparison
+DATABASE_USERNAME=postgres
+DATABASE_PASSWORD=your_password
+
+# OCR Services
+GOOGLE_VISION_API_KEY=your_google_vision_api_key
+
+# File Upload
+UPLOAD_DIR=/tmp/receipts
 ```
 
 ### Installation
@@ -355,29 +416,6 @@ upload.temp.dir=/tmp/receipts
 
 ---
 
-## 🗺️ Roadmap
-
-### Phase 1: MVP (Weeks 1-4)
-- [ ] Database setup (3 tables)
-- [ ] Receipt upload endpoint
-- [ ] OCR integration (Google Vision)
-- [ ] Price search API
-- [ ] Basic web UI
-
-### Phase 2: Core Features (Weeks 5-8)
-- [ ] Shopping optimization algorithm
-- [ ] Price history tracking
-- [ ] Mobile app (React Native)
-- [ ] User authentication
-
-### Phase 3: Advanced Features (Weeks 9-12)
-- [ ] Price alerts
-- [ ] Machine learning for price prediction
-- [ ] Store locator with GPS
-- [ ] Social features (share deals)
-
----
-
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -388,9 +426,11 @@ upload.temp.dir=/tmp/receipts
 
 **Pre-PR Requirements:**
 - All tests passing
-- Code coverage > 90%
+- Code coverage > 90% (enforced after initial entity implementation)
 - API documentation updated
 - No breaking changes
+
+**Note:** Coverage check is temporarily disabled for the initial project setup phase. It will be re-enabled once core entities and repositories are implemented.
 
 ---
 
