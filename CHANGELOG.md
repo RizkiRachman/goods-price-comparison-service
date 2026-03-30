@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `context/PROJECT_OVERVIEW.md` - Project overview
 - CHANGELOG.md and CONTRIBUTING.md for project documentation
 - Strict merge rules in AI documentation (explicit permission required)
+- Added `goods-price-comparison-api` as Maven dependency for OpenAPI generated DTOs
 
 ### Changed
 - Reorganized `.ai/` directory structure to match `goods-price-comparison-api` layout
