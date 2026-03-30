@@ -27,6 +27,7 @@
         <!-- Shared libraries -->
         <common-utils.version>1.0.0-SNAPSHOT</common-utils.version>
         <common-exception.version>1.0.0-SNAPSHOT</common-exception.version>
+        <api.version>1.0.0-SNAPSHOT</api.version>
         
         <!-- Test coverage -->
         <jacoco.version>0.8.11</jacoco.version>
@@ -74,6 +75,13 @@
             <groupId>com.dev</groupId>
             <artifactId>common-exception-java</artifactId>
             <version>${common-exception.version}</version>
+        </dependency>
+        
+        <!-- API Specification -->
+        <dependency>
+            <groupId>com.example</groupId>
+            <artifactId>goods-price-comparison-api</artifactId>
+            <version>${api.version}</version>
         </dependency>
         
         <!-- Lombok -->
