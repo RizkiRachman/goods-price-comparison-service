@@ -1,7 +1,9 @@
 package com.example.goodsprice;
 
+import com.example.goodsprice.config.properties.LlmProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 /**
  * Main entry point for the Goods Price Comparison Service.
@@ -15,6 +17,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @since 1.0.0
  */
 @SpringBootApplication
+@EnableConfigurationProperties(LlmProperties.class)
 public class Application {
 
     /**

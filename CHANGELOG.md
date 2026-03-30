@@ -39,7 +39,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed test configuration (`application-test.properties`) - removed invalid `spring.profiles.active`
 - Fixed H2 database dependency scope (changed from `test` to `runtime`)
 - Changed default database from PostgreSQL to H2 (no profile required to run)
-- Temporarily disabled JaCoCo coverage check for initial setup phase
+- Reorganized configuration structure: parent `application.properties` imports modular configs from `config/` folder
+- Cleaned up unused property files and simplified configuration structure
+
+### Added
+- LLM Provider Interface (`LLMProvider`) for agnostic LLM integration
+- LLM Service (`LLMService`) for receipt data extraction
+- Local LLM Provider implementation (`LocalLLMProvider`) for Ollama
+- Configuration Properties (`LlmProperties`) with type-safe property binding
+- LLM Configuration class (`LLMConfiguration`) for provider bean creation
+- Modular configuration files in `config/` folder:
+  - `database.properties` - H2 database configuration
+  - `llm.properties` - LLM provider settings
+  - `features.properties` - Feature flags
+  - `logging.properties` - Logging configuration
+  - `service.properties` - Service settings
+- Documentation: `docs/CONFIGURATION.md` for configuration guide
+- Unit tests for LLM configuration and service (4 new tests)
+
+### Removed
+- Deleted `application-local.properties` (no longer needed)
+- Deleted `INTELLIJ_FIX.md` (resolved)
+- Deleted example and test files for property references
 
 ## [0.1.0] - 2026-03-30
 
