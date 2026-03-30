@@ -46,17 +46,42 @@ mvn jacoco:report
 # Check: target/site/jacoco/index.html
 ```
 
-### Phase 3: Code Quality
+### Phase 3: Application Startup Verification
 
 ```bash
-# 4. Checkstyle
+# 4. Run Application Locally
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+**Must Pass:**
+- Application starts without errors
+- No exceptions in startup logs
+- Database connection established (H2 for local)
+- All beans initialized successfully
+
+**Verification:**
+- Check for "Started Application" in logs
+- Check for "Tomcat started on port(s): 8080"
+- No ERROR level logs during startup
+- Stop with Ctrl+C after verification
+
+**If Fails:**
+1. Check application logs for errors
+2. Verify database configuration
+3. Check for missing dependencies
+4. Fix configuration issues
+
+### Phase 4: Code Quality
+
+```bash
+# 5. Checkstyle
 mvn checkstyle:check
 ```
 **Must Pass:**
 - 0 violations
 
 ```bash
-# 5. SpotBugs
+# 6. SpotBugs
 mvn spotbugs:check
 ```
 **Must Pass:**
@@ -124,7 +149,17 @@ mvn verify -P integration-tests
                    │
                    ▼
 ┌─────────────────────────────────────────────────────────┐
-│  4. Run: Code Quality Checks                           │
+│  4. Run: mvn spring-boot:run -Dspring.profiles=local   │
+│     # Verify app starts without errors                  │
+│     # Check for "Started Application" in logs           │
+│     # Stop with Ctrl+C after verification               │
+│     ✓ Pass? → Continue                                  │
+│     ✗ Fail? → Fix startup issues → Retry                │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   ▼
+┌─────────────────────────────────────────────────────────┐
+│  5. Run: Code Quality Checks                           │
 │     - Checkstyle: 0 violations                          │
 │     - SpotBugs: 0 high priority                         │
 │     ✓ Pass? → Continue                                  │
@@ -133,21 +168,21 @@ mvn verify -P integration-tests
                    │
                    ▼
 ┌─────────────────────────────────────────────────────────┐
-│  5. Run: Integration Tests                             │
+│  6. Run: Integration Tests                             │
 │     ✓ Pass? → Continue                                  │
 │     ✗ Fail? → Fix integration → Retry                   │
 └──────────────────┬──────────────────────────────────────┘
                    │
                    ▼
 ┌─────────────────────────────────────────────────────────┐
-│  6. Update README.md                                   │
+│  7. Update README.md                                   │
 │     ✓ Updated? → Continue                               │
 │     ✗ Skip? → STOP: Must update documentation           │
 └──────────────────┬──────────────────────────────────────┘
                    │
                    ▼
 ┌─────────────────────────────────────────────────────────┐
-│  7. Commit All Changes                                 │
+│  8. Commit All Changes                                 │
 │     git add -A                                          │
 │     git commit -m "Add Store entity with JPA"           │
 │     # Use clear, meaningful messages                    │
@@ -158,14 +193,14 @@ mvn verify -P integration-tests
                    │
                    ▼
 ┌─────────────────────────────────────────────────────────┐
-│  8. Create PR                                          │
+│  9. Create PR                                          │
 │     git push origin feature/name                        │
 │     gh pr create ...                                    │
 └──────────────────┬──────────────────────────────────────┘
                    │
                    ▼
 ┌─────────────────────────────────────────────────────────┐
-│  9. ASK FOR MERGE PERMISSION                             │
+│  10. ASK FOR MERGE PERMISSION                            │
 │     MUST ask: "PR is ready, should I merge?"            │
 │                                                         │
 │     ⚠️  NEVER assume approval                           │
@@ -175,7 +210,7 @@ mvn verify -P integration-tests
                    │
                    ▼
 ┌─────────────────────────────────────────────────────────┐
-│  10. WAIT FOR EXPLICIT APPROVAL                          │
+│  11. WAIT FOR EXPLICIT APPROVAL                          │
 │     Wait for: "merge this" or "approved"                │
 │                                                         │
 │     ❌ STOP if user says: "wait", "stop", "not yet"     │
@@ -185,7 +220,7 @@ mvn verify -P integration-tests
                    │
                    ▼
 ┌─────────────────────────────────────────────────────────┐
-│  11. Merge PR                                           │
+│  12. Merge PR                                           │
 │     gh pr merge --squash --delete-branch                │
 │     # ONLY after explicit approval!                     │
 └─────────────────────────────────────────────────────────┘

@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Reorganized `.ai/` directory structure to match `goods-price-comparison-api` layout
 - Simplified commit message guidelines to be meaningful and natural
+- Updated Spring Boot from `3.3.0` to `3.4.4` (latest stable supporting Java 17)
+- Updated PR workflow documentation to include application startup verification
 
 ### Fixed
 - Fixed test configuration (`application-test.properties`) - removed invalid `spring.profiles.active`
