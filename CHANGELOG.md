@@ -24,6 +24,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CHANGELOG.md and CONTRIBUTING.md for project documentation
 - Strict merge rules in AI documentation (explicit permission required)
 - Added `goods-price-comparison-api` as Maven dependency for OpenAPI generated DTOs
+- Created API controller skeletons implementing OpenAPI interfaces:
+  - SystemController, ReceiptController, PriceController
+  - ShoppingController, ProductController, AlertController
+- Added comprehensive unit tests for all controllers (100% coverage)
 
 ### Changed
 - Reorganized `.ai/` directory structure to match `goods-price-comparison-api` layout
@@ -34,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed test configuration (`application-test.properties`) - removed invalid `spring.profiles.active`
 - Fixed H2 database dependency scope (changed from `test` to `runtime`)
+- Changed default database from PostgreSQL to H2 (no profile required to run)
 - Temporarily disabled JaCoCo coverage check for initial setup phase
 
 ## [0.1.0] - 2026-03-30
