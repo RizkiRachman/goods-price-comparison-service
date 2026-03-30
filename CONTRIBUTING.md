@@ -263,44 +263,76 @@ See [`.ai/skills/TESTING.md`](.ai/skills/TESTING.md) for complete testing guide.
 
 ## Commit Message Guidelines
 
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
+### Keep It Simple and Clear
 
-### Format
+Your commit messages should be **meaningful, natural, and straightforward**. Write as if you're explaining the change to a teammate.
 
-```
-type(scope): description
-
-[optional body]
-
-[optional footer(s)]
-```
-
-### Types
-
-- **feat:** New feature
-- **fix:** Bug fix
-- **docs:** Documentation changes
-- **style:** Code style (formatting, no logic change)
-- **refactor:** Code refactoring
-- **test:** Test additions/changes
-- **chore:** Build, CI, dependencies
-- **ci:** CI/CD changes
-
-### Examples
+### Good Examples
 
 ```bash
-feat(prices): Add pagination to price search endpoint
+# Simple and clear - tells exactly what was done
+Add Store entity with JPA annotations
 
-fix(receipts): Handle null image data in OCR processing
+Fix null pointer exception in price calculation
 
-docs(readme): Update API examples and add diagrams
+Update README with local development instructions
 
-test(entities): Add 100% coverage for Store entity
+Remove deprecated OAuth configuration
 
-refactor(service): Extract price calculation logic
-
-chore(deps): Update Spring Boot to 3.3.0
+Add unit tests for Product repository
 ```
+
+### Bad Examples
+
+```bash
+# Too vague - what was fixed?
+Fix bug
+
+# Too technical - what does this do?
+Refactor XYZUtils
+
+# Missing context - why?
+Update code
+
+# Not meaningful
+Changes
+```
+
+### Tips for Good Messages
+
+- **Start with a verb** (Add, Fix, Update, Remove, Refactor)
+- **Describe what changed** in plain English
+- **Keep it under 50 characters** for the first line
+- **Add details in the body** if needed (blank line, then explanation)
+- **Be specific** - "Fix price calculation rounding error" not "Fix bug"
+
+### When You Need More Details
+
+```bash
+Add Flyway migrations for database schema
+
+Created initial migration scripts for stores, products,
+and price_records tables. Includes indexes for performance.
+
+Fix connection timeout in HikariCP configuration
+
+Increased connection timeout from 20s to 30s to handle
+slow PostgreSQL startup in Docker environments.
+```
+
+### PR Messages
+
+Same rules apply to PR titles - make them clear and descriptive:
+
+**Good:**
+- "Add price comparison endpoint with pagination"
+- "Fix H2 database configuration for local development"
+- "Update project dependencies to latest stable versions"
+
+**Bad:**
+- "Feature update"
+- "Fix stuff"
+- "Changes v2"
 
 ## Documentation
 

@@ -149,7 +149,11 @@ mvn verify -P integration-tests
 ┌─────────────────────────────────────────────────────────┐
 │  7. Commit All Changes                                 │
 │     git add -A                                          │
-│     git commit -m "feat: description"                   │
+│     git commit -m "Add Store entity with JPA"           │
+│     # Use clear, meaningful messages                    │
+│     # Examples:                                         │
+│     # "Fix null pointer in price calculation"          │
+│     # "Update README with setup instructions"          │
 └──────────────────┬──────────────────────────────────────┘
                    │
                    ▼

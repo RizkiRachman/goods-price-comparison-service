@@ -165,16 +165,18 @@ A smart microservice that extracts product prices from receipt images using OCR 
 | [Database Schema](docs/DATABASE.md) | Schema details, migrations, optimization |
 | [Testing Guide](docs/TESTING.md) | Test strategy, examples, coverage requirements |
 | [Deployment Guide](docs/DEPLOYMENT.md) | Docker, Kubernetes, production setup |
-| [AI Agent Guidelines](.ai/AGENTS.md) | For AI agents: coding standards, PR workflow, coverage requirements |
+| [AI Agent Guidelines](.ai/AGENTS.md) | For AI agents: coding standards, PR workflow |
+| [Contributing Guide](CONTRIBUTING.md) | How to contribute, commit messages, PR process |
+| [Changelog](CHANGELOG.md) | Version history and changes |
 
 ### 🤖 AI Documentation
 
 > **For AI agents working on this project:**
-> See [.ai/AGENTS.md](.ai/AGENTS.md) for complete guidelines including:
+> See [.ai/AGENTS.md](.ai/AGENTS.md) for guidelines including:
 > - PR workflow and blocking rules
+> - Commit message guidelines (meaningful, simple)
 > - 100% coverage requirements
-> - Code quality standards (Checkstyle, SpotBugs)
-> - Testing guidelines
+> - Code quality standards
 
 ---
 
@@ -427,19 +429,26 @@ upload.temp.dir=/tmp/receipts
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'Add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open Pull Request
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
+- Development setup
+- Code standards
+- Testing requirements
+- **Commit message guidelines** (meaningful and clear)
 
-**Pre-PR Requirements:**
-- All tests passing
-- Code coverage > 90% (enforced after initial entity implementation)
-- API documentation updated
-- No breaking changes
+**Quick start:**
+```bash
+git checkout -b feature/your-feature
+git commit -m "Add clear description of changes"
+git push origin feature/your-feature
+# Then create PR
+```
 
-**Note:** Coverage check is temporarily disabled for the initial project setup phase. It will be re-enabled once core entities and repositories are implemented.
+**Requirements:**
+- All tests pass
+- Meaningful commit messages
+- Code coverage > 90%
+
+**Note:** Coverage check temporarily disabled during initial setup phase.
 
 ---
 

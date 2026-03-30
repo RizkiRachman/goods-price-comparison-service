@@ -134,9 +134,50 @@ gh pr create
 
 ---
 
-## 📝 Commit Format
+## 📝 Commit and PR Messages
 
+### Rule: Write Meaningful, Natural Messages
+
+Your commits and PRs must be **clear, simple, and meaningful**. Write as if explaining to a teammate.
+
+### ✅ Good Examples
+
+```bash
+# Commits
+Add Store entity with JPA annotations
+Fix null pointer in price calculation
+Update README with local setup instructions
+Remove deprecated OAuth config
+Add unit tests for Product repository
+
+# PR Titles
+Add price comparison endpoint with pagination
+Fix H2 database configuration for local dev
+Update dependencies to latest stable versions
 ```
+
+### ❌ Bad Examples
+
+```bash
+# Too vague
+Fix bug
+Update code
+Changes
+Refactor stuff
+
+# Not meaningful
+WIP
+Fix
+Update v2
+```
+
+### Guidelines
+
+- **Start with a verb** (Add, Fix, Update, Remove, Refactor)
+- **Describe what changed** in plain English
+- **Be specific** - "Fix price rounding error" not "Fix bug"
+- **Keep first line under 50 characters**
+- **Add details in body** if the change needs explanation
 type(scope): description
 
 types: feat, fix, docs, style, refactor, test, chore, ci
