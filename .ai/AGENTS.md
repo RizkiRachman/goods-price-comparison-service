@@ -1,12 +1,44 @@
 # AI Agent Guidelines for goods-price-comparison-service
 
-## 🎯 AI Agent Mission
-
-Build a production-ready price comparison service with the highest code quality standards. Every line of code must be tested, documented, and optimized.
+Quick reference for AI agents working on this Spring Boot service.
 
 ---
 
-## 🚫 CRITICAL: PR Blocking Rules
+## 🚨 Critical Rules
+
+### 1. NEVER Push to Main
+**ABSOLUTELY FORBIDDEN:**
+- ❌ Direct commits to `main`
+- ❌ Direct pushes to `main`  
+- ❌ Using `--force` or `--admin` on main
+
+**ALWAYS:**
+- ✅ Create feature branch: `git checkout -b feature/description`
+- ✅ Push to feature branch: `git push origin feature/description`
+- ✅ Create Pull Request
+- ✅ Wait for CI + Review
+
+### 2. NEVER Auto-Merge
+**AI CANNOT MERGE WITHOUT EXPLICIT PERMISSION**
+
+**❌ FORBIDDEN:**
+- Auto-merging when CI passes
+- Merging without user saying "merge this"
+- Assuming approval from "looks good" or 👍
+
+**✅ REQUIRED:**
+- Wait for explicit user instruction
+- User must say: "merge this PR" or "approved, please merge"
+- Only then execute merge command
+
+**If user says "stop" or "wait":**
+- STOP immediately
+- Do NOT merge
+- Wait for further instructions
+
+---
+
+## 🚫 PR Blocking Rules
 
 **AI CANNOT create a PR if ANY of these conditions are not met:**
 
@@ -55,6 +87,69 @@ mvn verify -P integration-tests
 
 ---
 
+## 📁 Documentation Structure
+
+| Folder | Purpose | Files |
+|--------|---------|-------|
+| [rules/](./rules/) | **Standards** (MUST follow) | CODING_STANDARDS.md, PR_WORKFLOW.md |
+| [skills/](./skills/) | **How-to guides** | JAVA.md, TESTING.md |
+| [context/](./context/) | **Project info** | PROJECT_OVERVIEW.md |
+
+### Quick Links
+
+**Start Here:**
+1. [rules/PR_WORKFLOW.md](./rules/PR_WORKFLOW.md) - How to create PRs
+2. [rules/CODING_STANDARDS.md](./rules/CODING_STANDARDS.md) - Code style
+3. [context/PROJECT_OVERVIEW.md](./context/PROJECT_OVERVIEW.md) - What this project is
+
+**Reference:**
+- [skills/JAVA.md](./skills/JAVA.md) - Java 17+ features
+- [skills/TESTING.md](./skills/TESTING.md) - Testing guide with 100% coverage
+
+**Coverage Requirements:**
+- [skills/TESTING.md#coverage-requirements](./skills/TESTING.md) - Detailed coverage standards
+
+---
+
+## 🛠️ Common Commands
+
+```bash
+# Development
+mvn clean compile -q    # Build project
+mvn clean test          # Run tests  
+mvn clean verify        # Full verification with coverage
+mvn spring-boot:run -Dspring-boot.run.profiles=local  # Run locally
+
+# Code quality
+mvn spotbugs:check      # Static analysis
+mvn checkstyle:check    # Style check
+
+# Git workflow
+git checkout -b feature/name
+git add .
+git commit -m "type: description"
+git push -u origin feature/name
+gh pr create
+```
+
+---
+
+## 📝 Commit Format
+
+```
+type(scope): description
+
+types: feat, fix, docs, style, refactor, test, chore, ci
+
+examples:
+- feat(prices): Add pagination to price search
+- fix(receipts): Handle null image data
+- docs(readme): Update API examples
+- test(entities): Add 100% coverage for Store entity
+```
+
+---
+
 ## 📊 Code Coverage Requirements
 
 ### Strict Enforcement
@@ -66,408 +161,54 @@ mvn verify -P integration-tests
 | **Critical Path** | 95% | 100% |
 | **Utilities** | 95% | 100% |
 
-### Coverage Breakdown
-
-**Line Coverage:**
-- Every line must be executed by tests
-- No dead code allowed
-- All branches covered
-
-**Branch Coverage:**
-- All if/else branches tested
-- All switch cases tested
-- All exception paths tested
-
-**Mutation Coverage (PIT):**
-- 80%+ mutation score
-- Code changes must fail tests
-
-### How to Check Coverage
-
+**Check coverage:**
 ```bash
-# Run with coverage
 mvn clean test jacoco:report
-
-# Check coverage report
 cat target/site/jacoco/index.html | grep -o "[0-9]*%"
-
-# Coverage must show:
-# - Total: 90%+
-# - New Files: 100%
-```
-
-### Coverage Report Location
-```
-target/site/jacoco/index.html
 ```
 
 ---
 
-## 📝 Documentation Structure
+## 🎯 Key Points
 
-### Root Level (ONLY these files)
+**Project Type:** Spring Boot Microservice
+- OCR receipt processing
+- Price comparison and tracking
+- PostgreSQL database with Flyway migrations
+- REST API with OpenAPI specs (from separate repo)
 
-```
-goods-price-comparison-service/
-├── README.md          ← MAIN DOCUMENTATION (keep updated!)
-├── LICENSE
-├── .gitignore
-├── pom.xml
-└── ... (source code)
-```
-
-**RULE: Only README.md in root. Everything else in subfolders.**
-
-### Documentation Links in README
-
-Your README.md must contain these links:
-
-```markdown
-## 📚 Documentation
-
-- [Architecture & Design](docs/ARCHITECTURE.md)
-- [API Documentation](docs/API.md)
-- [Database Schema](docs/DATABASE.md)
-- [Deployment Guide](docs/DEPLOYMENT.md)
-- [Testing Guide](docs/TESTING.md)
-- [Contributing Guidelines](CONTRIBUTING.md)
-- [AI Agent Guidelines](.ai/AGENTS.md) ← For AI agents only
-
-## 🤖 AI Documentation
-
-> **For AI agents working on this project:**
-> See [.ai/README.md](.ai/README.md) for complete AI guidelines
-```
-
-### Subfolder Structure
-
-```
-docs/
-├── ARCHITECTURE.md      # System design, diagrams
-├── API.md              # API endpoints, examples
-├── DATABASE.md         # Schema, migrations
-├── DEPLOYMENT.md       # Docker, K8s, CI/CD
-├── TESTING.md          # Test strategy, examples
-└── CHANGELOG.md        # Version history
-
-.ai/                    # AI-specific (HUMANS: DON'T EDIT)
-├── README.md           # AI doc index
-├── AGENTS.md           # This file - main guidelines
-├── RULES.md            # Coding standards
-├── SKILLS.md           # Required capabilities
-├── PR_WORKFLOW.md      # PR blocking mechanism
-├── COVERAGE.md         # Coverage requirements detail
-└── README_TEMPLATE.md  # Auto-update template
-```
+**Architecture:**
+- Spring Boot 3.x with Java 17+
+- Layered architecture (Controller → Service → Repository)
+- JPA/Hibernate for database access
+- Testcontainers for integration testing
+- JaCoCo for coverage enforcement
 
 ---
 
-## 🔄 Auto README Update Before PR
+## 🆘 Help
 
-**MANDATORY: Update README.md before every PR**
+**Check documentation first:**
+1. `rules/` - Standards to follow
+2. `skills/` - How to do things  
+3. `context/` - Project information
 
-### What to Update
-
-1. **Features Section**
-   - Add new features implemented
-   - Mark completed roadmap items
-
-2. **API Endpoints**
-   - Add new endpoints
-   - Update examples
-
-3. **Changelog**
-   - Add version entry
-   - List all changes
-
-4. **Statistics**
-   - Update test counts
-   - Update coverage %
-   - Update line counts
-
-### Auto-Update Script
-
-Before PR, run:
-
-```bash
-# This script auto-updates README sections
-./scripts/update-readme.sh
-```
-
-Script will:
-1. Count test files → Update test count
-2. Get coverage % → Update badge
-3. Count LOC → Update metrics
-4. Update changelog with git log
-
-### README Update Checklist
-
-- [ ] New features documented
-- [ ] API changes reflected
-- [ ] Test count updated
-- [ ] Coverage badge current
-- [ ] Changelog entry added
-- [ ] Screenshots updated (if UI changes)
-
----
-
-## 🎨 Code Quality Standards
-
-### 1. Code Style
-
-**Follow Google Java Style Guide:**
-- 4 spaces indentation
-- 100 char line limit
-- Javadoc for all public APIs
-- Final variables by default
-
-**Check with:**
-```bash
-mvn checkstyle:check
-```
-
-### 2. Static Analysis
-
-**SpotBugs Configuration:**
-- High priority bugs = ERROR (blocks PR)
-- Medium priority bugs = WARNING
-- Low priority bugs = INFO
-
-**Check with:**
-```bash
-mvn spotbugs:check
-```
-
-### 3. Code Metrics
-
-**Maximum Values:**
-- Method length: 50 lines
-- Class length: 500 lines
-- Cyclomatic complexity: 10
-- Method parameters: 5
-
-**Check with:**
-```bash
-mvn pmd:check
-```
-
----
-
-## 🧪 Testing Standards
-
-### Test Requirements
-
-**Every public method MUST have:**
-- Unit test with @Test
-- Happy path test
-- Edge case test(s)
-- Exception test(s)
-
-**Test Naming:**
-```java
-@Test
-@DisplayName("Should calculate total price when quantity is positive")
-void shouldCalculateTotalPrice_WhenQuantityIsPositive() {
-    // given
-    // when
-    // then
-}
-```
-
-### Test Categories
-
-1. **Unit Tests** (80%)
-   - Individual methods
-   - Mocked dependencies
-   - Fast execution (< 100ms)
-
-2. **Integration Tests** (15%)
-   - Database interactions
-   - API endpoints
-   - External services (mocked)
-
-3. **E2E Tests** (5%)
-   - Full user flows
-   - Real database
-   - Actual OCR calls (limited)
-
-### Test Data
-
-**Use:**
-- @DataJpaTest for DB tests
-- Testcontainers for integration
-- @MockBean for external services
-
-**DON'T Use:**
-- Production data in tests
-- Hardcoded IDs (use sequences)
-- Real external APIs (mock them)
-
----
-
-## 🚀 Performance Standards
-
-### Response Time Requirements
-
-| Operation | Max Response Time |
-|-----------|------------------|
-| Receipt Upload | < 3 seconds |
-| OCR Processing | < 10 seconds |
-| Price Query | < 100ms |
-| Shopping Optimization | < 500ms |
-| Health Check | < 50ms |
-
-### Database Performance
-
-- Query time: < 10ms
-- Connection pool: HikariCP (min 5, max 20)
-- Query timeout: 5 seconds
-- Index usage: 100% on WHERE clauses
-
-### Memory Usage
-
-- Max heap: 512MB (development)
-- Max heap: 1GB (production)
-- No memory leaks in tests (check with JProfiler)
-
----
-
-## 🔒 Security Standards
-
-### Data Protection
-
-- **NEVER** log API keys or secrets
-- **NEVER** commit .env files
-- Use Spring @ConfigurationProperties for secrets
-- Validate all inputs (XSS, SQL injection)
-
-### API Security
-
-- Rate limiting: 100 req/min per IP
-- Input validation on all endpoints
-- CORS configured properly
-- No stack traces in error responses (production)
-
----
-
-## 📋 Pre-PR Checklist
-
-**AI MUST complete this checklist before creating PR:**
-
-### Build & Test
-- [ ] `mvn clean compile -q` passes
-- [ ] `mvn test` passes (100% success)
-- [ ] Coverage >= 90% (existing), 100% (new)
-- [ ] `mvn verify` passes
-
-### Code Quality
-- [ ] Checkstyle passes
-- [ ] SpotBugs passes (no high priority)
-- [ ] PMD passes
-- [ ] No TODO/FIXME comments (or create issues)
-
-### Documentation
-- [ ] README.md updated
-- [ ] JavaDoc for all public methods
-- [ ] API documentation updated
-- [ ] Architecture docs updated (if structural changes)
-
-### Git
-- [ ] Meaningful commit messages
-- [ ] Branch named properly: `feature/description` or `fix/description`
-- [ ] Rebased on latest main
-- [ ] No merge conflicts
-
-### Testing
-- [ ] Unit tests for all new code (100% coverage)
-- [ ] Integration tests for DB changes
-- [ ] E2E tests for critical paths
-- [ ] Manual testing completed
-
----
-
-## 🚫 Forbidden Practices
-
-**NEVER DO:**
-
-1. **Code Quality**
-   - Commit commented-out code
-   - Use `System.out.println()` (use logging)
-   - Ignore exceptions (always handle)
-   - Use magic numbers/strings
-
-2. **Testing**
-   - Skip tests to save time
-   - Write tests after code (TDD preferred)
-   - Use Thread.sleep() in tests
-   - Test private methods directly
-
-3. **Git**
-   - Commit to main directly
-   - Force push to shared branches
-   - Commit large binary files
-   - Include credentials in code
-
-4. **Documentation**
-   - Leave placeholder text
-   - Copy-paste without updating
-   - Skip documentation for "obvious" things
-   - Use outdated screenshots
-
----
-
-## 🎯 Success Metrics
-
-**AI Agent success measured by:**
-
-1. **Code Quality**
-   - Zero critical bugs
-   - < 5 medium bugs per PR
-   - 100% test coverage on new code
-
-2. **Performance**
-   - All response times within SLA
-   - No performance regression
-   - Memory usage stable
-
-3. **Documentation**
-   - README always current
-   - JavaDoc complete
-   - Architecture docs accurate
-
-4. **Process**
-   - PR approval rate > 95%
-   - Review turnaround < 2 days
-   - Zero breaking changes
-
----
-
-## 📞 Getting Help
-
-**If stuck or unclear:**
-1. Check [.ai/RULES.md](RULES.md) for coding standards
-2. Check [.ai/SKILLS.md](SKILLS.md) for capabilities
-3. Check [.ai/COVERAGE.md](COVERAGE.md) for testing details
-4. Review [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) for design
-
-**When to ask human:**
+**Ask human for:**
 - Architectural decisions
 - Breaking changes
 - Security concerns
-- Performance bottlenecks
+- Performance optimizations
 
 ---
 
-## 🎓 Continuous Improvement
+## 👤 Maintainer
 
-**After every PR:**
-1. Review what went well
-2. Identify areas for improvement
-3. Update these guidelines if needed
-4. Share learnings with other AI agents
+**Rizki Rachman**  
+📧 rizkifaizalr@gmail.com  
+🔗 [@RizkiRachman](https://github.com/RizkiRachman)
 
 ---
 
-*Remember: Quality over speed. A perfect PR is better than a fast PR.*
+**Remember: Quality > Speed. A perfect PR is better than a fast PR.**
 
-*Last updated: [AUTO-UPDATED BY CI]*
+*Last updated: 2026-03-30*

@@ -165,7 +165,16 @@ A smart microservice that extracts product prices from receipt images using OCR 
 | [Database Schema](docs/DATABASE.md) | Schema details, migrations, optimization |
 | [Testing Guide](docs/TESTING.md) | Test strategy, examples, coverage requirements |
 | [Deployment Guide](docs/DEPLOYMENT.md) | Docker, Kubernetes, production setup |
-| [AI Agent Guidelines](.ai/AGENTS.md) | For AI agents: coding standards, PR requirements |
+| [AI Agent Guidelines](.ai/AGENTS.md) | For AI agents: coding standards, PR workflow, coverage requirements |
+
+### 🤖 AI Documentation
+
+> **For AI agents working on this project:**
+> See [.ai/AGENTS.md](.ai/AGENTS.md) for complete guidelines including:
+> - PR workflow and blocking rules
+> - 100% coverage requirements
+> - Code quality standards (Checkstyle, SpotBugs)
+> - Testing guidelines
 
 ---
 
