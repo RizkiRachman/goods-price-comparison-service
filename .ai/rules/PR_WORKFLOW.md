@@ -161,8 +161,49 @@ mvn verify -P integration-tests
 │  8. Create PR                                          │
 │     git push origin feature/name                        │
 │     gh pr create ...                                    │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   ▼
+┌─────────────────────────────────────────────────────────┐
+│  9. ASK FOR MERGE PERMISSION                             │
+│     MUST ask: "PR is ready, should I merge?"            │
+│                                                         │
+│     ⚠️  NEVER assume approval                           │
+│     ⚠️  Previous approvals do NOT apply                 │
+│     ⚠️  CI passing does NOT mean merge                  │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   ▼
+┌─────────────────────────────────────────────────────────┐
+│  10. WAIT FOR EXPLICIT APPROVAL                          │
+│     Wait for: "merge this" or "approved"                │
+│                                                         │
+│     ❌ STOP if user says: "wait", "stop", "not yet"     │
+│     ❌ STOP if user doesn't respond                     │
+│     ✅ ONLY merge after explicit permission             │
+└──────────────────┬──────────────────────────────────────┘
+                   │
+                   ▼
+┌─────────────────────────────────────────────────────────┐
+│  11. Merge PR                                           │
+│     gh pr merge --squash --delete-branch                │
+│     # ONLY after explicit approval!                     │
 └─────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## ⚠️ CRITICAL: Merge Rules
+
+**Under NO circumstances should AI merge without explicit permission:**
+
+1. **Ask Every Time** - Each PR requires fresh permission
+2. **No Previous Session Approval** - Past approvals don't count
+3. **CI Passing ≠ Approval** - Tests pass doesn't mean merge
+4. **No Assumptions** - "Looks good" or 👍 is NOT approval
+5. **Explicit Words Only** - Must hear "merge" or "approved"
+
+**When in doubt: ASK. When asked to wait: STOP.**
 
 ---
 

@@ -173,10 +173,12 @@ A smart microservice that extracts product prices from receipt images using OCR 
 
 > **For AI agents working on this project:**
 > See [.ai/AGENTS.md](.ai/AGENTS.md) for guidelines including:
-> - PR workflow and blocking rules
+> - **PR workflow and strict merge rules** (explicit approval required)
 > - Commit message guidelines (meaningful, simple)
 > - 100% coverage requirements
 > - Code quality standards
+>
+> **Important:** AI must ask for explicit merge permission every time. Never assume approval from previous sessions.
 
 ---
 

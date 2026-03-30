@@ -21,20 +21,45 @@ Quick reference for AI agents working on this Spring Boot service.
 ### 2. NEVER Auto-Merge
 **AI CANNOT MERGE WITHOUT EXPLICIT PERMISSION**
 
-**❌ FORBIDDEN:**
+**❌ ABSOLUTELY FORBIDDEN:**
 - Auto-merging when CI passes
 - Merging without user saying "merge this"
 - Assuming approval from "looks good" or 👍
+- **Using approval from previous sessions** - Each PR needs fresh approval
+- **Assuming implicit permission** - Must ask explicitly every time
 
 **✅ REQUIRED:**
-- Wait for explicit user instruction
-- User must say: "merge this PR" or "approved, please merge"
+- **Ask for permission explicitly:** "PR is ready, should I merge?"
+- Wait for clear instruction: "merge this" or "approved, please merge"
+- **No exceptions** - even if previous PRs were approved
 - Only then execute merge command
 
-**If user says "stop" or "wait":**
+**If user says "stop", "wait", or doesn't respond:**
 - STOP immediately
 - Do NOT merge
-- Wait for further instructions
+- Wait for explicit "merge" instruction
+- **Do not proceed without clear permission**
+
+---
+
+## 📋 Strict Merge Policy Summary
+
+**Every Single PR Must Follow This:**
+
+1. ✅ Create feature branch
+2. ✅ Make changes
+3. ✅ Run all checks (build, test, coverage)
+4. ✅ Push to feature branch
+5. ✅ Create PR
+6. ✅ **ASK: "PR is ready, should I merge?"**
+7. ⏳ **Wait for explicit "merge" or "approved"**
+8. ✅ Only then merge
+
+**⚠️ CRITICAL REMINDERS:**
+- **Previous approvals do NOT apply** - Ask every time
+- **CI passing does NOT mean merge** - Wait for human approval
+- **No assumptions** - Must get explicit permission
+- **When in doubt, ask** - Better to ask than assume
 
 ---
 

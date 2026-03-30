@@ -21,9 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `skills/JAVA.md` - Java guidelines
   - `skills/TESTING.md` - Testing and coverage requirements
   - `context/PROJECT_OVERVIEW.md` - Project overview
+- CHANGELOG.md and CONTRIBUTING.md for project documentation
+- Strict merge rules in AI documentation (explicit permission required)
 
 ### Changed
 - Reorganized `.ai/` directory structure to match `goods-price-comparison-api` layout
+- Simplified commit message guidelines to be meaningful and natural
 
 ### Fixed
 - Fixed test configuration (`application-test.properties`) - removed invalid `spring.profiles.active`
