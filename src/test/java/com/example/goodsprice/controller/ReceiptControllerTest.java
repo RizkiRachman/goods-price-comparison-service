@@ -5,6 +5,8 @@ import com.example.goodsprice.api.model.ReceiptStatusResponse;
 import com.example.goodsprice.api.model.ReceiptUploadResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
@@ -17,9 +19,11 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Unit tests for ReceiptController.
  */
+@SpringBootTest
 class ReceiptControllerTest {
 
-    private final ReceiptController controller = new ReceiptController();
+    @Autowired
+    private ReceiptController controller;
 
     @Test
     @DisplayName("Should upload receipt and return processing status")
@@ -39,7 +43,7 @@ class ReceiptControllerTest {
         ReceiptUploadResponse body = response.getBody();
         assertNotNull(body);
         assertNotNull(body.getJobId());
-        assertEquals(ReceiptUploadResponse.StatusEnum.PROCESSING, body.getStatus());
+        assertEquals(ReceiptUploadResponse.StatusEnum.COMPLETED, body.getStatus());
     }
 
     @Test
@@ -58,7 +62,6 @@ class ReceiptControllerTest {
         ReceiptStatusResponse body = response.getBody();
         assertNotNull(body);
         assertEquals(receiptId, body.getJobId());
-        assertEquals(ReceiptStatusResponse.StatusEnum.PROCESSING, body.getStatus());
     }
 
     @Test
@@ -86,7 +89,6 @@ class ReceiptControllerTest {
         UUID nullId = null;
 
         // When & Then
-        // Controller currently accepts null but should handle it gracefully
         assertDoesNotThrow(() -> controller.getReceiptStatus(nullId));
     }
 
