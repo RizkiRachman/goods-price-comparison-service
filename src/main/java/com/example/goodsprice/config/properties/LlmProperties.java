@@ -33,12 +33,18 @@ public class LlmProperties {
     private ProviderConfig anthropic = new ProviderConfig();
 
     /**
+     * Google Gemini configuration
+     */
+    private ProviderConfig gemini = new ProviderConfig();
+
+    /**
      * Gets the active provider configuration
      */
     public ProviderConfig getActiveProvider() {
         return switch (provider.toLowerCase()) {
             case "openai" -> openai;
             case "anthropic" -> anthropic;
+            case "gemini" -> gemini;
             default -> local;
         };
     }

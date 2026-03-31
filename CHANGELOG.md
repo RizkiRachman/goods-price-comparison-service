@@ -56,6 +56,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `service.properties` - Service settings
 - Documentation: `docs/CONFIGURATION.md` for configuration guide
 - Unit tests for LLM configuration and service (4 new tests)
+- Google Gemini LLM Provider (`GeminiLLMProvider`)
+  - Vision API support for receipt OCR
+  - Free tier: 60 requests/minute
+  - Default provider for reliable image processing
+  - Supports gemini-1.5-flash model
 
 ### Removed
 - Deleted `application-local.properties` (no longer needed)
