@@ -1,6 +1,8 @@
 package com.example.goodsprice;
 
 import com.example.goodsprice.config.properties.LlmProperties;
+import com.example.goodsprice.config.properties.OcrServiceProperties;
+import com.example.goodsprice.config.properties.TesseractProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -17,7 +19,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  * @since 1.0.0
  */
 @SpringBootApplication
-@EnableConfigurationProperties(LlmProperties.class)
+@EnableConfigurationProperties({LlmProperties.class, TesseractProperties.class, OcrServiceProperties.class})
 public class Application {
 
     /**

@@ -140,6 +140,13 @@
             <artifactId>google-genai</artifactId>
             <version>1.0.0</version>
         </dependency>
+
+        <!-- Tesseract OCR (tess4j) - Open source OCR library -->
+        <dependency>
+            <groupId>net.sourceforge.tess4j</groupId>
+            <artifactId>tess4j</artifactId>
+            <version>5.15.0</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
