@@ -1,23 +1,21 @@
 package com.example.goodsprice.service.llm;
 
 import com.example.goodsprice.config.properties.LlmProperties;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.genai.Client;
+import com.google.genai.types.Content;
+import com.google.genai.types.GenerateContentConfig;
+import com.google.genai.types.GenerateContentResponse;
+import com.google.genai.types.Part;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
 
+import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
- * Google Gemini LLM provider implementation.
+ * Google Gemini LLM provider implementation using official Google GenAI SDK.
  * Uses Gemini API for receipt OCR and text extraction.
  */
 @Slf4j
@@ -26,12 +24,10 @@ import java.util.Map;
 public class GeminiLLMProvider implements LLMProvider {
 
     private final LlmProperties llmProperties;
-    private final RestTemplate restTemplate = new RestTemplate();
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public Map<String, Object> extractReceiptData(String imageBase64) {
-        log.info("Extracting receipt data using Google Gemini");
+        log.info("Extracting receipt data using Google Gemini SDK");
 
         String apiKey = llmProperties.getGemini().getApiKey();
         if (apiKey == null || apiKey.isEmpty()) {
@@ -39,35 +35,51 @@ public class GeminiLLMProvider implements LLMProvider {
         }
 
         String model = llmProperties.getGemini().getModel();
-        String url = String.format(
-            "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s",
-            model, apiKey
-        );
 
         try {
-            // Build request body
-            Map<String, Object> requestBody = new HashMap<>();
-            Map<String, Object> content = new HashMap<>();
-            List<Map<String, Object>> parts = List.of(
-                Map.of("text", "Extract all items, prices, store name, and date from this receipt image. Return as JSON with fields: storeName, date, items (array with productName, quantity, unitPrice, totalPrice), totalAmount."),
-                Map.of("inline_data", Map.of(
-                    "mime_type", "image/jpeg",
-                    "data", imageBase64
+            // Create client with API key
+            Client client = Client.builder().apiKey(apiKey).build();
+
+            // Build the prompt
+            String prompt = """
+                Extract all items, prices, store name, and date from this receipt image.
+                Additional verification:
+                - ensure prices are correctly identified as positive values. If any price is negative, correct it to a positive value in the output.
+                - ensure quantities are correctly identified as positive integers. If any quantity is negative or zero, correct it to a positive integer in the output.
+                - ensure location is able to extract
+                - ensure date is able to extract
+                Return as JSON with fields:
+                - storeName: string
+                - date: string (ISO format)
+                - items: array of objects with productName, quantity, unitPrice, totalPrice
+                - totalAmount: number
+                Only return the JSON, no markdown formatting.
+                """;
+
+            // Build content with text and image
+            Content content = Content.builder()
+                .role("user")
+                .parts(java.util.List.of(
+                    Part.builder().text(prompt).build(),
+                    Part.builder().inlineData(
+                        com.google.genai.types.Blob.builder()
+                            .mimeType("image/jpeg")
+                            .data(Base64.getDecoder().decode(imageBase64))
+                            .build()
+                    ).build()
                 ))
+                .build();
+
+            // Generate content
+            GenerateContentResponse response = client.models.generateContent(
+                model,
+                content,
+                GenerateContentConfig.builder().build()
             );
-            content.put("parts", parts);
-            requestBody.put("contents", List.of(content));
 
-            // Set headers
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            // Make request
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
-
-            // Parse response
-            return parseGeminiResponse(response.getBody());
+            // Parse the response
+            String text = response.text();
+            return parseResponse(text);
 
         } catch (Exception e) {
             log.error("Failed to extract receipt data from Gemini", e);
@@ -76,37 +88,32 @@ public class GeminiLLMProvider implements LLMProvider {
     }
 
     /**
-     * Parse Gemini API response into structured data.
+     * Parse Gemini response text into structured data.
      */
-    private Map<String, Object> parseGeminiResponse(String responseBody) {
+    private Map<String, Object> parseResponse(String text) {
+        Map<String, Object> result = new HashMap<>();
+
+        if (text == null || text.isEmpty()) {
+            result.put("error", "Empty response from Gemini");
+            return result;
+        }
+
+        // Try to extract JSON from markdown code blocks
+        String jsonText = text;
+        if (text.contains("```json")) {
+            jsonText = text.substring(text.indexOf("```json") + 7, text.lastIndexOf("```")).trim();
+        } else if (text.contains("```")) {
+            jsonText = text.substring(text.indexOf("```") + 3, text.lastIndexOf("```")).trim();
+        }
+
         try {
-            JsonNode root = objectMapper.readTree(responseBody);
-            JsonNode candidates = root.path("candidates");
-
-            if (candidates.isEmpty()) {
-                throw new RuntimeException("No response from Gemini API");
-            }
-
-            String text = candidates.get(0)
-                .path("content")
-                .path("parts")
-                .get(0)
-                .path("text")
-                .asText();
-
-            // Try to parse as JSON, otherwise return as text
-            try {
-                return objectMapper.readValue(text, Map.class);
-            } catch (Exception e) {
-                // Return raw text if not valid JSON
-                Map<String, Object> result = new HashMap<>();
-                result.put("rawText", text);
-                return result;
-            }
-
+            // Try to parse as JSON
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            return mapper.readValue(jsonText, Map.class);
         } catch (Exception e) {
-            log.error("Failed to parse Gemini response", e);
-            throw new RuntimeException("Failed to parse response: " + e.getMessage(), e);
+            log.warn("Could not parse response as JSON, returning raw text");
+            result.put("rawText", text);
+            return result;
         }
     }
 
@@ -117,6 +124,12 @@ public class GeminiLLMProvider implements LLMProvider {
 
     @Override
     public boolean isAvailable() {
+        // Check if provider type is configured as cloud (not local)
+        if (llmProperties.getGemini().isLocal()) {
+            log.warn("Gemini provider is configured as local type, but it's a cloud service");
+            return false;
+        }
+
         String apiKey = llmProperties.getGemini().getApiKey();
         return apiKey != null && !apiKey.isEmpty();
     }
