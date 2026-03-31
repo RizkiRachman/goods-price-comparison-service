@@ -61,6 +61,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Free tier: 60 requests/minute
   - Default provider for reliable image processing
   - Supports gemini-1.5-flash model
+- Receipt Processing Service (`ReceiptService`)
+  - Direct integration with Gemini LLM for receipt OCR
+  - Image to base64 conversion
+  - Structured data extraction (store, date, items, prices)
+  - In-memory storage for processed receipts
+  - Updated ReceiptController to use new service
 
 ### Removed
 - Deleted `application-local.properties` (no longer needed)
