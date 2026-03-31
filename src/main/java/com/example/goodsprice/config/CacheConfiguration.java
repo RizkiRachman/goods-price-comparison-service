@@ -22,6 +22,7 @@ public class CacheConfiguration {
     public static final String LLM_RESPONSE_CACHE = "llm-responses";
     public static final String PRICE_SEARCH_CACHE = "price-searches";
     public static final String PRODUCT_TREND_CACHE = "product-trends";
+    public static final String RECEIPT_PROCESSING_CACHE = "receipt-processing";
 
     /**
      * Configure Caffeine cache manager with multiple cache configurations.
@@ -34,6 +35,7 @@ public class CacheConfiguration {
         cacheManager.registerCustomCache(LLM_RESPONSE_CACHE, llmResponseCache());
         cacheManager.registerCustomCache(PRICE_SEARCH_CACHE, priceSearchCache());
         cacheManager.registerCustomCache(PRODUCT_TREND_CACHE, productTrendCache());
+        cacheManager.registerCustomCache(RECEIPT_PROCESSING_CACHE, receiptProcessingCache());
 
         log.info("Cache manager initialized with caches: {}",
             cacheManager.getCacheNames());
@@ -71,14 +73,29 @@ public class CacheConfiguration {
 
     /**
      * Product Trend Cache:
-     - Cache product trend data
-     - Entries expire after 6 hours
-     - Maximum 200 entries
+      - Cache product trend data
+      - Entries expire after 6 hours
+      - Maximum 200 entries
      */
     private com.github.benmanes.caffeine.cache.Cache<Object, Object> productTrendCache() {
         return Caffeine.newBuilder()
             .maximumSize(200)
             .expireAfterWrite(6, TimeUnit.HOURS)
+            .recordStats()
+            .build();
+    }
+
+    /**
+     * Receipt Processing Cache:
+      - Cache receipt processing results by image hash
+      - Prevents duplicate processing of same image
+      - Entries expire after 24 hours
+      - Maximum 1000 entries
+     */
+    private com.github.benmanes.caffeine.cache.Cache<Object, Object> receiptProcessingCache() {
+        return Caffeine.newBuilder()
+            .maximumSize(1000)
+            .expireAfterWrite(24, TimeUnit.HOURS)
             .recordStats()
             .build();
     }
