@@ -57,10 +57,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Documentation: `docs/CONFIGURATION.md` for configuration guide
 - Unit tests for LLM configuration and service (4 new tests)
 - Google Gemini LLM Provider (`GeminiLLMProvider`)
+  - Uses official Google GenAI SDK (`com.google.genai:google-genai:1.0.0`)
   - Vision API support for receipt OCR
   - Free tier: 60 requests/minute
   - Default provider for reliable image processing
-  - Supports gemini-1.5-flash model
+  - Supports gemini-1.5-flash-latest model
 - Receipt Processing Service (`ReceiptService`)
   - Direct integration with Gemini LLM for receipt OCR
   - Image to base64 conversion
