@@ -54,6 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `features.properties` - Feature flags
   - `logging.properties` - Logging configuration
   - `service.properties` - Service settings
+  - `ocr.properties` - OCR configuration
 - Documentation: `docs/CONFIGURATION.md` for configuration guide
 - Unit tests for LLM configuration and service (4 new tests)
 - Google Gemini LLM Provider (`GeminiLLMProvider`)
@@ -62,12 +63,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Free tier: 60 requests/minute
   - Default provider for reliable image processing
   - Supports gemini-1.5-flash-latest model
-- Receipt Processing Service (`ReceiptService`)
-  - Direct integration with Gemini LLM for receipt OCR
-  - Image to base64 conversion
-  - Structured data extraction (store, date, items, prices)
-  - In-memory storage for processed receipts
-  - Updated ReceiptController to use new service
+- **Async Receipt Processing with Status Tracking** (NEW)
+  - Non-blocking receipt upload API (returns immediately with job ID)
+  - Background processing using Spring Events and ThreadPool
+  - Receipt status tracking: PENDING → PROCESSING → COMPLETED/FAILED
+  - Database persistence for receipts with full audit trail
+  - Image deduplication using SHA-256 hash
+  - Retry support for FAILED receipts (deletes old record, creates new)
+  - Extracted data stored as JSON (includes items list)
+  - Thread pool optimization to prevent connection pool exhaustion
+  - Graceful shutdown and timeout handling
+- Receipt Entity (`Receipt`) for database storage
+  - Tracks processing status, extracted data, error messages
+  - Supports retry logic with `resetForRetry()` method
+- Receipt Repository (`ReceiptRepository`) for data access
+- Async Configuration (`AsyncConfiguration`)
+  - ThreadPoolTaskExecutor with optimized settings
+  - Core pool: 3, Max pool: 10, Queue: 50
+  - CallerRunsPolicy for graceful degradation
+  - Thread timeout and graceful shutdown support
+- Receipt Event System
+  - `ReceiptProcessEvent` - Event fired for async processing
+  - `ReceiptProcessEventListener` - Background processor
+  - Handles retries, timeouts, and error recovery
 - LLM Provider Type Configuration
   - Added `type` field to provider config (local vs cloud)
   - Provider type loaded from properties (not hardcoded)

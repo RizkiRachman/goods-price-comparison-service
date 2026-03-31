@@ -25,24 +25,44 @@ A smart microservice that extracts product prices from receipt images using OCR 
 
 ## 🏗️ Architecture Flow
 
+### Async Receipt Processing Architecture
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    CLIENT APPLICATIONS                       │
 │  (Mobile App / Web Dashboard / Admin Portal)                │
 └──────────────────────┬──────────────────────────────────────┘
                        │
-                       │ HTTP/REST API
+                       │ POST /receipts (Image)
                        ▼
 ┌─────────────────────────────────────────────────────────────┐
 │              GOODS-PRICE-COMPARISON-SERVICE                  │
 │                     (Spring Boot)                            │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │   Receipt    │  │    OCR       │  │   Price      │      │
-│  │   Upload     │──│   Service    │──│  Extraction  │      │
-│  │   (Image)    │  │(Google Vision│  │   (Parser)   │      │
-│  └──────────────┘  │   /Tesseract)│  └──────────────┘      │
-│                    └──────────────┘           │             │
-│                                               ▼             │
+│                                                               │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │           Receipt Upload API (Sync)                   │  │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────────────┐   │  │
+│  │  │ Calculate│  │ Check DB │  │ Create Receipt   │   │  │
+│  │  │  Hash    │──│Duplicate?│──│ (PENDING status) │   │  │
+│  │  └──────────┘  └──────────┘  └──────────────────┘   │  │
+│  │                          │                          │  │
+│  │                          ▼                          │  │
+│  │                   ┌──────────────┐                  │  │
+│  │                   │ Return 202   │                  │  │
+│  │                   │ with Job ID  │                  │  │
+│  │                   └──────────────┘                  │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                          │                                   │
+│                          │ Fire Event (After Tx Commit)      │
+│                          ▼                                   │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │         Async Processor (Background Thread)           │  │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────────────┐   │  │
+│  │  │ PROCESS  │──│   LLM    │──│ Store Results    │   │  │
+│  │  │  STATUS  │  │  (Gemini)│  │ (COMPLETED/FAILED│   │  │
+│  │  └──────────┘  └──────────┘  └──────────────────┘   │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                               │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
 │  │  Product     │  │   Store      │  │  Shopping    │      │
 │  │   Query      │  │   Lookup     │  │ Optimization │      │
@@ -54,42 +74,46 @@ A smart microservice that extracts product prices from receipt images using OCR 
                         │ JDBC
                         ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              PostgreSQL Database*                            │
-│  ┌────────────┐  ┌────────────┐  ┌────────────────────┐    │
-│  │   stores   │  │  products  │  │   price_records    │    │
-│  │   (50-100) │  │  (1K-10K)  │  │    (100K-10M)      │    │
-│  └────────────┘  └────────────┘  └────────────────────┘    │
+│              PostgreSQL / H2 Database*                       │
+│  ┌──────────┐  ┌──────────┐  ┌────────────────────────┐   │
+│  │ receipts │  │  stores  │  │    price_records       │   │
+│  │(async    │  │  (50-100)│  │    (100K-10M)          │   │
+│  │ tracking)│  └──────────┘  └────────────────────────┘   │
+│  └──────────┘                                               │
 └─────────────────────────────────────────────────────────────┘
 
 *For local development, H2 in-memory database can be used instead
 ```
 
-### Flow Steps:
+### Async Flow Steps:
 
-1. **Image Upload** 📤
+1. **Image Upload** 📤 (Non-blocking)
    - User takes photo of receipt
    - Uploads via mobile app or web
-   - Image stored temporarily
+   - System calculates SHA-256 hash for deduplication
+   - If duplicate (COMPLETED/PROCESSING): return existing job ID
+   - If duplicate (FAILED): delete old record and retry
+   - Creates receipt record with PENDING status
+   - Returns immediately with job ID (202 ACCEPTED)
 
-2. **OCR Processing** 🤖
-   - Google Vision API or Tesseract extracts text
-   - Raw text parsed into structured data
-   - Product names, prices, quantities identified
+2. **Background Processing** ⚙️ (Async)
+   - Spring Event fires after transaction commits
+   - Async processor picks up the job
+   - Updates status to PROCESSING
+   - Google Gemini extracts text and structure
+   - Stores results (store, date, items, prices) as JSON
+   - Updates status to COMPLETED or FAILED
 
-3. **Data Storage** 💾
-   - Extracted data normalized
-   - Products matched to existing catalog or created new
-   - Price records stored with store, date, and source image
+3. **Status Polling** 📊
+   - Client polls `GET /receipts/{id}/status`
+   - Returns: PENDING → PROCESSING → COMPLETED/FAILED
+   - When COMPLETED, fetch results with `GET /receipts/{id}/results`
 
-4. **Query & Analysis** 🔍
-   - Users search: "Where is Ultra Milk cheapest?"
-   - System queries database and ranks by price
-   - Shopping lists optimized for multiple items
-
-5. **Shopping Route Optimization** 🗺️
-   - Algorithm finds store with most items
-   - Remaining items matched to cheapest individual stores
-   - Route generated with GPS coordinates
+4. **Retry Support** 🔄
+   - If processing fails, receipt marked as FAILED
+   - User can re-upload same image (new attempt)
+   - Old failed record deleted, new one created
+   - Fresh processing with same or different result
 
 ---
 
