@@ -1,20 +1,17 @@
-package com.example.goodsprice.config;
+package com.example.goodsprice.service.llm;
 
 import com.example.goodsprice.config.properties.LlmProperties;
-import com.example.goodsprice.service.llm.GeminiLLMProvider;
-import com.example.goodsprice.service.llm.LLMProvider;
-import com.example.goodsprice.service.llm.LocalLLMProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * LLM Configuration.
+ * LLM Provider Factory.
  * Creates the appropriate LLM provider bean based on configuration.
  */
 @Slf4j
 @Configuration
-public class LLMConfiguration {
+public class LlmProviderFactory {
 
     /**
      * Creates the Gemini provider bean.
