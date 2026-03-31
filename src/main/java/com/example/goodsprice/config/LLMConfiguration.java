@@ -46,6 +46,12 @@ public class LLMConfiguration {
                                    GeminiLLMProvider geminiProvider,
                                    LocalLLMProvider localProvider) {
         String provider = llmProperties.getProvider();
+        
+        // Handle null or empty provider
+        if (provider == null || provider.isEmpty()) {
+            log.warn("No LLM provider configured, falling back to local");
+            return localProvider;
+        }
 
         log.info("Configuring LLM provider: {}", provider);
 

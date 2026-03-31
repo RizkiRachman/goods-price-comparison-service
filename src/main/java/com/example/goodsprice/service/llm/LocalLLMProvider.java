@@ -45,7 +45,13 @@ public class LocalLLMProvider implements LLMProvider {
 
     @Override
     public boolean isAvailable() {
-        // TODO: Implement health check to Ollama
+        // Check if provider type is configured as local
+        if (!llmProperties.getLocal().isLocal()) {
+            log.warn("Local provider is not configured as local type");
+            return false;
+        }
+        
+        // TODO: Implement actual health check to Ollama
         return true;
     }
 }

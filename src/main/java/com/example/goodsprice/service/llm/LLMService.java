@@ -82,6 +82,15 @@ public class LLMService {
     }
 
     /**
+     * Check if the LLM provider is available.
+     *
+     * @return true if provider is ready
+     */
+    public boolean isAvailable() {
+        return llmProvider.isAvailable();
+    }
+
+    /**
      * Clear the LLM response cache.
      * Useful for testing or when models are updated.
      */

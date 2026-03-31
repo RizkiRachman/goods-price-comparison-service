@@ -17,9 +17,10 @@ class LlmPropertiesTest {
     private LlmProperties llmProperties;
 
     @Test
-    @DisplayName("Should load default provider configuration")
-    void shouldLoadDefaultProvider() {
-        assertEquals("local", llmProperties.getProvider());
+    @DisplayName("Should load provider from properties")
+    void shouldLoadProviderFromProperties() {
+        // Provider should be loaded from properties file (gemini)
+        assertEquals("gemini", llmProperties.getProvider());
     }
 
     @Test
@@ -49,7 +50,7 @@ class LlmPropertiesTest {
         LlmProperties.ProviderConfig active = llmProperties.getActiveProvider();
         
         assertNotNull(active);
-        // With default provider=local, should return local config
-        assertEquals("http://localhost:11434", active.getBaseUrl());
+        // With provider=gemini in properties, should return gemini config
+        assertEquals("https://generativelanguage.googleapis.com/v1beta", active.getBaseUrl());
     }
 }

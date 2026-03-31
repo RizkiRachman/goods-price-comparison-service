@@ -13,9 +13,10 @@ import org.springframework.context.annotation.Configuration;
 public class LlmProperties {
 
     /**
-     * Selected provider: local | openai | anthropic
+     * Selected provider: local | openai | anthropic | gemini
+     * Loaded from properties file (core.llm.provider)
      */
-    private String provider = "local";
+    private String provider;
 
     /**
      * Local LLM configuration (Ollama)
@@ -38,9 +39,13 @@ public class LlmProperties {
     private ProviderConfig gemini = new ProviderConfig();
 
     /**
-     * Gets the active provider configuration
+     * Gets the active provider configuration based on provider name.
+     * Falls back to local if provider is not set or unknown.
      */
     public ProviderConfig getActiveProvider() {
+        if (provider == null || provider.isEmpty()) {
+            return local;
+        }
         return switch (provider.toLowerCase()) {
             case "openai" -> openai;
             case "anthropic" -> anthropic;
@@ -59,5 +64,20 @@ public class LlmProperties {
         private int timeout = 30;
         private String apiKey;
         private boolean enabled = false;
+        private String type = "cloud"; // local or cloud
+        
+        /**
+         * Check if this is a local provider (requires local service)
+         */
+        public boolean isLocal() {
+            return "local".equalsIgnoreCase(type);
+        }
+        
+        /**
+         * Check if this is a cloud provider (uses API)
+         */
+        public boolean isCloud() {
+            return !isLocal();
+        }
     }
 }

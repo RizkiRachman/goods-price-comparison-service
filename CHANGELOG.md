@@ -67,6 +67,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Structured data extraction (store, date, items, prices)
   - In-memory storage for processed receipts
   - Updated ReceiptController to use new service
+- LLM Provider Type Configuration
+  - Added `type` field to provider config (local vs cloud)
+  - Provider type loaded from properties (not hardcoded)
+  - Removed default value from LlmProperties.provider field
+  - Properties file is now source of truth for provider selection
+  - Fixed `core.llm.provider` to `llm.provider` in config
+  - Updated tests to handle missing API keys gracefully
+  - Added `isLocal()` and `isCloud()` helper methods
 
 ### Removed
 - Deleted `application-local.properties` (no longer needed)

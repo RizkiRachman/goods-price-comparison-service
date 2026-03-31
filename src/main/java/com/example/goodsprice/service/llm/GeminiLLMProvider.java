@@ -117,6 +117,12 @@ public class GeminiLLMProvider implements LLMProvider {
 
     @Override
     public boolean isAvailable() {
+        // Check if provider type is configured as cloud (not local)
+        if (llmProperties.getGemini().isLocal()) {
+            log.warn("Gemini provider is configured as local type, but it's a cloud service");
+            return false;
+        }
+        
         String apiKey = llmProperties.getGemini().getApiKey();
         return apiKey != null && !apiKey.isEmpty();
     }
