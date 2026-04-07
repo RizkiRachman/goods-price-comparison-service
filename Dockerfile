@@ -6,18 +6,15 @@ WORKDIR /build
 
 # Copy pom.xml first to leverage Docker cache for dependencies
 COPY pom.xml .
-COPY .mvn/ .mvn/
-COPY mvnw .
-RUN chmod +x mvnw
 
 # Download dependencies (this layer will be cached)
-RUN ./mvnw dependency:go-offline -B
+RUN mvn dependency:go-offline -B -s /usr/share/maven/conf/settings.xml || true
 
 # Copy source code
 COPY src/ src/
 
 # Build the application
-RUN ./mvnw clean package -DskipTests -B
+RUN mvn clean package -DskipTests -B -s /usr/share/maven/conf/settings.xml
 
 # Runtime stage
 FROM eclipse-temurin:17-jre
