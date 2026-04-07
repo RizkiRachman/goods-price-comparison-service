@@ -270,22 +270,55 @@ spec:
     - name: NAMESPACE
       type: string
       default: "goods-price-ci"
+    - name: ROLLOUT_TIMEOUT
+      type: string
+      default: "300s"
   steps:
+    - name: pre-deploy-cleanup
+      image: bitnami/kubectl:latest
+      script: |
+        #!/bin/bash
+        set -e
+        
+        echo "🧹 Pre-deployment cleanup..."
+        
+        # Force delete any stuck pods from previous deployments
+        kubectl delete pods -n $(params.NAMESPACE) \
+          -l app=goods-price-service \
+          --grace-period=0 \
+          --force \
+          --ignore-not-found=true || true
+        
+        # Wait a moment for cleanup
+        sleep 3
+        
+        echo "✅ Cleanup complete"
+
     - name: deploy
       image: bitnami/kubectl:latest
       script: |
         #!/bin/bash
-        echo "Deploying $(params.IMAGE) to $(params.NAMESPACE)"
+        set -e
         
-        # Apply deployment manifest
+        echo "🚀 Deploying $(params.IMAGE) to $(params.NAMESPACE)"
+        
+        # Apply deployment manifest with health checks
         cat <<EOF | kubectl apply -f -
         apiVersion: apps/v1
         kind: Deployment
         metadata:
           name: goods-price-service
           namespace: $(params.NAMESPACE)
+          labels:
+            app: goods-price-service
+            version: $(date +%s)
         spec:
           replicas: 1
+          strategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 1
+              maxSurge: 1
           selector:
             matchLabels:
               app: goods-price-service
@@ -293,20 +326,83 @@ spec:
             metadata:
               labels:
                 app: goods-price-service
+                version: $(date +%s)
             spec:
+              terminationGracePeriodSeconds: 30
               containers:
               - name: app
                 image: $(params.IMAGE)
                 imagePullPolicy: IfNotPresent
                 ports:
                 - containerPort: 8080
+                  name: http
+                  protocol: TCP
                 env:
                 - name: SPRING_PROFILES_ACTIVE
                   value: "local"
+                # Health checks
+                readinessProbe:
+                  httpGet:
+                    path: /actuator/health
+                    port: 8080
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+                  successThreshold: 1
+                livenessProbe:
+                  httpGet:
+                    path: /actuator/health
+                    port: 8080
+                  initialDelaySeconds: 60
+                  periodSeconds: 30
+                  timeoutSeconds: 5
+                  failureThreshold: 3
+                  successThreshold: 1
+                # Resource limits
+                resources:
+                  requests:
+                    memory: "256Mi"
+                    cpu: "100m"
+                  limits:
+                    memory: "512Mi"
+                    cpu: "500m"
+                # Startup probe for slow-starting apps
+                startupProbe:
+                  httpGet:
+                    path: /actuator/health
+                    port: 8080
+                  initialDelaySeconds: 10
+                  periodSeconds: 5
+                  timeoutSeconds: 5
+                  failureThreshold: 12
+                  successThreshold: 1
         EOF
         
-        # Wait for rollout
-        kubectl rollout status deployment/goods-price-service -n $(params.NAMESPACE)
+        echo "⏳ Waiting for rollout to complete (timeout: $(params.ROLLOUT_TIMEOUT))..."
+        
+        # Wait for rollout with timeout
+        if kubectl rollout status deployment/goods-price-service \
+          -n $(params.NAMESPACE) \
+          --timeout=$(params.ROLLOUT_TIMEOUT); then
+          
+          echo "✅ Deployment successful!"
+          
+          # Show deployment status
+          kubectl get deployment goods-price-service -n $(params.NAMESPACE)
+          kubectl get pods -n $(params.NAMESPACE) -l app=goods-price-service
+          
+        else
+          echo "❌ Rollout failed or timed out"
+          
+          # Show troubleshooting info
+          echo "🔍 Troubleshooting information:"
+          kubectl describe deployment goods-price-service -n $(params.NAMESPACE)
+          kubectl get pods -n $(params.NAMESPACE) -l app=goods-price-service -o wide
+          kubectl logs -n $(params.NAMESPACE) -l app=goods-price-service --tail=50
+          
+          exit 1
+        fi
 
 ---
 # Pipeline Definition
@@ -363,6 +459,8 @@ spec:
       params:
         - name: GOALS
           value: "clean package"
+        - name: MAVEN_OPTS
+          value: "-Xmx2048m -Dorg.slf4j.simpleLogger.defaultLogLevel=info"
 
     # 3. Build Docker image
     - name: docker-build

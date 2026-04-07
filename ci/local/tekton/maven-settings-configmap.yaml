@@ -1,0 +1,82 @@
+# ConfigMap for Maven settings.xml with GitHub Packages Repository Configuration
+# This ConfigMap provides Maven configuration for accessing GitHub Packages
+#
+# The settings.xml uses environment variables that are injected from the
+# github-maven-credentials secret in the pipeline
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: maven-settings
+  namespace: goods-price-ci
+data:
+  settings.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                                  http://maven.apache.org/xsd/settings-1.0.0.xsd">
+      
+      <!-- Define servers for authentication -->
+      <servers>
+        <!-- GitHub Packages repository credentials -->
+        <server>
+          <id>github</id>
+          <username>${env.GITHUB_USERNAME}</username>
+          <password>${env.GITHUB_TOKEN}</password>
+        </server>
+      </servers>
+
+      <!-- Mirror configuration (optional, for better performance) -->
+      <mirrors>
+        <mirror>
+          <id>central-mirror</id>
+          <name>Maven Central Mirror</name>
+          <url>https://repo1.maven.org/maven2</url>
+          <mirrorOf>central</mirrorOf>
+        </mirror>
+      </mirrors>
+
+      <!-- Profile configuration for GitHub Packages -->
+      <profiles>
+        <profile>
+          <id>github</id>
+          <activation>
+            <activeByDefault>true</activeByDefault>
+          </activation>
+          <repositories>
+            <!-- Maven Central Repository -->
+            <repository>
+              <id>central</id>
+              <name>Maven Central</name>
+              <url>https://repo.maven.apache.org/maven2</url>
+              <releases>
+                <enabled>true</enabled>
+              </releases>
+              <snapshots>
+                <enabled>false</enabled>
+              </snapshots>
+            </repository>
+            
+            <!-- GitHub Packages Repository -->
+            <repository>
+              <id>github</id>
+              <name>GitHub Packages</name>
+              <url>https://maven.pkg.github.com/RizkiRachman/goods-price-comparison-api</url>
+              <releases>
+                <enabled>true</enabled>
+              </releases>
+              <snapshots>
+                <enabled>true</enabled>
+              </snapshots>
+            </repository>
+          </repositories>
+        </profile>
+      </profiles>
+
+      <!-- Active profiles by default -->
+      <activeProfiles>
+        <activeProfile>github</activeProfile>
+      </activeProfiles>
+    </settings>
+
