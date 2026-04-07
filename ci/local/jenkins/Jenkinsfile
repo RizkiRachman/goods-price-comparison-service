@@ -1,0 +1,169 @@
+pipeline {
+    agent any
+    
+    environment {
+        // Registry configuration (simulates Quay)
+        REGISTRY_URL = 'localhost:5000'
+        IMAGE_NAME = 'goods-price-comparison-service'
+        IMAGE_TAG = "${env.BUILD_NUMBER}"
+        FULL_IMAGE = "${REGISTRY_URL}/${IMAGE_NAME}:${IMAGE_TAG}"
+        
+        // Maven configuration
+        MAVEN_OPTS = '-Xmx1024m'
+        
+        // API Keys (would be credentials in production)
+        GEMINI_API_KEY = credentials('gemini-api-key')
+    }
+    
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 30, unit: 'MINUTES')
+        disableConcurrentBuilds()
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+                sh 'git log -1 --pretty=%B'
+            }
+        }
+        
+        stage('Build & Test') {
+            parallel {
+                stage('Compile') {
+                    steps {
+                        sh 'mvn clean compile -DskipTests'
+                    }
+                }
+                stage('Unit Tests') {
+                    steps {
+                        sh 'mvn test'
+                    }
+                    post {
+                        always {
+                            junit testResults: 'target/surefire-reports/*.xml'
+                            jacoco execPattern: 'target/jacoco.exec'
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Code Quality') {
+            steps {
+                sh 'mvn spotbugs:check'
+                sh 'mvn checkstyle:check'
+            }
+        }
+        
+        stage('Package') {
+            steps {
+                sh 'mvn package -DskipTests'
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    def image = docker.build("${env.IMAGE_NAME}:${env.IMAGE_TAG}")
+                    
+                    // Tag for local registry
+                    sh "docker tag ${env.IMAGE_NAME}:${env.IMAGE_TAG} ${env.FULL_IMAGE}"
+                    
+                    // Push to local registry (simulates Quay)
+                    sh "docker push ${env.FULL_IMAGE}"
+                    
+                    // Also tag as latest
+                    sh "docker tag ${env.FULL_IMAGE} ${env.REGISTRY_URL}/${env.IMAGE_NAME}:latest"
+                    sh "docker push ${env.REGISTRY_URL}/${env.IMAGE_NAME}:latest"
+                }
+            }
+        }
+        
+        stage('Security Scan') {
+            steps {
+                script {
+                    // Trivy vulnerability scan (install Trivy first)
+                    sh """
+                        if command -v trivy &> /dev/null; then
+                            trivy image --exit-code 0 --severity HIGH,CRITICAL ${env.FULL_IMAGE}
+                        else
+                            echo 'Trivy not installed, skipping security scan'
+                        fi
+                    """
+                }
+            }
+        }
+        
+        stage('Deploy to Local') {
+            steps {
+                script {
+                    // Update docker-compose with new image
+                    sh """
+                        sed -i 's|image: goods-price-service:.*|image: ${env.FULL_IMAGE}|' ci/local/docker-compose.yml || true
+                        docker-compose -f ci/local/docker-compose.yml up -d app
+                    """
+                    
+                    // Wait for app to be healthy
+                    sh '''
+                        echo "Waiting for application to start..."
+                        for i in {1..30}; do
+                            if curl -s http://localhost:8080/health | grep -q "UP"; then
+                                echo "Application is healthy!"
+                                exit 0
+                            fi
+                            echo "Attempt $i: Application not ready yet..."
+                            sleep 5
+                        done
+                        echo "Application failed to start"
+                        exit 1
+                    '''
+                }
+            }
+        }
+        
+        stage('Smoke Tests') {
+            steps {
+                script {
+                    // Basic smoke tests
+                    sh '''
+                        echo "Testing /health endpoint..."
+                        curl -f http://localhost:8080/health || exit 1
+                        
+                        echo "Testing /version endpoint..."
+                        curl -f http://localhost:8080/v1/version || exit 1
+                        
+                        echo "Smoke tests passed!"
+                    '''
+                }
+            }
+        }
+    }
+    
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo """
+            ✅ Build Successful!
+            
+            Image: ${env.FULL_IMAGE}
+            Registry: http://localhost:5000
+            Application: http://localhost:8080
+            Jenkins: http://localhost:8082
+            
+            Deployed to local environment.
+            """
+        }
+        failure {
+            echo """
+            ❌ Build Failed!
+            
+            Check logs above for details.
+            """
+        }
+    }
+}

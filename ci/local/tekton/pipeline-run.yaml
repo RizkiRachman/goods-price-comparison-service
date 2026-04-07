@@ -1,0 +1,29 @@
+# Sample PipelineRun for manual execution
+# Create this resource to trigger a pipeline run manually
+# Usage: kubectl create -f tekton/pipeline-run.yaml
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: goods-price-service-manual-
+  namespace: goods-price-ci
+spec:
+  pipelineRef:
+    name: goods-price-service-pipeline
+  workspaces:
+    - name: shared-workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+  params:
+    - name: git-url
+      value: "https://github.com/RizkiRachman/goods-price-comparison-service.git"
+    - name: git-revision
+      value: "main"
+    - name: image-name
+      value: "goods-price-comparison-service"
+    - name: registry
+      value: "localhost:5000"
