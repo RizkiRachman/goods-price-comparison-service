@@ -99,6 +99,7 @@ start_pipeline() {
         --namespace="${NAMESPACE}" \
         --workspace name=shared-workspace,volumeClaimTemplateFile="${script_dir}/workspace-template.yaml" \
         --workspace name=maven-settings,config=maven-settings \
+        --use-param-defaults \
         --showlog
 }
 
