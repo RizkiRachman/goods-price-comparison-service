@@ -311,7 +311,7 @@ spec:
           namespace: $(params.NAMESPACE)
           labels:
             app: goods-price-service
-            version: $(date +%s)
+            version: "$(date +%s)"
         spec:
           replicas: 1
           strategy:
@@ -326,7 +326,7 @@ spec:
             metadata:
               labels:
                 app: goods-price-service
-                version: $(date +%s)
+                version: "$(date +%s)"
             spec:
               terminationGracePeriodSeconds: 30
               containers:
