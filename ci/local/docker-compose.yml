@@ -1,0 +1,191 @@
+version: '3.8'
+
+# Local CI/CD Stack - Simulates Quay + Harness + OpenShift + Gravitee
+
+services:
+  # ============================================
+  # Container Registry (like Quay)
+  # ============================================
+  registry:
+    image: registry:2.8.3
+    container_name: local-registry
+    ports:
+      - "5000:5000"
+    environment:
+      REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY: /data
+      REGISTRY_HTTP_ADDR: 0.0.0.0:5000
+    volumes:
+      - registry-data:/data
+    networks:
+      - cicd-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:5000/v2/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Harbor (Alternative to simple registry - has UI like Quay)
+  harbor-portal:
+    image: goharbor/harbor-portal:v2.9.0
+    container_name: harbor-portal
+    environment:
+      - CORE_SERVICE=harbor-core:8080
+    ports:
+      - "8081:8080"  # Harbor UI on http://localhost:8081
+    networks:
+      - cicd-network
+    depends_on:
+      - harbor-core
+
+  harbor-core:
+    image: goharbor/harbor-core:v2.9.0
+    container_name: harbor-core
+    environment:
+      - CORE_DATABASE_TYPE=postgresql
+      - CORE_DB_HOST=postgres
+      - CORE_DB_PORT=5432
+      - CORE_DB_USERNAME=postgres
+      - CORE_DB_PASSWORD=harbor123
+      - CORE_DB_DATABASE=registry
+      - CORE_REGISTRY_URL=http://registry:5000
+    networks:
+      - cicd-network
+    depends_on:
+      - postgres
+      - registry
+
+  # ============================================
+  # CI/CD Server (like Harness)
+  # ============================================
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    container_name: local-jenkins
+    user: root
+    ports:
+      - "8082:8080"    # Jenkins UI on http://localhost:8082
+      - "50000:50000"  # Agent port
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+      - JENKINS_ADMIN_ID=admin
+      - JENKINS_ADMIN_PASSWORD=admin123
+    volumes:
+      - jenkins-data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock  # Allow Jenkins to run Docker
+      - ./jenkins/plugins.txt:/usr/share/jenkins/ref/plugins.txt
+      - ./jenkins/jobs:/usr/share/jenkins/ref/jobs
+      - ./jenkins/casc.yml:/usr/share/jenkins/ref/casc.yml
+    networks:
+      - cicd-network
+    depends_on:
+      - registry
+      - postgres
+
+  # ============================================
+  # Database
+  # ============================================
+  postgres:
+    image: postgres:14-alpine
+    container_name: local-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: price_comparison
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - cicd-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # API Gateway (like Gravitee)
+  # ============================================
+  kong:
+    image: kong:3.5
+    container_name: local-kong
+    environment:
+      KONG_DATABASE: "off"  # DB-less mode for simplicity
+      KONG_DECLARATIVE_CONFIG: /kong/declarative/kong.yml
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_PLUGINS: bundled
+    ports:
+      - "8000:8000"  # Proxy port
+      - "8001:8001"  # Admin API
+      - "8443:8443"  # Proxy SSL
+      - "8444:8444"  # Admin SSL
+    volumes:
+      - ./kong/kong.yml:/kong/declarative/kong.yml
+    networks:
+      - cicd-network
+    depends_on:
+      - app
+
+  # ============================================
+  # Application (for testing deployments)
+  # ============================================
+  app:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    container_name: goods-price-app
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/price_comparison
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+    ports:
+      - "8080:8080"
+    networks:
+      - cicd-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ============================================
+  # Monitoring & Observability (Optional)
+  # ============================================
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: local-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - cicd-network
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: local-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - cicd-network
+    depends_on:
+      - prometheus
+
+volumes:
+  registry-data:
+  jenkins-data:
+  postgres-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  cicd-network:
+    driver: bridge

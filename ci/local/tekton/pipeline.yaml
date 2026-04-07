@@ -1,0 +1,423 @@
+# Tekton CI/CD Pipeline for Local Development
+# Tekton is cloud-native CI/CD (similar to Harness)
+#
+# Prerequisites:
+# 1. Install kind: brew install kind
+# 2. Create cluster: kind create cluster --name goods-price-ci
+# 3. Install Tekton:
+#    kubectl apply --filename https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
+# 4. Install Tekton CLI: brew install tektoncd-cli
+#
+# Setup:
+# 1. Apply this pipeline: kubectl apply -f tekton/pipeline.yaml
+# 2. Create PVC: kubectl apply -f tekton/maven-cache-pvc.yaml
+#
+# Run pipeline:
+# tkn pipeline start goods-price-service-pipeline \
+#   --showlog \
+#   -n goods-price-ci \
+#   -w name=shared-workspace,volumeClaimTemplateFile=tekton/workspace-template.yaml \
+#   -w name=maven-cache,claimName=maven-cache-pvc
+
+---
+# Task: Clone Git repository
+# Using embedded Task instead of deprecated ClusterTask
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: git-clone
+  namespace: goods-price-ci
+  labels:
+    app.kubernetes.io/version: "0.9"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.38.0"
+    tekton.dev/categories: Git
+    tekton.dev/tags: git
+    tekton.dev/displayName: "git clone"
+spec:
+  description: >-
+    These Tasks are Git tasks to work with repositories used by other Tasks
+    in your Pipeline.
+    The git-clone Task will clone a repo from the provided url into the
+    output Workspace. By default the repo will be cloned into the root of
+    your Workspace.
+  workspaces:
+    - name: output
+      description: The git repo will be cloned onto the volume backing this Workspace.
+    - name: ssh-directory
+      optional: true
+      description: >-
+        A .ssh directory with private key, known_hosts, config, etc. Copied to
+        the user's home before git commands are executed. Used to authenticate
+        with the git remote when performing the clone. Binding a Secret to this
+        Workspace is strongly discouraged over other auth methods.
+    - name: basic-auth
+      optional: true
+      description: >-
+        A Workspace containing a .gitconfig and .git-credentials file. These
+        will be copied to the user's home before any git commands are run. Any
+        other files in this Workspace are ignored. It is strongly recommended
+        to use ssh-directory over basic-auth whenever possible and to bind a
+        Secret to this Workspace over other volume types.
+  params:
+    - name: url
+      description: Repository URL to clone from.
+      type: string
+    - name: revision
+      description: Revision to checkout. (branch, tag, sha, ref, etc...)
+      type: string
+      default: ""
+    - name: refspec
+      description: Refspec to fetch before checking out revision.
+      type: string
+      default: ""
+    - name: submodules
+      description: Initialize and fetch git submodules.
+      type: string
+      default: "true"
+    - name: depth
+      description: Perform a shallow clone, fetching only the most recent N commits.
+      type: string
+      default: "1"
+    - name: sslVerify
+      description: Set the `http.sslVerify` global git config.
+      type: string
+      default: "true"
+    - name: subdirectory
+      description: Subdirectory inside the `output` Workspace to clone the repo into.
+      type: string
+      default: ""
+    - name: deleteExisting
+      description: Clean out the contents of the destination directory if it already exists before cloning.
+      type: string
+      default: "true"
+    - name: verbose
+      description: Log the commands that are executed during `git-clone`'s operation.
+      type: string
+      default: "true"
+    - name: gitInitImage
+      description: The image providing git that this Task runs.
+      type: string
+      default: "alpine/git:latest"
+    - name: userHome
+      description: >-
+        Absolute path to the user's home directory.
+      type: string
+      default: "/root"
+  results:
+    - name: commit
+      description: The precise commit SHA that was fetched by this Task.
+    - name: url
+      description: The precise URL that was fetched by this Task.
+  steps:
+    - name: clone
+      image: "$(params.gitInitImage)"
+      securityContext:
+        runAsUser: 0
+      env:
+        - name: HOME
+          value: $(params.userHome)
+      workingDir: $(workspaces.output.path)
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        
+        if [ "$(params.verbose)" = "true" ] ; then
+          set -x
+        fi
+        
+        git config --global --add safe.directory $(workspaces.output.path)
+        
+        # Clone the repository
+        if [ "$(params.deleteExisting)" = "true" ] && [ -d "$(params.subdirectory)" ]; then
+          rm -rf "$(params.subdirectory)"
+        fi
+        
+        git clone \
+          --branch="$(params.revision)" \
+          --depth="$(params.depth)" \
+          --single-branch \
+          "$(params.url)" \
+          "$(workspaces.output.path)/$(params.subdirectory)"
+        
+        cd "$(workspaces.output.path)/$(params.subdirectory)"
+        
+        git rev-parse HEAD | tr -d '\n' > "$(results.commit.path)"
+        echo -n "$(params.url)" > "$(results.url.path)"
+
+---
+# Task: Maven Build
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: maven-build
+  namespace: goods-price-ci
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: GOALS
+      type: array
+      default: ["clean", "package"]
+    - name: MAVEN_OPTS
+      type: string
+      default: "-Xmx1024m"
+  steps:
+    - name: build
+      image: maven:3.9-eclipse-temurin-17
+      workingDir: $(workspaces.source.path)ads
+      env:
+        - name: MAVEN_OPTS
+          value: $(params.MAVEN_OPTS)
+        - name: GITHUB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: github-maven-credentials
+              key: username
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: github-maven-credentials
+              key: token
+      command:
+        - mvn
+      args:
+        - $(params.GOALS)
+        - -DskipTests=false
+        - --batch-mode
+        - -s
+        - $(workspaces.source.path)/settings.xml
+
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: docker-build-push
+  namespace: goods-price-ci
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: IMAGE
+      type: string
+    - name: REGISTRY
+      type: string
+      default: "localhost:5000"
+    - name: DOCKERFILE
+      type: string
+      default: "./Dockerfile"
+    - name: CONTEXT
+      type: string
+      default: "."
+  steps:
+    - name: build-and-push
+      image: ghcr.io/kaniko-project/executor:latest
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: DOCKER_CONFIG
+          value: /tekton/home/.docker
+      command:
+        - /kaniko/executor
+      args:
+        - --dockerfile=$(params.DOCKERFILE)
+        - --context=$(params.CONTEXT)
+        - --destination=$(params.REGISTRY)/$(params.IMAGE)
+        - --insecure-registry=$(params.REGISTRY)
+        - --skip-tls-verify
+
+---
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: deploy-to-local
+  namespace: goods-price-ci
+spec:
+  params:
+    - name: IMAGE
+      type: string
+    - name: NAMESPACE
+      type: string
+      default: "goods-price-ci"
+  steps:
+    - name: deploy
+      image: bitnami/kubectl:latest
+      script: |
+        #!/bin/bash
+        echo "Deploying $(params.IMAGE) to $(params.NAMESPACE)"
+        
+        # Apply deployment manifest
+        cat <<EOF | kubectl apply -f -
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: goods-price-service
+          namespace: $(params.NAMESPACE)
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: goods-price-service
+          template:
+            metadata:
+              labels:
+                app: goods-price-service
+            spec:
+              containers:
+              - name: app
+                image: $(params.IMAGE)
+                ports:
+                - containerPort: 8080
+                env:
+                - name: SPRING_PROFILES_ACTIVE
+                  value: "local"
+        EOF
+        
+        # Wait for rollout
+        kubectl rollout status deployment/goods-price-service -n $(params.NAMESPACE)
+
+---
+# Pipeline Definition
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: goods-price-service-pipeline
+  namespace: goods-price-ci
+spec:
+  workspaces:
+    - name: shared-workspace
+  params:
+    - name: git-url
+      type: string
+      default: "https://github.com/RizkiRachman/goods-price-comparison-service.git"
+    - name: git-revision
+      type: string
+      default: "main"
+    - name: image-name
+      type: string
+      default: "goods-price-comparison-service"
+    - name: registry
+      type: string
+      default: "localhost:5000"
+  tasks:
+    # 1. Clone source code
+    - name: clone
+      taskRef:
+        name: git-clone
+        kind: Task
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+      params:
+        - name: url
+          value: $(params.git-url)
+        - name: revision
+          value: $(params.git-revision)
+
+    # 2. Build and test
+    - name: build
+      taskRef:
+        name: maven-build
+      runAfter:
+        - clone
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+      params:
+        - name: GOALS
+          value: ["clean", "package"]
+
+    # 3. Build Docker image
+    - name: docker-build
+      taskRef:
+        name: docker-build-push
+      runAfter:
+        - build
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+      params:
+        - name: IMAGE
+          value: "$(params.image-name):$(context.pipelineRun.name)"
+        - name: REGISTRY
+          value: $(params.registry)
+
+    # 4. Deploy
+    - name: deploy
+      taskRef:
+        name: deploy-to-local
+      runAfter:
+        - docker-build
+      params:
+        - name: IMAGE
+          value: "$(params.registry)/$(params.image-name):$(context.pipelineRun.name)"
+
+---
+# Trigger Template
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: goods-price-service-trigger-template
+  namespace: goods-price-ci
+spec:
+  params:
+    - name: git-url
+      default: "https://github.com/RizkiRachman/goods-price-comparison-service.git"
+    - name: git-revision
+      default: "main"
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        generateName: goods-price-service-run-
+      spec:
+        pipelineRef:
+          name: goods-price-service-pipeline
+        workspaces:
+          - name: shared-workspace
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 1Gi
+        params:
+          - name: git-url
+            value: $(tt.params.git-url)
+          - name: git-revision
+            value: $(tt.params.git-revision)
+
+# ---
+# # Usage:
+# 
+# # 1. Install Tekton:
+# # kubectl apply --filename https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
+# 
+# # 2. Create PVC for Maven cache:
+# # kubectl create -f - <<EOF
+# # apiVersion: v1
+# # kind: PersistentVolumeClaim
+# # metadata:
+# #   name: maven-cache-pvc
+# # spec:
+# #   accessModes:
+# #     - ReadWriteOnce
+# #   resources:
+# #     requests:
+# #       storage: 5Gi
+# # EOF
+# 
+# # 3. Apply this pipeline:
+# # kubectl apply -f tekton/pipeline.yaml
+# 
+# # 4. Run pipeline:
+# # tkn pipeline start goods-price-service-pipeline \
+# #   --showlog \
+# #   -w name=shared-workspace,volumeClaimTemplateFile=workspace-template.yaml \
+# #   -w name=maven-cache,claimName=maven-cache-pvc
+# 
+# # 5. Check status:
+# # tkn pipelinerun logs -f
+# 
+# # 6. List runs:
+# # tkn pipelinerun list

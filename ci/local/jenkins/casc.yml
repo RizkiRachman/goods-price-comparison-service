@@ -1,0 +1,70 @@
+jenkins:
+  systemMessage: "Goods Price Comparison Service - Local CI/CD"
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: admin
+          password: admin123
+          name: Administrator
+          properties:
+            - mailer:
+                emailAddress: admin@localhost
+  
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - usernamePassword:
+              scope: GLOBAL
+              id: docker-registry-credentials
+              username: admin
+              password: admin123
+              description: Local Docker Registry Credentials
+          - string:
+              scope: GLOBAL
+              id: gemini-api-key
+              secret: ${GEMINI_API_KEY}
+              description: Google Gemini API Key
+          - usernamePassword:
+              scope: GLOBAL
+              id: github-credentials
+              username: ${GITHUB_USERNAME:-git}
+              password: ${GITHUB_TOKEN}
+              description: GitHub Access Token
+
+jobs:
+  - script: >
+      pipelineJob('goods-price-service-build') {
+        description('Build and deploy Goods Price Comparison Service')
+        definition {
+          cpsScm {
+            scm {
+              git {
+                remote {
+                  url('https://github.com/RizkiRachman/goods-price-comparison-service.git')
+                  credentials('github-credentials')
+                }
+                branches('*/main')
+                scriptPath('ci/local/jenkins/Jenkinsfile')
+              }
+            }
+          }
+        }
+        triggers {
+          githubPush()
+        }
+      }
+
+unclassified:
+  location:
+    url: http://localhost:8082/
+  
+  slackNotifier:
+    teamDomain: ''
+    tokenCredentialId: ''
+    room: ''

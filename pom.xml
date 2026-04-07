@@ -27,12 +27,25 @@
         <!-- Shared libraries -->
         <common-utils.version>1.0.0-SNAPSHOT</common-utils.version>
         <common-exception.version>1.0.0-SNAPSHOT</common-exception.version>
-        <api.version>1.0.0-SNAPSHOT</api.version>
+        <api.version>1.2.3</api.version>
         
         <!-- Test coverage -->
         <jacoco.version>0.8.11</jacoco.version>
         <coverage.minimum>0.90</coverage.minimum>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/RizkiRachman/goods-price-comparison-api</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <!-- Spring Boot Starters -->
@@ -73,20 +86,7 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
-        
-        <!-- Shared Libraries -->
-        <dependency>
-            <groupId>com.dev</groupId>
-            <artifactId>common-utils-java</artifactId>
-            <version>${common-utils.version}</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>com.dev</groupId>
-            <artifactId>common-exception-java</artifactId>
-            <version>${common-exception.version}</version>
-        </dependency>
-        
+
         <!-- API Specification -->
         <dependency>
             <groupId>com.example</groupId>
