@@ -1,22 +1,4 @@
-# Multi-stage build for Spring Boot application
-# Build stage
-FROM maven:3.9-eclipse-temurin-17 AS builder
-
-WORKDIR /build
-
-# Copy pom.xml first to leverage Docker cache for dependencies
-COPY pom.xml .
-
-# Download dependencies (this layer will be cached)
-RUN mvn dependency:go-offline -B -s /usr/share/maven/conf/settings.xml || true
-
-# Copy source code
-COPY src/ src/
-
-# Build the application
-RUN mvn clean package -DskipTests -B -s /usr/share/maven/conf/settings.xml
-
-# Runtime stage
+# Simple runtime image for pre-built JAR (built by Tekton maven-build task)
 FROM eclipse-temurin:17-jre
 
 # Create non-root user for security
@@ -24,8 +6,8 @@ RUN groupadd -r spring && useradd -r -g spring spring
 
 WORKDIR /app
 
-# Copy the built JAR from builder stage
-COPY --from=builder /build/target/*.jar app.jar
+# Copy the pre-built JAR from Tekton workspace
+COPY target/*.jar app.jar
 
 # Change ownership to non-root user
 RUN chown -R spring:spring /app
