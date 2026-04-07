@@ -332,7 +332,7 @@ spec:
       default: "goods-price-comparison-service"
     - name: registry
       type: string
-      default: "localhost:32242"
+      default: ""
   tasks:
     # 1. Clone source code
     - name: clone
@@ -363,12 +363,30 @@ spec:
         - name: GOALS
           value: "clean package"
 
+    # Get registry URL dynamically
+    - name: get-registry
+      runAfter:
+        - build
+      taskSpec:
+        steps:
+          - name: get-node-ip
+            image: bitnami/kubectl:latest
+            script: |
+              #!/bin/bash
+              # Get first node internal IP
+              NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
+              # Get registry NodePort
+              NODE_PORT=$(kubectl get svc registry -n goods-price-ci -o jsonpath='{.spec.ports[0].nodePort}')
+              echo -n "${NODE_IP}:${NODE_PORT}" > $(results.registry-url.path)
+        results:
+          - name: registry-url
+
     # 3. Build Docker image
     - name: docker-build
       taskRef:
         name: docker-build-push
       runAfter:
-        - build
+        - get-registry
       workspaces:
         - name: source
           workspace: shared-workspace
@@ -376,7 +394,7 @@ spec:
         - name: IMAGE
           value: "$(params.image-name):$(context.pipelineRun.name)"
         - name: REGISTRY
-          value: $(params.registry)
+          value: "$(tasks.get-registry.results.registry-url)"
 
     # 4. Deploy
     - name: deploy
@@ -386,7 +404,7 @@ spec:
         - docker-build
       params:
         - name: IMAGE
-          value: "$(params.registry)/$(params.image-name):$(context.pipelineRun.name)"
+          value: "$(tasks.get-registry.results.registry-url)/$(params.image-name):$(context.pipelineRun.name)"
 
 ---
 # Trigger Template
@@ -423,38 +441,3 @@ spec:
             value: $(tt.params.git-url)
           - name: git-revision
             value: $(tt.params.git-revision)
-
-# ---
-# # Usage:
-# 
-# # 1. Install Tekton:
-# # kubectl apply --filename https://storage.googleapis.com/tekton-releases/pipeline/latest/release.yaml
-# 
-# # 2. Create PVC for Maven cache:
-# # kubectl create -f - <<EOF
-# # apiVersion: v1
-# # kind: PersistentVolumeClaim
-# # metadata:
-# #   name: maven-cache-pvc
-# # spec:
-# #   accessModes:
-# #     - ReadWriteOnce
-# #   resources:
-# #     requests:
-# #       storage: 5Gi
-# # EOF
-# 
-# # 3. Apply this pipeline:
-# # kubectl apply -f tekton/pipeline.yaml
-# 
-# # 4. Run pipeline:
-# # tkn pipeline start goods-price-service-pipeline \
-# #   --showlog \
-# #   -w name=shared-workspace,volumeClaimTemplateFile=workspace-template.yaml \
-# #   -w name=maven-cache,claimName=maven-cache-pvc
-# 
-# # 5. Check status:
-# # tkn pipelinerun logs -f
-# 
-# # 6. List runs:
-# # tkn pipelinerun list
