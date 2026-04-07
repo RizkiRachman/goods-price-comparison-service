@@ -34,6 +34,7 @@ show_help() {
     echo ""
     echo "Commands:"
     echo "  run       Apply pipeline, delete old runs, and create new run (default)"
+    echo "  start     Start pipeline with tkn CLI and workspaces (interactive)"
     echo "  apply     Apply pipeline configuration only"
     echo "  delete    Delete all PipelineRuns and TaskRuns"
     echo "  logs      Follow logs of the latest PipelineRun"
@@ -45,8 +46,9 @@ show_help() {
     echo "  PIPELINE_RUN_FILE   Path to pipeline-run YAML (default: tekton/pipeline-run.yaml)"
     echo ""
     echo "Examples:"
-    echo "  $0 run              # Full reset and run"
+    echo "  $0 run              # Full reset and run using YAML file"
     echo "  $0                  # Same as 'run'"
+    echo "  $0 start            # Start with tkn CLI (includes maven-settings workspace)"
     echo "  $0 apply            # Just apply pipeline changes"
     echo "  $0 logs             # Watch current run logs"
 }
@@ -82,6 +84,22 @@ create_run() {
         echo "Watch with: tkn pipelinerun logs -f ${run_name} -n ${NAMESPACE}"
         echo "Or check dashboard: http://localhost:8081/api/v1/namespaces/tekton-pipelines/services/tekton-dashboard:http/proxy/"
     fi
+}
+
+start_pipeline() {
+    log "Starting pipeline with tkn CLI..."
+    
+    # Get script directory for workspace template path
+    local script_dir
+    script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    
+    log "Using workspaces: shared-workspace (PVC) and maven-settings (ConfigMap)"
+    
+    tkn pipeline start goods-price-service-pipeline \
+        --namespace="${NAMESPACE}" \
+        --workspace name=shared-workspace,volumeClaimTemplateFile="${script_dir}/workspace-template.yaml" \
+        --workspace name=maven-settings,config=maven-settings \
+        --showlog
 }
 
 follow_logs() {
@@ -122,6 +140,9 @@ run_all() {
 case "${1:-run}" in
     run|start)
         run_all
+        ;;
+    tkn|cli)
+        start_pipeline
         ;;
     apply)
         apply_pipeline

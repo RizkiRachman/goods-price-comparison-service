@@ -128,17 +128,37 @@ spec:
         
         git config --global --add safe.directory $(workspaces.output.path)
         
-        # Clone the repository
+        # Clone the repository with retry logic
         if [ "$(params.deleteExisting)" = "true" ] && [ -d "$(params.subdirectory)" ]; then
           rm -rf "$(params.subdirectory)"
         fi
         
-        git clone \
-          --branch="$(params.revision)" \
-          --depth="$(params.depth)" \
-          --single-branch \
-          "$(params.url)" \
-          "$(workspaces.output.path)/$(params.subdirectory)"
+        # Retry logic: 3 attempts with 5 second delay
+        max_attempts=3
+        attempt=1
+        
+        while [ $attempt -le $max_attempts ]; do
+          echo "Attempt $attempt of $max_attempts: Cloning repository..."
+          
+          if git clone \
+            --branch="$(params.revision)" \
+            --depth="$(params.depth)" \
+            --single-branch \
+            "$(params.url)" \
+            "$(workspaces.output.path)/$(params.subdirectory)"; then
+            echo "Clone successful!"
+            break
+          fi
+          
+          if [ $attempt -eq $max_attempts ]; then
+            echo "ERROR: Failed to clone after $max_attempts attempts"
+            exit 1
+          fi
+          
+          echo "Clone failed, waiting 5 seconds before retry..."
+          sleep 5
+          attempt=$((attempt + 1))
+        done
         
         cd "$(workspaces.output.path)/$(params.subdirectory)"
         
@@ -155,17 +175,20 @@ metadata:
 spec:
   workspaces:
     - name: source
+    - name: maven-settings
+      optional: true
+      description: Workspace containing Maven settings.xml
   params:
     - name: GOALS
-      type: array
-      default: ["clean", "package"]
+      type: string
+      default: "clean package"
     - name: MAVEN_OPTS
       type: string
       default: "-Xmx1024m"
   steps:
     - name: build
       image: maven:3.9-eclipse-temurin-17
-      workingDir: $(workspaces.source.path)ads
+      workingDir: $(workspaces.source.path)
       env:
         - name: MAVEN_OPTS
           value: $(params.MAVEN_OPTS)
@@ -179,14 +202,23 @@ spec:
             secretKeyRef:
               name: github-maven-credentials
               key: token
-      command:
-        - mvn
-      args:
-        - $(params.GOALS)
-        - -DskipTests=false
-        - --batch-mode
-        - -s
-        - $(workspaces.source.path)/settings.xml
+      script: |
+        #!/bin/bash
+        set -e
+        
+        # Build Maven command
+        MAVEN_ARGS="$(params.GOALS) -DskipTests=false --batch-mode"
+        
+        # Add settings.xml if maven-settings workspace is bound
+        if [ -f "$(workspaces.maven-settings.path)/settings.xml" ]; then
+          echo "Using custom Maven settings from workspace"
+          MAVEN_ARGS="$MAVEN_ARGS -s $(workspaces.maven-settings.path)/settings.xml"
+        else
+          echo "Using default Maven settings"
+        fi
+        
+        # Run Maven
+        mvn $MAVEN_ARGS
 
 ---
 apiVersion: tekton.dev/v1
@@ -285,6 +317,8 @@ metadata:
 spec:
   workspaces:
     - name: shared-workspace
+    - name: maven-settings
+      optional: true
   params:
     - name: git-url
       type: string
@@ -322,9 +356,11 @@ spec:
       workspaces:
         - name: source
           workspace: shared-workspace
+        - name: maven-settings
+          workspace: maven-settings
       params:
         - name: GOALS
-          value: ["clean", "package"]
+          value: "clean package"
 
     # 3. Build Docker image
     - name: docker-build
