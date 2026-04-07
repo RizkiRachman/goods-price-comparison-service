@@ -332,7 +332,8 @@ spec:
       default: "goods-price-comparison-service"
     - name: registry
       type: string
-      default: ""
+      description: "Registry URL (e.g., localhost:5000 or node-ip:nodeport). Get node IP with: kubectl get nodes -o wide"
+      default: "localhost:32242"
   tasks:
     # 1. Clone source code
     - name: clone
@@ -363,30 +364,12 @@ spec:
         - name: GOALS
           value: "clean package"
 
-    # Get registry URL dynamically
-    - name: get-registry
-      runAfter:
-        - build
-      taskSpec:
-        steps:
-          - name: get-node-ip
-            image: bitnami/kubectl:latest
-            script: |
-              #!/bin/bash
-              # Get first node internal IP
-              NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}')
-              # Get registry NodePort
-              NODE_PORT=$(kubectl get svc registry -n goods-price-ci -o jsonpath='{.spec.ports[0].nodePort}')
-              echo -n "${NODE_IP}:${NODE_PORT}" > $(results.registry-url.path)
-        results:
-          - name: registry-url
-
     # 3. Build Docker image
     - name: docker-build
       taskRef:
         name: docker-build-push
       runAfter:
-        - get-registry
+        - build
       workspaces:
         - name: source
           workspace: shared-workspace
@@ -394,7 +377,7 @@ spec:
         - name: IMAGE
           value: "$(params.image-name):$(context.pipelineRun.name)"
         - name: REGISTRY
-          value: "$(tasks.get-registry.results.registry-url)"
+          value: "$(params.registry)"
 
     # 4. Deploy
     - name: deploy
@@ -404,7 +387,7 @@ spec:
         - docker-build
       params:
         - name: IMAGE
-          value: "$(tasks.get-registry.results.registry-url)/$(params.image-name):$(context.pipelineRun.name)"
+          value: "$(params.registry)/$(params.image-name):$(context.pipelineRun.name)"
 
 ---
 # Trigger Template

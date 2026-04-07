@@ -93,12 +93,26 @@ start_pipeline() {
     local script_dir
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     
+    # Auto-detect registry URL (node IP + registry NodePort)
+    local node_ip
+    node_ip=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}' 2>/dev/null)
+    local node_port
+    node_port=$(kubectl get svc registry -n "${NAMESPACE}" -o jsonpath='{.spec.ports[0].nodePort}' 2>/dev/null)
+    local registry_url="${node_ip}:${node_port}"
+    
+    if [ -z "$node_ip" ] || [ -z "$node_port" ]; then
+        warn "Could not auto-detect registry URL, using default"
+        registry_url="localhost:32242"
+    fi
+    
+    log "Using registry: ${registry_url}"
     log "Using workspaces: shared-workspace (PVC) and maven-settings (ConfigMap)"
     
     tkn pipeline start goods-price-service-pipeline \
         --namespace="${NAMESPACE}" \
         --workspace name=shared-workspace,volumeClaimTemplateFile="${script_dir}/workspace-template.yaml" \
         --workspace name=maven-settings,config=maven-settings \
+        --param registry="${registry_url}" \
         --use-param-defaults \
         --showlog
 }
