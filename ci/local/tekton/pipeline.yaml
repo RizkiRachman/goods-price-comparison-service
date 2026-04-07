@@ -331,7 +331,7 @@ spec:
       default: "goods-price-comparison-service"
     - name: registry
       type: string
-      default: "localhost:5000"
+      default: "registry.goods-price-ci.svc.cluster.local:5000"
   tasks:
     # 1. Clone source code
     - name: clone
