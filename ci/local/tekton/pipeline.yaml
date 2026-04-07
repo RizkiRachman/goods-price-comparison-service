@@ -297,6 +297,7 @@ spec:
               containers:
               - name: app
                 image: $(params.IMAGE)
+                imagePullPolicy: IfNotPresent
                 ports:
                 - containerPort: 8080
                 env:
