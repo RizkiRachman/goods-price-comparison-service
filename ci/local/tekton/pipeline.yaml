@@ -243,7 +243,7 @@ spec:
       default: "."
   steps:
     - name: build-and-push
-      image: ghcr.io/kaniko-project/executor:latest
+      image: gcr.io/kaniko-project/executor:latest
       workingDir: $(workspaces.source.path)
       env:
         - name: DOCKER_CONFIG
