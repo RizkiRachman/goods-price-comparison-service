@@ -332,7 +332,7 @@ spec:
       default: "goods-price-comparison-service"
     - name: registry
       type: string
-      default: "registry.goods-price-ci.svc.cluster.local:5000"
+      default: "localhost:32242"
   tasks:
     # 1. Clone source code
     - name: clone
