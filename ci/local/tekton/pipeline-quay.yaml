@@ -1,0 +1,77 @@
+# Pipeline: Build in Tekton → Push to Quay → Deploy from Quay
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: goods-price-service-quay-pipeline
+  namespace: goods-price-ci
+spec:
+  params:
+    - name: git-url
+      type: string
+    - name: git-revision
+      type: string
+      default: "main"
+    - name: image-name
+      type: string
+      default: "goods-price-comparison-service"
+    - name: quay-url
+      type: string
+      default: "localhost:8080"
+    - name: quay-user
+      type: string
+      default: "admin"
+  workspaces:
+    - name: shared-workspace
+    - name: maven-settings
+    - name: k8s-manifests
+  tasks:
+    - name: git-clone
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+      params:
+        - name: url
+          value: "$(params.git-url)"
+        - name: revision
+          value: "$(params.git-revision)"
+
+    - name: maven-build
+      taskRef:
+        name: maven-build
+      runAfter:
+        - git-clone
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: maven-settings
+          workspace: maven-settings
+
+    - name: docker-build
+      taskRef:
+        name: docker-build-quay
+      runAfter:
+        - maven-build
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+      params:
+        - name: IMAGE
+          value: "$(params.image-name):$(context.pipelineRun.name)"
+        - name: QUAY_URL
+          value: "$(params.quay-url)"
+        - name: QUAY_USER
+          value: "$(params.quay-user)"
+
+    - name: deploy
+      taskRef:
+        name: deploy-from-registry
+      runAfter:
+        - docker-build
+      workspaces:
+        - name: k8s-manifests
+          workspace: k8s-manifests
+      params:
+        - name: IMAGE
+          value: "$(params.quay-url)/$(params.quay-user)/$(params.image-name):$(context.pipelineRun.name)"

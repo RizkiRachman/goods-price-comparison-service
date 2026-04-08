@@ -1,0 +1,42 @@
+# PipelineRun: Build → Quay → Deploy (all in Tekton)
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: goods-price-service-quay-
+  namespace: goods-price-ci
+spec:
+  pipelineRef:
+    name: goods-price-service-quay-pipeline
+  taskRunTemplate:
+    serviceAccountName: tekton-deployer
+  workspaces:
+    - name: shared-workspace
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+    - name: maven-settings
+      configMap:
+        name: maven-settings
+    - name: k8s-manifests
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+  params:
+    - name: git-url
+      value: "https://github.com/RizkiRachman/goods-price-comparison-service.git"
+    - name: git-revision
+      value: "main"
+    - name: image-name
+      value: "goods-price-comparison-service"
+    - name: quay-url
+      value: "localhost:8080"
+    - name: quay-user
+      value: "admin"

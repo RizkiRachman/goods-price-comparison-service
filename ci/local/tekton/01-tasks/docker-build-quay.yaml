@@ -1,0 +1,46 @@
+# Task: Docker Build and Push to Quay (using Kaniko)
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: docker-build-quay
+  namespace: goods-price-ci
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: IMAGE
+      type: string
+    - name: QUAY_URL
+      type: string
+      default: "localhost:8080"
+    - name: QUAY_USER
+      type: string
+      default: "admin"
+    - name: DOCKERFILE
+      type: string
+      default: "./Dockerfile"
+    - name: CONTEXT
+      type: string
+      default: "."
+  steps:
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor:latest
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: DOCKER_CONFIG
+          value: /tekton/home/.docker
+      command:
+        - /kaniko/executor
+      args:
+        - --dockerfile=$(params.DOCKERFILE)
+        - --context=$(params.CONTEXT)
+        - --destination=$(params.QUAY_URL)/$(params.QUAY_USER)/$(params.IMAGE)
+        - --insecure-registry=$(params.QUAY_URL)
+        - --skip-tls-verify
+    - name: verify-push
+      image: bitnami/kubectl:latest
+      script: |
+        #!/bin/bash
+        echo "✅ Image pushed to Quay: $(params.QUAY_URL)/$(params.QUAY_USER)/$(params.IMAGE)"
+        echo ""
+        echo "View at: http://$(params.QUAY_URL)/repository/$(params.QUAY_USER)/$(echo $(params.IMAGE) | cut -d: -f1)"
