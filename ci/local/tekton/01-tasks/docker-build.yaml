@@ -34,3 +34,16 @@ spec:
         - --destination=$(params.REGISTRY)/$(params.IMAGE)
         - --insecure-registry=$(params.REGISTRY)
         - --skip-tls-verify
+    # Optional: Export image tarball for Podman
+    - name: export-to-podman
+      image: bitnami/kubectl:latest
+      workingDir: $(workspaces.source.path)
+      script: |
+        #!/bin/bash
+        echo "📦 Image pushed to: $(params.REGISTRY)/$(params.IMAGE)"
+        echo ""
+        echo "To pull into local Podman, run:"
+        echo "  ./helpers/podman-registry.sh pull $(params.IMAGE)"
+        echo ""
+        echo "Or manually:"
+        echo "  podman pull $(params.REGISTRY)/$(params.IMAGE) --tls-verify=false"
