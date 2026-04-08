@@ -7,9 +7,13 @@ resources:
   # Tasks (apply first - pipeline depends on them)
   - 01-tasks/git-clone.yaml
   - 01-tasks/maven-build.yaml
+  - 01-tasks/maven-test.yaml
   - 01-tasks/docker-build.yaml
   - 01-tasks/deploy.yaml
-  # Pipeline definition
+  # Pipeline definitions
   - pipeline.yaml
-  # Example PipelineRun (optional)
+  - pipeline-quay.yaml
+  - pipeline-deploy-only.yaml
+  # Example PipelineRuns (optional)
   - pipeline-run.yaml
+  - pipeline-run-quay.yaml
