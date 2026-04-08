@@ -1,11 +1,11 @@
 # Stage 1: Extract Spring Boot layers from fat JAR
-FROM eclipse-temurin:17-jre-alpine AS layers
+FROM eclipse-temurin:17-jre-alpine-arm64 AS layers
 WORKDIR /app
 COPY target/*.jar app.jar
 RUN java -Djarmode=layertools -jar app.jar extract
 
 # Stage 2: Minimal runtime image
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-alpine-arm64
 RUN addgroup -S spring && adduser -S spring -G spring
 WORKDIR /app
 
