@@ -111,9 +111,32 @@ Sync images between Kind registry and local Podman:
 ./setup.sh run
 ```
 
-**Workflow:**
-- Build → Push to Registry → Deploy pulls from same registry
-- All images available in chosen registry
+**Pipeline Flow:**
+
+```
+┌─────────┐   ┌─────────────┐   ┌──────────┐   ┌─────────────┐   ┌─────────┐
+│  Clone  │──▶│ Maven Build │──▶│   Test   │──▶│ Docker Push │──▶│ Deploy  │
+│  Source │   │(skip tests) │   │(unit/int)│   │  to Registry│   │from Reg │
+└─────────┘   └─────────────┘   └──────────┘   └─────────────┘   └─────────┘
+```
+
+**Pipeline Steps:**
+1. **git-clone** - Clone source code
+2. **maven-build** - `mvn clean install -DskipTests` (compile/package)
+3. **maven-test** - `mvn test` (unit tests) or `mvn verify` (integration/mutation)
+4. **docker-build** - Build and push image to registry
+5. **deploy** - Pull image from registry and deploy to Kubernetes
+
+**Test Configuration:**
+```bash
+# Default: unit tests only
+./setup.sh run
+
+# With mutation/integration tests
+./helpers/run-pipeline.sh run --param test-args=verify
+```
+
+**Registry Options:**
 - Switch anytime: `./helpers/switch-registry.sh [local|podman|quay]`
 
 ### Access Services
