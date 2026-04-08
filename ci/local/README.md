@@ -88,13 +88,33 @@ Sync images between Kind registry and local Podman:
 ./helpers/podman-registry.sh cleanup
 ```
 
-**Workflow Options:**
+**Registry Options:**
 
-**Option A: Registry-based (default)**
-- Build → Push to Kind Registry → Deploy pulls from registry
+| Option | Command | Registry URL | Features |
+|--------|---------|--------------|----------|
+| **1. Local** (default) | `./helpers/switch-registry.sh local` | `10.89.0.2:32242` | Built-in, minimal |
+| **2. Podman** | `./helpers/switch-registry.sh podman` | `localhost:5000` | Podman-native |
+| **3. Quay** | `./helpers/switch-registry.sh quay` | `localhost:8080` | UI, scanning, teams |
 
-**Option B: Podman-first**
-- Build → Push to Kind Registry → Pull to Podman → Deploy from Podman
+**Setup Quay:**
+```bash
+# 1. Setup Quay
+./helpers/setup-quay.sh setup
+
+# 2. Open config editor at http://localhost:8081
+# 3. Download config, save to quay/config/config.yaml
+# 4. Restart: ./helpers/setup-quay.sh restart
+# 5. Access UI at http://localhost:8080
+
+# Switch pipeline to use Quay:
+./helpers/switch-registry.sh quay
+./setup.sh run
+```
+
+**Workflow:**
+- Build → Push to Registry → Deploy pulls from same registry
+- All images available in chosen registry
+- Switch anytime: `./helpers/switch-registry.sh [local|podman|quay]`
 
 ### Access Services
 
