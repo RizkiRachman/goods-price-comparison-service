@@ -79,6 +79,7 @@ show_help() {
     echo "  scale-deploy     Scale goods-price-service deployment"
     echo "  resources        Show cluster resource usage"
     echo "  logs-deploy      Show logs for all goods-price-service pods"
+    echo "  tail             Follow (tail -f) logs for goods-price-service pods"
     echo "  maven-verify     Verify Maven GitHub credentials setup"
     echo "  maven-setup      Interactive setup for Maven GitHub credentials"
     echo "  setup            Apply supporting resources (ConfigMaps, PVCs, Secrets)"
@@ -964,6 +965,9 @@ case "${1:-run}" in
         ;;
     logs-deploy)
         show_deployment_logs "$2" "$3"
+        ;;
+    tail|follow)
+        show_deployment_logs "${2:-50}" "true"
         ;;
     maven-verify)
         verify_maven_credentials

@@ -1,42 +1,70 @@
-# Local CI/CD Stack
+# Local CI/CD with Tekton
 
-This directory contains a complete local CI/CD stack that simulates production tools:
+Cloud-native CI/CD pipeline using Tekton on Kind (Kubernetes in Docker).
 
-| Production Tool | Local Alternative | Purpose | URL |
-|----------------|------------------|---------|-----|
-| **Quay** | Docker Registry + Harbor | Container Registry | http://localhost:5000, http://localhost:8081 |
-| **Harness** | Jenkins | CI/CD Pipeline | http://localhost:8082 |
-| **OpenShift** | Docker Compose | Container Platform | Local Docker |
-| **Gravitee** | Kong | API Gateway | http://localhost:8000, http://localhost:8001 (Admin) |
-| **Monitoring** | Prometheus + Grafana | Observability | http://localhost:9090, http://localhost:3000 |
+| Tool | Purpose | Location |
+|------|---------|----------|
+| **Tekton** | CI/CD Pipelines | Kind Cluster |
+| **Kind** | Local Kubernetes | Docker/Podman |
+| **Registry** | Container Images | `10.89.0.2:32242` |
+
+## Directory Structure
+
+```
+ci/local/
+├── setup.sh              # Master setup script
+├── setup/                # Kind cluster setup
+│   └── start.sh
+├── k8s/                  # Kubernetes infrastructure
+│   ├── namespace.yaml    # Create namespace
+│   ├── rbac.yaml         # Service accounts & roles
+│   ├── registry.yaml     # Docker registry
+│   ├── deployment.yaml   # App deployment
+│   ├── service.yaml      # App service
+│   └── kustomization.yaml
+├── tekton/               # CI/CD pipeline
+│   ├── 01-tasks/         # Pipeline tasks
+│   │   ├── git-clone.yaml
+│   │   ├── maven-build.yaml
+│   │   ├── docker-build.yaml
+│   │   └── deploy.yaml
+│   ├── pipeline.yaml     # Main pipeline
+│   ├── pipeline-run.yaml # Example run
+│   ├── config/           # Maven settings, PVCs
+│   └── kustomization.yaml
+└── helpers/              # Utility scripts
+    ├── run-pipeline.sh
+    ├── apply-all.sh
+    ├── setup-maven-credentials.sh
+    └── podman-helpers.sh
+```
 
 ## Quick Start
 
-### Prerequisites
-
 ```bash
-# Install Docker Desktop
-# https://www.docker.com/products/docker-desktop
+# 1. Setup Kind cluster (if not already created)
+cd ci/local
+./setup/start.sh
 
-# Verify Docker is running
-docker --version
-docker-compose --version
+# 2. Apply all resources
+./setup.sh all
+
+# 3. Run the pipeline
+./setup.sh run
+
+# Or do it all at once:
+./setup.sh all && ./setup.sh run
 ```
 
-### Start the Stack
+### Individual Commands
 
 ```bash
-# Navigate to CI directory
-cd ci/local
-
-# Start all services
-docker-compose up -d
-
-# View logs
-docker-compose logs -f
-
-# Check status
-docker-compose ps
+./setup.sh k8s       # Apply K8s resources only
+./setup.sh tekton    # Apply Tekton pipeline
+./setup.sh config    # Apply supporting configs
+./setup.sh status    # Check status
+./setup.sh logs      # View app logs
+./setup.sh delete    # Clean up everything
 ```
 
 ### Access Services

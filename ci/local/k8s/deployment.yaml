@@ -1,9 +1,10 @@
-# Deployment manifest for goods-price-service
+# 04 - Deployment manifest for goods-price-service
 # Applied by Tekton deploy-to-local Task
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: goods-price-service
+  namespace: goods-price-ci
   labels:
     app: goods-price-service
 spec:
@@ -60,18 +61,3 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: goods-price-service
-  labels:
-    app: goods-price-service
-spec:
-  type: ClusterIP
-  selector:
-    app: goods-price-service
-  ports:
-  - port: 8080
-    targetPort: 8080
-    name: http

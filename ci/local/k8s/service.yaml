@@ -1,0 +1,16 @@
+# 05 - Service for goods-price-service
+apiVersion: v1
+kind: Service
+metadata:
+  name: goods-price-service
+  namespace: goods-price-ci
+  labels:
+    app: goods-price-service
+spec:
+  type: ClusterIP
+  selector:
+    app: goods-price-service
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http

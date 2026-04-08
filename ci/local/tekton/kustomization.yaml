@@ -4,12 +4,12 @@ kind: Kustomization
 namespace: goods-price-ci
 
 resources:
-  # Tasks (must be applied before Pipeline)
-  - tasks/git-clone.yaml
-  - tasks/maven-build.yaml
-  - tasks/docker-build-push.yaml
-  - tasks/deploy-to-local.yaml
-  # Pipeline (references Tasks above)
+  # Tasks (apply first - pipeline depends on them)
+  - 01-tasks/git-clone.yaml
+  - 01-tasks/maven-build.yaml
+  - 01-tasks/docker-build.yaml
+  - 01-tasks/deploy.yaml
+  # Pipeline definition
   - pipeline.yaml
-  # Triggers (optional, for webhook triggers)
-  - triggers/trigger-template.yaml
+  # Example PipelineRun (optional)
+  - pipeline-run.yaml
