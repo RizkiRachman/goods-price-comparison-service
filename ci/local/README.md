@@ -67,6 +67,35 @@ cd ci/local
 ./setup.sh delete    # Clean up everything
 ```
 
+### Podman Integration (Optional)
+
+Sync images between Kind registry and local Podman:
+
+```bash
+# After pipeline builds, sync latest image to Podman:
+./helpers/post-build-sync.sh auto
+
+# Or sync specific image:
+./helpers/post-build-sync.sh sync goods-price-comparison-service:latest
+
+# List local Podman images:
+./helpers/podman-registry.sh list
+
+# Deploy from Podman (instead of registry):
+./helpers/post-build-sync.sh deploy goods-price-comparison-service:latest
+
+# Cleanup unused Podman images:
+./helpers/podman-registry.sh cleanup
+```
+
+**Workflow Options:**
+
+**Option A: Registry-based (default)**
+- Build → Push to Kind Registry → Deploy pulls from registry
+
+**Option B: Podman-first**
+- Build → Push to Kind Registry → Pull to Podman → Deploy from Podman
+
 ### Access Services
 
 | Service | URL | Credentials |
