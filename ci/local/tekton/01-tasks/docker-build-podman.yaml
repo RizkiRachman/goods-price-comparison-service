@@ -1,0 +1,89 @@
+# Task: Docker Build and Load into Podman/Kind
+# Builds image with Kaniko, exports tarball, imports to Podman and Kind
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: docker-build-podman
+  namespace: goods-price-ci
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: IMAGE
+      type: string
+    - name: DOCKERFILE
+      type: string
+      default: "./Dockerfile"
+    - name: CONTEXT
+      type: string
+      default: "."
+    - name: PODMAN_TAG
+      type: string
+      default: "latest"
+  steps:
+    # Step 1: Build with Kaniko and save as tarball
+    - name: build-and-export
+      image: gcr.io/kaniko-project/executor:latest
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: DOCKER_CONFIG
+          value: /tekton/home/.docker
+      command:
+        - /kaniko/executor
+      args:
+        - --dockerfile=$(params.DOCKERFILE)
+        - --context=$(params.CONTEXT)
+        - --no-push
+        - --tarPath=/workspace/image.tar
+      volumeMounts:
+        - name: image-tar
+          mountPath: /workspace
+
+    # Step 2: Copy tarball to shared workspace for Podman import
+    - name: export-to-workspace
+      image: busybox
+      command:
+        - cp
+      args:
+        - /workspace/image.tar
+        - $(workspaces.source.path)/image.tar
+      volumeMounts:
+        - name: image-tar
+          mountPath: /workspace
+
+  volumes:
+    - name: image-tar
+      emptyDir: {}
+
+---
+# Task: Import image to Podman (run on host, not in cluster)
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: podman-import
+  namespace: goods-price-ci
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: IMAGE_NAME
+      type: string
+    - name: TAG
+      type: string
+      default: "latest"
+  steps:
+    - name: import-to-podman
+      image: bitnami/kubectl:latest
+      script: |
+        #!/bin/bash
+        echo "📦 Image tarball saved at: $(workspaces.source.path)/image.tar"
+        echo ""
+        echo "To import into local Podman, run on HOST (not in pod):"
+        echo "  cd $(workspaces.source.path)"
+        echo "  podman load -i image.tar"
+        echo "  podman tag localhost/tmp $(params.IMAGE_NAME):$(params.TAG)"
+        echo ""
+        echo "To import into Kind, run on HOST:"
+        echo "  kind load image-archive $(workspaces.source.path)/image.tar --name goods-price-ci"
+        echo ""
+        echo "Then deploy with imagePullPolicy: Never"
