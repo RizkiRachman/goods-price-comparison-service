@@ -1,4 +1,3 @@
-# Pipeline Definition
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
@@ -7,11 +6,6 @@ metadata:
 spec:
   workspaces:
     - name: shared-workspace
-    - name: maven-settings
-      optional: true
-    - name: k8s-manifests
-      description: Workspace containing Kubernetes deployment manifests
-      optional: true
   params:
     - name: git-url
       type: string
@@ -24,14 +18,11 @@ spec:
       default: "goods-price-comparison-service"
     - name: registry
       type: string
-      description: "Registry URL (e.g., localhost:5000 or node-ip:nodeport). Get node IP with: kubectl get nodes -o wide"
-      default: "localhost:32242"
+      default: "localhost:5000"
   tasks:
-    # 1. Clone source code
     - name: clone
       taskRef:
         name: git-clone
-        kind: Task
       workspaces:
         - name: output
           workspace: shared-workspace
@@ -40,8 +31,6 @@ spec:
           value: $(params.git-url)
         - name: revision
           value: $(params.git-revision)
-
-    # 2. Build and test
     - name: build
       taskRef:
         name: maven-build
@@ -50,18 +39,14 @@ spec:
       workspaces:
         - name: source
           workspace: shared-workspace
-        - name: maven-settings
-          workspace: maven-settings
+        - name: maven-cache
+          workspace: shared-workspace
       params:
         - name: GOALS
-          value: "clean package"
-        - name: MAVEN_OPTS
-          value: "-Xmx2048m -Dorg.slf4j.simpleLogger.defaultLogLevel=info"
-
-    # 3. Build Docker image
+          value: "clean package -DskipTests"
     - name: docker-build
       taskRef:
-        name: docker-build-push
+        name: docker-build
       runAfter:
         - build
       workspaces:
@@ -72,16 +57,13 @@ spec:
           value: "$(params.image-name):$(context.pipelineRun.name)"
         - name: REGISTRY
           value: "$(params.registry)"
-
-    # 4. Deploy
     - name: deploy
       taskRef:
-        name: deploy-to-local
+        name: deploy-app
       runAfter:
         - docker-build
-      workspaces:
-        - name: k8s-manifests
-          workspace: shared-workspace
       params:
         - name: IMAGE
           value: "$(params.registry)/$(params.image-name):$(context.pipelineRun.name)"
+        - name: NAMESPACE
+          value: "goods-price-ci"

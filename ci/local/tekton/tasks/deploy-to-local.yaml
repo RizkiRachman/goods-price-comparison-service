@@ -1,0 +1,114 @@
+# Task: Deploy Application to Local Kubernetes
+# Uses external deployment.yaml from k8s/ directory
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: deploy-to-local
+  namespace: goods-price-ci
+spec:
+  workspaces:
+    - name: k8s-manifests
+      description: Workspace containing Kubernetes manifest files (deployment.yaml, service.yaml)
+      optional: true
+  params:
+    - name: IMAGE
+      type: string
+    - name: NAMESPACE
+      type: string
+      default: "goods-price-ci"
+    - name: ROLLOUT_TIMEOUT
+      type: string
+      default: "300s"
+    - name: DEPLOYMENT_FILE
+      type: string
+      default: "ci/local/k8s/deployment.yaml"
+      description: "Path to deployment manifest (relative to workspace or absolute)"
+  steps:
+    - name: pre-deploy-cleanup
+      image: bitnami/kubectl:latest
+      script: |
+        #!/bin/bash
+        set -e
+        
+        echo "🧹 Pre-deployment cleanup..."
+        
+        # Force delete any stuck pods from previous deployments
+        kubectl delete pods -n $(params.NAMESPACE) \
+          -l app=goods-price-service \
+          --grace-period=0 \
+          --force \
+          --ignore-not-found=true || true
+        
+        # Wait a moment for cleanup
+        sleep 3
+        
+        echo "✅ Cleanup complete"
+
+    - name: deploy
+      image: bitnami/kubectl:latest
+      env:
+        - name: IMAGE
+          value: $(params.IMAGE)
+        - name: NAMESPACE
+          value: $(params.NAMESPACE)
+      script: |
+        #!/bin/bash
+        set -e
+        
+        echo "🚀 Deploying ${IMAGE} to ${NAMESPACE}"
+        
+        # Determine deployment file path
+        DEPLOYMENT_FILE="$(params.DEPLOYMENT_FILE)"
+        WORKSPACE_PATH="$(workspaces.k8s-manifests.path)"
+        
+        # Try multiple locations where k8s/deployment.yaml might be
+        if [ -f "${WORKSPACE_PATH}/${DEPLOYMENT_FILE}" ]; then
+          MANIFEST_PATH="${WORKSPACE_PATH}/${DEPLOYMENT_FILE}"
+        elif [ -f "${WORKSPACE_PATH}/goods-price-comparison-service/${DEPLOYMENT_FILE}" ]; then
+          MANIFEST_PATH="${WORKSPACE_PATH}/goods-price-comparison-service/${DEPLOYMENT_FILE}"
+        elif [ -f "${WORKSPACE_PATH}/source/${DEPLOYMENT_FILE}" ]; then
+          MANIFEST_PATH="${WORKSPACE_PATH}/source/${DEPLOYMENT_FILE}"
+        elif [ -f "${DEPLOYMENT_FILE}" ]; then
+          MANIFEST_PATH="${DEPLOYMENT_FILE}"
+        else
+          echo "❌ Deployment file not found: ${DEPLOYMENT_FILE}"
+          echo "Checked locations:"
+          echo "  - ${WORKSPACE_PATH}/${DEPLOYMENT_FILE}"
+          echo "  - ${WORKSPACE_PATH}/goods-price-comparison-service/${DEPLOYMENT_FILE}"
+          echo "  - ${WORKSPACE_PATH}/source/${DEPLOYMENT_FILE}"
+          echo "  - ${DEPLOYMENT_FILE}"
+          echo ""
+          echo "Listing workspace contents:"
+          ls -la "${WORKSPACE_PATH}/" || true
+          exit 1
+        fi
+        
+        echo "📄 Using manifest: ${MANIFEST_PATH}"
+        
+        # Apply manifest with IMAGE substitution
+        envsubst < "${MANIFEST_PATH}" | kubectl apply -n "${NAMESPACE}" -f -
+        
+        echo "⏳ Waiting for rollout to complete (timeout: $(params.ROLLOUT_TIMEOUT))..."
+        
+        # Wait for rollout with timeout
+        if kubectl rollout status deployment/goods-price-service \
+          -n "${NAMESPACE}" \
+          --timeout=$(params.ROLLOUT_TIMEOUT); then
+          
+          echo "✅ Deployment successful!"
+          
+          # Show deployment status
+          kubectl get deployment goods-price-service -n "${NAMESPACE}"
+          kubectl get pods -n "${NAMESPACE}" -l app=goods-price-service
+          
+        else
+          echo "❌ Rollout failed or timed out"
+          
+          # Show troubleshooting info
+          echo "🔍 Troubleshooting information:"
+          kubectl describe deployment goods-price-service -n "${NAMESPACE}"
+          kubectl get pods -n "${NAMESPACE}" -l app=goods-price-service -o wide
+          kubectl logs -n "${NAMESPACE}" -l app=goods-price-service --tail=50 || true
+          
+          exit 1
+        fi

@@ -1,0 +1,39 @@
+# Trigger Template
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: goods-price-service-trigger-template
+  namespace: goods-price-ci
+spec:
+  params:
+    - name: git-url
+      default: "https://github.com/RizkiRachman/goods-price-comparison-service.git"
+    - name: git-revision
+      default: "main"
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1
+      kind: PipelineRun
+      metadata:
+        generateName: goods-price-service-run-
+      spec:
+        pipelineRef:
+          name: goods-price-service-pipeline
+        taskRunTemplate:
+          serviceAccountName: tekton-deployer
+        workspaces:
+          - name: shared-workspace
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 1Gi
+          - name: maven-settings
+            configMap:
+              name: maven-settings
+        params:
+          - name: git-url
+            value: $(tt.params.git-url)
+          - name: git-revision
+            value: $(tt.params.git-revision)

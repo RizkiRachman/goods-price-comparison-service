@@ -1,0 +1,56 @@
+# RBAC for Tekton Deploy Task
+# Allows the deploy task to create/update deployments, services, and configmaps
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tekton-deployer
+  namespace: goods-price-ci
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: tekton-deployer-role
+  namespace: goods-price-ci
+rules:
+  # Allow managing deployments
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Allow managing replicasets (required for deployment rollout)
+  - apiGroups: ["apps"]
+    resources: ["replicasets"]
+    verbs: ["get", "list", "watch"]
+  # Allow managing pods (required for kubectl rollout status and cleanup)
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "watch", "delete"]
+  # Allow getting pod logs (for debugging deployment failures)
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get"]
+  # Allow managing services
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Allow managing configmaps
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Allow managing namespaces (for kubectl create namespace --dry-run)
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tekton-deployer-binding
+  namespace: goods-price-ci
+subjects:
+  - kind: ServiceAccount
+    name: tekton-deployer
+    namespace: goods-price-ci
+roleRef:
+  kind: Role
+  name: tekton-deployer-role
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: goods-price-ci
+
+resources:
+  # Tasks (must be applied before Pipeline)
+  - tasks/git-clone.yaml
+  - tasks/maven-build.yaml
+  - tasks/docker-build-push.yaml
+  - tasks/deploy-to-local.yaml
+  # Pipeline (references Tasks above)
+  - pipeline.yaml
+  # Triggers (optional, for webhook triggers)
+  - triggers/trigger-template.yaml

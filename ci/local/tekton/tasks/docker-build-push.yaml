@@ -1,0 +1,36 @@
+# Task: Docker Build and Push (using Kaniko)
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: docker-build-push
+  namespace: goods-price-ci
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: IMAGE
+      type: string
+    - name: REGISTRY
+      type: string
+      default: "localhost:5000"
+    - name: DOCKERFILE
+      type: string
+      default: "./Dockerfile"
+    - name: CONTEXT
+      type: string
+      default: "."
+  steps:
+    - name: build-and-push
+      image: gcr.io/kaniko-project/executor:latest
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: DOCKER_CONFIG
+          value: /tekton/home/.docker
+      command:
+        - /kaniko/executor
+      args:
+        - --dockerfile=$(params.DOCKERFILE)
+        - --context=$(params.CONTEXT)
+        - --destination=$(params.REGISTRY)/$(params.IMAGE)
+        - --insecure-registry=$(params.REGISTRY)
+        - --skip-tls-verify

@@ -1,0 +1,144 @@
+# Task: Clone Git repository
+# Using embedded Task instead of deprecated ClusterTask
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: git-clone
+  namespace: goods-price-ci
+  labels:
+    app.kubernetes.io/version: "0.9"
+  annotations:
+    tekton.dev/pipelines.minVersion: "0.38.0"
+    tekton.dev/categories: Git
+    tekton.dev/tags: git
+    tekton.dev/displayName: "git clone"
+spec:
+  description: >-
+    These Tasks are Git tasks to work with repositories used by other Tasks
+    in your Pipeline.
+    The git-clone Task will clone a repo from the provided url into the
+    output Workspace. By default the repo will be cloned into the root of
+    your Workspace.
+  workspaces:
+    - name: output
+      description: The git repo will be cloned onto the volume backing this Workspace.
+    - name: ssh-directory
+      optional: true
+      description: >-
+        A .ssh directory with private key, known_hosts, config, etc. Copied to
+        the user's home before git commands are executed. Used to authenticate
+        with the git remote when performing the clone. Binding a Secret to this
+        Workspace is strongly discouraged over other auth methods.
+    - name: basic-auth
+      optional: true
+      description: >-
+        A Workspace containing a .gitconfig and .git-credentials file. These
+        will be copied to the user's home before any git commands are run. Any
+        other files in this Workspace are ignored. It is strongly recommended
+        to use ssh-directory over basic-auth whenever possible and to bind a
+        Secret to this Workspace over other volume types.
+  params:
+    - name: url
+      description: Repository URL to clone from.
+      type: string
+    - name: revision
+      description: Revision to checkout. (branch, tag, sha, ref, etc...)
+      type: string
+      default: ""
+    - name: refspec
+      description: Refspec to fetch before checking out revision.
+      type: string
+      default: ""
+    - name: submodules
+      description: Initialize and fetch git submodules.
+      type: string
+      default: "true"
+    - name: depth
+      description: Perform a shallow clone, fetching only the most recent N commits.
+      type: string
+      default: "1"
+    - name: sslVerify
+      description: Set the `http.sslVerify` global git config.
+      type: string
+      default: "true"
+    - name: subdirectory
+      description: Subdirectory inside the `output` Workspace to clone the repo into.
+      type: string
+      default: ""
+    - name: deleteExisting
+      description: Clean out the contents of the destination directory if it already exists before cloning.
+      type: string
+      default: "true"
+    - name: verbose
+      description: Log the commands that are executed during `git-clone`'s operation.
+      type: string
+      default: "true"
+    - name: gitInitImage
+      description: The image providing git that this Task runs.
+      type: string
+      default: "alpine/git:latest"
+    - name: userHome
+      description: >-
+        Absolute path to the user's home directory.
+      type: string
+      default: "/root"
+  results:
+    - name: commit
+      description: The precise commit SHA that was fetched by this Task.
+    - name: url
+      description: The precise URL that was fetched by this Task.
+  steps:
+    - name: clone
+      image: "$(params.gitInitImage)"
+      securityContext:
+        runAsUser: 0
+      env:
+        - name: HOME
+          value: $(params.userHome)
+      workingDir: $(workspaces.output.path)
+      script: |
+        #!/usr/bin/env sh
+        set -eu
+        
+        if [ "$(params.verbose)" = "true" ] ; then
+          set -x
+        fi
+        
+        git config --global --add safe.directory $(workspaces.output.path)
+        
+        # Clone the repository with retry logic
+        if [ "$(params.deleteExisting)" = "true" ] && [ -d "$(params.subdirectory)" ]; then
+          rm -rf "$(params.subdirectory)"
+        fi
+        
+        # Retry logic: 3 attempts with 5 second delay
+        max_attempts=3
+        attempt=1
+        
+        while [ $attempt -le $max_attempts ]; do
+          echo "Attempt $attempt of $max_attempts: Cloning repository..."
+          
+          if git clone \
+            --branch="$(params.revision)" \
+            --depth="$(params.depth)" \
+            --single-branch \
+            "$(params.url)" \
+            "$(workspaces.output.path)/$(params.subdirectory)"; then
+            echo "Clone successful!"
+            break
+          fi
+          
+          if [ $attempt -eq $max_attempts ]; then
+            echo "ERROR: Failed to clone after $max_attempts attempts"
+            exit 1
+          fi
+          
+          echo "Clone failed, waiting 5 seconds before retry..."
+          sleep 5
+          attempt=$((attempt + 1))
+        done
+        
+        cd "$(workspaces.output.path)/$(params.subdirectory)"
+        
+        git rev-parse HEAD | tr -d '\n' > "$(results.commit.path)"
+        echo -n "$(params.url)" > "$(results.url.path)"

@@ -1,0 +1,53 @@
+# Task: Maven Build
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: maven-build
+  namespace: goods-price-ci
+spec:
+  workspaces:
+    - name: source
+    - name: maven-settings
+      optional: true
+      description: Workspace containing Maven settings.xml
+  params:
+    - name: GOALS
+      type: string
+      default: "clean package"
+    - name: MAVEN_OPTS
+      type: string
+      default: "-Xmx1024m"
+  steps:
+    - name: build
+      image: maven:3.9-eclipse-temurin-17
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: MAVEN_OPTS
+          value: $(params.MAVEN_OPTS)
+        - name: GITHUB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: github-maven-credentials
+              key: username
+        - name: GITHUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: github-maven-credentials
+              key: token
+      script: |
+        #!/bin/bash
+        set -e
+        
+        # Build Maven command
+        MAVEN_ARGS="$(params.GOALS) -DskipTests=false --batch-mode"
+        
+        # Add settings.xml if maven-settings workspace is bound
+        if [ -f "$(workspaces.maven-settings.path)/settings.xml" ]; then
+          echo "Using custom Maven settings from workspace"
+          MAVEN_ARGS="$MAVEN_ARGS -s $(workspaces.maven-settings.path)/settings.xml"
+        else
+          echo "Using default Maven settings"
+        fi
+        
+        # Run Maven
+        mvn $MAVEN_ARGS
