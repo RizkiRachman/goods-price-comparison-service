@@ -6,7 +6,7 @@ RUN java -Djarmode=layertools -jar app.jar extract
 
 # Stage 2: Minimal runtime image
 FROM eclipse-temurin:17-jre
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN groupadd -r spring && useradd -r -g spring -s /bin/false -M spring
 WORKDIR /app
 
 # Copy layers in order: least → most frequently changed (maximizes cache reuse)
