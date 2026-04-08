@@ -2,47 +2,63 @@
 
 Cloud-native CI/CD pipeline using Tekton on Kind (Kubernetes in Docker).
 
-| Tool | Purpose | Location |
-|------|---------|----------|
-| **Tekton** | CI/CD Pipelines | Kind Cluster |
-| **Kind** | Local Kubernetes | Docker/Podman |
-| **Registry** | Container Images | `10.89.0.2:32242` |
-
 ## Directory Structure
 
 ```
 ci/local/
 ├── setup.sh              # Master setup script
-├── setup/                # Kind cluster setup
-│   └── start.sh
+├── setup/
+│   └── start.sh          # Kind cluster setup
 ├── k8s/                  # Kubernetes infrastructure
-│   ├── namespace.yaml    # Create namespace
-│   ├── rbac.yaml         # Service accounts & roles
-│   ├── registry.yaml     # Docker registry
-│   ├── deployment.yaml   # App deployment
-│   ├── service.yaml      # App service
+│   ├── namespace.yaml
+│   ├── registry.yaml     # Local Docker registry (NodePort 32242)
+│   ├── deployment.yaml
+│   ├── service.yaml
 │   └── kustomization.yaml
 ├── tekton/               # CI/CD pipeline
-│   ├── 01-tasks/         # Pipeline tasks
+│   ├── 01-tasks/
 │   │   ├── git-clone.yaml
 │   │   ├── maven-build.yaml
-│   │   ├── docker-build.yaml
-│   │   └── deploy.yaml
-│   ├── pipeline.yaml     # Main pipeline
-│   ├── pipeline-run.yaml # Example run
-│   ├── config/           # Maven settings, PVCs
+│   │   ├── docker-build.yaml        # Kaniko → local registry
+│   │   ├── docker-build-quay.yaml   # Kaniko → Quay
+│   │   ├── deploy.yaml              # Deploy from local registry
+│   │   └── deploy-from-registry.yaml # Deploy from external registry
+│   ├── config/
+│   │   ├── rbac.yaml
+│   │   ├── maven-settings-configmap.yaml
+│   │   ├── maven-cache-pvc.yaml
+│   │   └── registry.yaml
+│   ├── pipeline.yaml                # Local registry pipeline
+│   ├── pipeline-quay.yaml           # Quay pipeline
+│   ├── pipeline-deploy-only.yaml    # Deploy-only (skip build)
+│   ├── pipeline-run.yaml            # PipelineRun for local registry
+│   ├── pipeline-run-quay.yaml       # PipelineRun for Quay
 │   └── kustomization.yaml
 └── helpers/              # Utility scripts
     ├── run-pipeline.sh
+    ├── run-quay-pipeline.sh
     ├── apply-all.sh
     ├── setup-maven-credentials.sh
-    └── podman-helpers.sh
+    └── setup-quay.sh
 ```
+
+## Pipeline Flow
+
+```
+Clone → Build → Test → Build Image → Push → Deploy
+```
+
+1. **git-clone** — Clone source from GitHub
+2. **maven-build** — `mvn clean package -DskipTests` (compile only)
+3. **maven-test** — `mvn test` (unit tests; use `verify` for integration tests)
+4. **kaniko-build** — Build Docker image with Kaniko, save as local tarball
+5. **podman-push** — Push tarball to registry with Skopeo
+6. **deploy-to-local** — Update Kubernetes deployment
 
 ## Quick Start
 
 ```bash
-# 1. Setup Kind cluster (if not already created)
+# 1. Start Kind cluster
 cd ci/local
 ./setup/start.sh
 
@@ -51,363 +67,85 @@ cd ci/local
 
 # 3. Run the pipeline
 ./setup.sh run
-
-# Or do it all at once:
-./setup.sh all && ./setup.sh run
 ```
 
 ### Individual Commands
 
 ```bash
-./setup.sh k8s       # Apply K8s resources only
+./setup.sh k8s       # Apply K8s resources
 ./setup.sh tekton    # Apply Tekton pipeline
-./setup.sh config    # Apply supporting configs
-./setup.sh status    # Check status
+./setup.sh config    # Apply Maven settings + RBAC
+./setup.sh status    # Check pod status
 ./setup.sh logs      # View app logs
-./setup.sh delete    # Clean up everything
+./setup.sh delete    # Delete all resources
 ```
 
-### Podman Integration (Optional)
+## Pipelines
 
-Sync images between Kind registry and local Podman:
+### Local Registry (default)
+
+Builds and pushes to in-cluster registry at `<node-ip>:32242`.
 
 ```bash
-# After pipeline builds, sync latest image to Podman:
-./helpers/post-build-sync.sh auto
-
-# Or sync specific image:
-./helpers/post-build-sync.sh sync goods-price-comparison-service:latest
-
-# List local Podman images:
-./helpers/podman-registry.sh list
-
-# Deploy from Podman (instead of registry):
-./helpers/post-build-sync.sh deploy goods-price-comparison-service:latest
-
-# Cleanup unused Podman images:
-./helpers/podman-registry.sh cleanup
+./setup.sh run
+# or
+kubectl create -f tekton/pipeline-run.yaml
 ```
 
-**Registry Options:**
+### Quay
 
-| Option | Command | Registry URL | Features |
-|--------|---------|--------------|----------|
-| **1. Local** (default) | `./helpers/switch-registry.sh local` | `10.89.0.2:32242` | Built-in, minimal |
-| **2. Podman** | `./helpers/switch-registry.sh podman` | `localhost:5000` | Podman-native |
-| **3. Quay** | `./helpers/switch-registry.sh quay` | `localhost:8080` | UI, scanning, teams |
+Pushes to a local Quay instance at `localhost:8080`.
 
-**Setup Quay:**
 ```bash
-# 1. Setup Quay
+# Setup Quay first
 ./helpers/setup-quay.sh setup
 
-# 2. Open config editor at http://localhost:8081
-# 3. Download config, save to quay/config/config.yaml
-# 4. Restart: ./helpers/setup-quay.sh restart
-# 5. Access UI at http://localhost:8080
-
-# Switch pipeline to use Quay:
-./helpers/switch-registry.sh quay
-./setup.sh run
+# Run pipeline
+./helpers/run-quay-pipeline.sh run
+# or
+kubectl create -f tekton/pipeline-run-quay.yaml
 ```
 
-**Pipeline Flow:**
+### Deploy Only
 
-```
-┌─────────┐   ┌─────────────┐   ┌──────────┐   ┌─────────────┐   ┌─────────┐
-│  Clone  │──▶│ Maven Build │──▶│   Test   │──▶│ Docker Push │──▶│ Deploy  │
-│  Source │   │(skip tests) │   │(unit/int)│   │  to Registry│   │from Reg │
-└─────────┘   └─────────────┘   └──────────┘   └─────────────┘   └─────────┘
-```
-
-**Pipeline Steps:**
-1. **git-clone** - Clone source code
-2. **maven-build** - `mvn clean install -DskipTests` (compile/package)
-3. **maven-test** - `mvn test` (unit tests) or `mvn verify` (integration/mutation)
-4. **docker-build** - Build and push image to registry
-5. **deploy** - Pull image from registry and deploy to Kubernetes
-
-**Test Configuration:**
-```bash
-# Default: unit tests only
-./setup.sh run
-
-# With mutation/integration tests
-./helpers/run-pipeline.sh run --param test-args=verify
-```
-
-**Registry Options:**
-- Switch anytime: `./helpers/switch-registry.sh [local|podman|quay]`
-
-### Access Services
-
-| Service | URL | Credentials |
-|---------|-----|-------------|
-| **Application** | http://localhost:8080 | - |
-| **Docker Registry** | http://localhost:5000 | - |
-| **Harbor UI** | http://localhost:8081 | admin/Harbor12345 |
-| **Jenkins** | http://localhost:8082 | admin/admin123 |
-| **Kong Admin** | http://localhost:8001 | - |
-| **Kong Proxy** | http://localhost:8000 | - |
-| **Prometheus** | http://localhost:9090 | - |
-| **Grafana** | http://localhost:3000 | admin/admin |
-| **PostgreSQL** | localhost:5432 | postgres/postgres |
-
-## Jenkins CI/CD Pipeline
-
-### Setup
-
-1. Access Jenkins at http://localhost:8082
-2. Login with: `admin` / `admin123`
-3. The pipeline job `goods-price-service-build` is pre-configured
-
-### Pipeline Stages
-
-```
-1. Checkout → Pull latest code
-2. Build & Test → Compile + Unit tests (parallel)
-3. Code Quality → SpotBugs + Checkstyle
-4. Package → Create JAR artifact
-5. Build Docker Image → Build + Push to local registry
-6. Security Scan → Trivy vulnerability scan
-7. Deploy to Local → Deploy via docker-compose
-8. Smoke Tests → Health check endpoints
-```
-
-### Manual Build
+Deploy a pre-built image without running the build:
 
 ```bash
-# Trigger build via Jenkins CLI or UI
-# Or use the Jenkinsfile directly:
-cd ../..
-docker run -v $(pwd):/workspace -w /workspace \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  maven:3.9-eclipse-temurin-17 \
-  mvn clean package
+kubectl create -f - <<EOF
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: deploy-only-
+  namespace: goods-price-ci
+spec:
+  pipelineRef:
+    name: deploy-from-registry-pipeline
+  params:
+    - name: image
+      value: "localhost:8080/admin/goods-price-comparison-service:latest"
+EOF
 ```
 
-## Kong API Gateway
+## Maven Credentials
 
-### Configuration
-
-Kong is configured in DB-less mode with declarative configuration (`kong/kong.yml`):
-
-- **Rate Limiting**: 60 requests/minute per client
-- **Authentication**: API Key required
-- **CORS**: Enabled for all origins
-- **Logging**: Access logs to `/tmp/kong-access.log`
-
-### API Keys
-
-| Client | API Key |
-|--------|---------|
-| Mobile App | `mobile-app-api-key-12345` |
-| Web Dashboard | `web-dashboard-api-key-67890` |
-| Admin Portal | `admin-api-key-abcde` |
-
-### Example Usage
+If your project uses GitHub Packages:
 
 ```bash
-# Call API through Kong (requires API key)
-curl -H "api-key: mobile-app-api-key-12345" \
-  http://localhost:8000/v1/version
-
-# Call without key (should fail)
-curl http://localhost:8000/v1/version
-# → 401 Unauthorized
-```
-
-### Kong Admin API
-
-```bash
-# View routes
-curl http://localhost:8001/routes
-
-# View services
-curl http://localhost:8001/services
-
-# View consumers
-curl http://localhost:8001/consumers
-```
-
-## Docker Registry
-
-### Push Image
-
-```bash
-# Tag image
-docker tag goods-price-service:latest localhost:5000/goods-price-service:latest
-
-# Push to local registry
-docker push localhost:5000/goods-price-service:latest
-
-# Verify
-curl http://localhost:5000/v2/_catalog
-curl http://localhost:5000/v2/goods-price-service/tags/list
-```
-
-### Pull Image
-
-```bash
-# Pull from local registry
-docker pull localhost:5000/goods-price-service:latest
-```
-
-## Monitoring
-
-### Prometheus Metrics
-
-Application exposes metrics at:
-- http://localhost:8080/actuator/prometheus
-
-Available metrics:
-- JVM metrics (memory, threads, GC)
-- HTTP request duration/count
-- Custom business metrics
-
-### Grafana Dashboards
-
-1. Access Grafana: http://localhost:3000 (admin/admin)
-2. Prometheus datasource is pre-configured
-3. Import dashboards or create custom ones
-
-### Useful Queries
-
-```promql
-# Request rate
-rate(http_server_requests_seconds_count[5m])
-
-# Average response time
-rate(http_server_requests_seconds_sum[5m]) / rate(http_server_requests_seconds_count[5m])
-
-# JVM memory usage
-jvm_memory_used_bytes / jvm_memory_max_bytes
+./helpers/setup-maven-credentials.sh
 ```
 
 ## Troubleshooting
 
-### Services Not Starting
-
 ```bash
-# Check logs
-docker-compose logs [service-name]
+# Check pipeline run status
+kubectl get pipelineruns -n goods-price-ci
 
-# Restart specific service
-docker-compose restart jenkins
+# View task logs
+kubectl logs -n goods-price-ci -l tekton.dev/pipelineRun=<run-name> --all-containers
 
-# Full reset (WARNING: deletes data)
-docker-compose down -v
-docker-compose up -d
+# Check app logs
+./setup.sh logs
+
+# Access app
+kubectl port-forward -n goods-price-ci svc/goods-price-service 8080:8080
 ```
-
-### Port Conflicts
-
-If ports are already in use:
-
-```bash
-# Find what's using port 8080
-lsof -i :8080
-
-# Edit docker-compose.yml to change ports
-# Example: change "8080:8080" to "8081:8080"
-```
-
-### Jenkins Build Fails
-
-```bash
-# Check Jenkins logs
-docker-compose logs jenkins
-
-# Enter Jenkins container
-docker-compose exec jenkins bash
-
-# Check Maven in container
-which mvn
-mvn -v
-```
-
-### Registry Access Denied
-
-```bash
-# Docker requires insecure registry for localhost:5000
-# Add to Docker Desktop settings → Daemon → Insecure registries:
-# localhost:5000
-
-# Or configure in /etc/docker/daemon.json:
-{
-  "insecure-registries": ["localhost:5000"]
-}
-```
-
-## Cleanup
-
-```bash
-# Stop all services
-docker-compose down
-
-# Stop and remove volumes (WARNING: deletes all data)
-docker-compose down -v
-
-# Remove all images
-docker-compose down --rmi all
-
-# Clean up Docker system
-docker system prune -a
-```
-
-## Advanced Usage
-
-### Scaling Services
-
-```bash
-# Scale app to 3 instances
-docker-compose up -d --scale app=3
-```
-
-### Custom Environment Variables
-
-Create `.env` file in `ci/local/`:
-
-```bash
-REGISTRY_URL=localhost:5000
-IMAGE_NAME=my-custom-name
-GEMINI_API_KEY=your-key-here
-```
-
-### Integration with IDE
-
-**IntelliJ IDEA:**
-1. Install "Docker" plugin
-2. View → Tool Windows → Docker
-3. Connect to local Docker daemon
-4. Manage containers from IDE
-
-**VS Code:**
-1. Install "Docker" extension
-2. Use Docker panel to manage containers
-
-## Production Comparison
-
-| Aspect | Local Stack | Production |
-|--------|------------|------------|
-| Registry | Docker Registry / Harbor | Quay Enterprise |
-| CI/CD | Jenkins | Harness / Tekton |
-| Platform | Docker Compose | OpenShift / Kubernetes |
-| Gateway | Kong | Gravitee / Kong Enterprise |
-| Database | PostgreSQL single | PostgreSQL HA |
-| Monitoring | Prometheus + Grafana | Datadog / Dynatrace |
-
-## Next Steps
-
-1. ✅ Set up local stack
-2. ✅ Run Jenkins pipeline
-3. 🔄 Configure production-like environments
-4. 🔄 Add more monitoring/alerting
-5. 🔄 Implement GitOps with ArgoCD
-
-## Support
-
-For issues or questions:
-- Check service logs: `docker-compose logs [service]`
-- Review [main README](../../README.md)
-- Check [API documentation](../../docs/API.md)

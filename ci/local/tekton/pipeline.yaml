@@ -1,4 +1,4 @@
-# Pipeline Definition
+# Pipeline: Clone → Build → Test → Build Image → Push → Deploy
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
@@ -10,7 +10,6 @@ spec:
     - name: maven-settings
       optional: true
     - name: k8s-manifests
-      description: Workspace containing Kubernetes deployment manifests
       optional: true
   params:
     - name: git-url
@@ -24,18 +23,18 @@ spec:
       default: "goods-price-comparison-service"
     - name: registry
       type: string
-      description: "Registry URL (e.g., localhost:5000 or node-ip:nodeport). Get node IP with: kubectl get nodes -o wide"
       default: "localhost:32242"
-    - name: test-args
+      description: "Registry URL. Get node IP: kubectl get nodes -o wide"
+    - name: test-goals
       type: string
       default: "test"
-      description: "Maven test args: 'test' for unit tests, 'verify' for integration/mutation tests"
+      description: "Maven test goals: 'test' or 'verify'"
+
   tasks:
     # 1. Clone source code
     - name: clone
       taskRef:
         name: git-clone
-        kind: Task
       workspaces:
         - name: output
           workspace: shared-workspace
@@ -45,12 +44,22 @@ spec:
         - name: revision
           value: $(params.git-revision)
 
-    # 2. Build (skip tests)
+    # 2. Maven build (skip tests)
     - name: build
       taskRef:
         name: maven-build
-      runAfter:
-        - clone
+      runAfter: [clone]
+      workspaces:
+        - name: source
+          workspace: shared-workspace
+        - name: maven-settings
+          workspace: maven-settings
+
+    # 3. Maven test
+    - name: test
+      taskRef:
+        name: maven-test
+      runAfter: [build]
       workspaces:
         - name: source
           workspace: shared-workspace
@@ -58,33 +67,25 @@ spec:
           workspace: maven-settings
       params:
         - name: GOALS
-          value: "clean install"
-        - name: MAVEN_OPTS
-          value: "-Xmx2048m -Dorg.slf4j.simpleLogger.defaultLogLevel=info"
+          value: $(params.test-goals)
 
-    # 3. Run tests
-    - name: test
+    # 4. Build image (Kaniko → tarball, no push)
+    - name: build-image
       taskRef:
-        name: maven-test
-      runAfter:
-        - build
+        name: kaniko-build
+      runAfter: [test]
       workspaces:
         - name: source
           workspace: shared-workspace
-        - name: maven-settings
-          workspace: maven-settings
       params:
-        - name: TEST_ARGS
-          value: "$(params.test-args)"
-        - name: MAVEN_OPTS
-          value: "-Xmx2048m"
+        - name: IMAGE
+          value: "$(params.image-name):$(context.pipelineRun.name)"
 
-    # 4. Build Docker image
-    - name: docker-build
+    # 5. Push image to registry
+    - name: push
       taskRef:
-        name: docker-build-push
-      runAfter:
-        - test
+        name: podman-push
+      runAfter: [build-image]
       workspaces:
         - name: source
           workspace: shared-workspace
@@ -92,14 +93,13 @@ spec:
         - name: IMAGE
           value: "$(params.image-name):$(context.pipelineRun.name)"
         - name: REGISTRY
-          value: "$(params.registry)"
+          value: $(params.registry)
 
-    # 5. Deploy
+    # 6. Deploy to Kubernetes
     - name: deploy
       taskRef:
         name: deploy-to-local
-      runAfter:
-        - docker-build
+      runAfter: [push]
       workspaces:
         - name: k8s-manifests
           workspace: shared-workspace

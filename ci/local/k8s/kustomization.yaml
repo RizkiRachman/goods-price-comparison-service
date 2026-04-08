@@ -5,7 +5,6 @@ namespace: goods-price-ci
 
 resources:
   - namespace.yaml      # 01 - Create namespace first
-  - rbac.yaml           # 02 - Service accounts and permissions
-  - registry.yaml       # 03 - Local Docker registry
-  - deployment.yaml     # 04 - App deployment manifest
-  - service.yaml        # 05 - App service
+  - registry.yaml       # 02 - Local Docker registry
+  - deployment.yaml     # 03 - App deployment manifest
+  - service.yaml        # 04 - App service

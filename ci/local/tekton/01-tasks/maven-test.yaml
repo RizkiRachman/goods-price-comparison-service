@@ -1,4 +1,4 @@
-# Task: Maven Test - Run unit tests separately
+# Task: Maven Test (run unit/integration tests)
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
@@ -9,15 +9,14 @@ spec:
     - name: source
     - name: maven-settings
       optional: true
-      description: Workspace containing Maven settings.xml
   params:
-    - name: TEST_ARGS
+    - name: GOALS
       type: string
       default: "test"
-      description: "Maven test goals (test for unit tests, or verify for mutation tests)"
+      description: "Maven goals: 'test' for unit tests, 'verify' for integration tests"
     - name: MAVEN_OPTS
       type: string
-      default: "-Xmx1024m"
+      default: "-Xmx400m"
   steps:
     - name: test
       image: maven:3.9-eclipse-temurin-17
@@ -40,19 +39,8 @@ spec:
       script: |
         #!/bin/bash
         set -e
-        
-        echo "🧪 Running tests..."
-        
-        # Build Maven command for tests
-        MAVEN_ARGS="$(params.TEST_ARGS) --batch-mode"
-        
-        # Add settings.xml if maven-settings workspace is bound
+        MAVEN_ARGS="$(params.GOALS) --batch-mode"
         if [ -f "$(workspaces.maven-settings.path)/settings.xml" ]; then
-          echo "Using custom Maven settings from workspace"
           MAVEN_ARGS="$MAVEN_ARGS -s $(workspaces.maven-settings.path)/settings.xml"
         fi
-        
-        # Run tests
         mvn $MAVEN_ARGS
-        
-        echo "✅ Tests passed"

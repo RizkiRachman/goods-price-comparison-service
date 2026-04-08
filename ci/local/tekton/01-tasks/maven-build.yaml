@@ -1,5 +1,4 @@
-# Task: Maven Build (compile and package, skip tests)
-# Tests run separately in maven-test task
+# Task: Maven Build (compile + package, skip tests)
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
@@ -10,14 +9,10 @@ spec:
     - name: source
     - name: maven-settings
       optional: true
-      description: Workspace containing Maven settings.xml
   params:
-    - name: GOALS
-      type: string
-      default: "clean install"
     - name: MAVEN_OPTS
       type: string
-      default: "-Xmx1024m"
+      default: "-Xmx400m"
   steps:
     - name: build
       image: maven:3.9-eclipse-temurin-17
@@ -40,19 +35,9 @@ spec:
       script: |
         #!/bin/bash
         set -e
-        
-        echo "🔨 Building project (skip tests)..."
-        
-        # Build Maven command - skip tests, just compile and package
-        MAVEN_ARGS="$(params.GOALS) -DskipTests=true --batch-mode"
-        
-        # Add settings.xml if maven-settings workspace is bound
+        MAVEN_ARGS="clean package -DskipTests --batch-mode"
         if [ -f "$(workspaces.maven-settings.path)/settings.xml" ]; then
-          echo "Using custom Maven settings from workspace"
           MAVEN_ARGS="$MAVEN_ARGS -s $(workspaces.maven-settings.path)/settings.xml"
         fi
-        
-        # Run Maven
         mvn $MAVEN_ARGS
-        
-        echo "✅ Build complete"
+        echo "Build complete: $(ls target/*.jar)"

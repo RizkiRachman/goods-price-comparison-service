@@ -1,0 +1,41 @@
+# Task: Build Docker image with Kaniko (no push - saves as tarball)
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: kaniko-build
+  namespace: goods-price-ci
+spec:
+  workspaces:
+    - name: source
+  params:
+    - name: IMAGE
+      type: string
+      description: "Image name and tag (e.g., myapp:v1)"
+    - name: DOCKERFILE
+      type: string
+      default: "./Dockerfile"
+    - name: CONTEXT
+      type: string
+      default: "."
+  results:
+    - name: tarball-path
+      description: "Path to the saved image tarball"
+  steps:
+    - name: build
+      image: gcr.io/kaniko-project/executor:latest
+      workingDir: $(workspaces.source.path)
+      command:
+        - /kaniko/executor
+      args:
+        - --dockerfile=$(params.DOCKERFILE)
+        - --context=$(workspaces.source.path)/$(params.CONTEXT)
+        - --no-push
+        - --tarPath=$(workspaces.source.path)/image.tar
+        - --destination=$(params.IMAGE)
+    - name: record-path
+      image: alpine
+      script: |
+        #!/bin/sh
+        echo -n "$(workspaces.source.path)/image.tar" | tee $(results.tarball-path.path)
+        echo ""
+        echo "Image tarball size: $(du -sh $(workspaces.source.path)/image.tar | cut -f1)"

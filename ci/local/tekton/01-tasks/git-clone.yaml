@@ -133,8 +133,9 @@ spec:
             exit 1
           fi
           
-          echo "Clone failed, waiting 5 seconds before retry..."
-          sleep 5
+          WAIT_SECONDS=$((5 * (2 ** (attempt - 1))))
+          echo "Clone failed, waiting ${WAIT_SECONDS}s before retry..."
+          sleep $WAIT_SECONDS
           attempt=$((attempt + 1))
         done
         

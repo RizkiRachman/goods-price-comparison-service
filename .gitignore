@@ -163,3 +163,9 @@ build/
 *.backup
 *.old
 .history/
+
+# Claude Code
+.claude/
+.claude-plugin/
+.claudeignore
+CLAUDE.md

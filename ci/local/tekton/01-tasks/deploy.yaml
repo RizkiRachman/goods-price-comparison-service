@@ -57,28 +57,13 @@ spec:
         
         echo "🚀 Deploying ${IMAGE} to ${NAMESPACE}"
         
-        # Determine deployment file path
-        DEPLOYMENT_FILE="$(params.DEPLOYMENT_FILE)"
+        # Resolve manifest path — always relative to workspace root
         WORKSPACE_PATH="$(workspaces.k8s-manifests.path)"
-        
-        # Try multiple locations where k8s/deployment.yaml might be
-        if [ -f "${WORKSPACE_PATH}/${DEPLOYMENT_FILE}" ]; then
-          MANIFEST_PATH="${WORKSPACE_PATH}/${DEPLOYMENT_FILE}"
-        elif [ -f "${WORKSPACE_PATH}/goods-price-comparison-service/${DEPLOYMENT_FILE}" ]; then
-          MANIFEST_PATH="${WORKSPACE_PATH}/goods-price-comparison-service/${DEPLOYMENT_FILE}"
-        elif [ -f "${WORKSPACE_PATH}/source/${DEPLOYMENT_FILE}" ]; then
-          MANIFEST_PATH="${WORKSPACE_PATH}/source/${DEPLOYMENT_FILE}"
-        elif [ -f "${DEPLOYMENT_FILE}" ]; then
-          MANIFEST_PATH="${DEPLOYMENT_FILE}"
-        else
-          echo "❌ Deployment file not found: ${DEPLOYMENT_FILE}"
-          echo "Checked locations:"
-          echo "  - ${WORKSPACE_PATH}/${DEPLOYMENT_FILE}"
-          echo "  - ${WORKSPACE_PATH}/goods-price-comparison-service/${DEPLOYMENT_FILE}"
-          echo "  - ${WORKSPACE_PATH}/source/${DEPLOYMENT_FILE}"
-          echo "  - ${DEPLOYMENT_FILE}"
-          echo ""
-          echo "Listing workspace contents:"
+        MANIFEST_PATH="${WORKSPACE_PATH}/$(params.DEPLOYMENT_FILE)"
+
+        if [ ! -f "${MANIFEST_PATH}" ]; then
+          echo "❌ Deployment file not found at: ${MANIFEST_PATH}"
+          echo "Workspace contents:"
           ls -la "${WORKSPACE_PATH}/" || true
           exit 1
         fi

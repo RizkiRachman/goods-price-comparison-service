@@ -4,16 +4,19 @@ kind: Kustomization
 namespace: goods-price-ci
 
 resources:
-  # Tasks (apply first - pipeline depends on them)
+  # Tasks
   - 01-tasks/git-clone.yaml
   - 01-tasks/maven-build.yaml
   - 01-tasks/maven-test.yaml
-  - 01-tasks/docker-build.yaml
+  - 01-tasks/kaniko-build.yaml
+  - 01-tasks/podman-push.yaml
+  - 01-tasks/docker-build-quay.yaml
   - 01-tasks/deploy.yaml
-  # Pipeline definitions
+  - 01-tasks/deploy-from-registry.yaml
+  # Pipelines
   - pipeline.yaml
   - pipeline-quay.yaml
   - pipeline-deploy-only.yaml
-  # Example PipelineRuns (optional)
+  # PipelineRuns (example triggers)
   - pipeline-run.yaml
   - pipeline-run-quay.yaml

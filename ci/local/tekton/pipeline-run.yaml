@@ -1,28 +1,23 @@
-# Sample PipelineRun for manual execution
-# Create this resource to trigger a pipeline run manually
+# PipelineRun: Clone → Build → Test → Build Image → Push → Deploy
 # Usage: kubectl create -f tekton/pipeline-run.yaml
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  generateName: goods-price-service-manual-
+  generateName: goods-price-service-
   namespace: goods-price-ci
 spec:
   pipelineRef:
     name: goods-price-service-pipeline
-  # Service account for tasks that need deployment permissions
   taskRunTemplate:
     serviceAccountName: tekton-deployer
   workspaces:
-    # Workspace for cloned source code and build artifacts
     - name: shared-workspace
       volumeClaimTemplate:
         spec:
-          accessModes:
-            - ReadWriteOnce
+          accessModes: [ReadWriteOnce]
           resources:
             requests:
               storage: 1Gi
-    # Workspace for Maven settings (contains settings.xml with GitHub credentials)
     - name: maven-settings
       configMap:
         name: maven-settings
@@ -33,7 +28,7 @@ spec:
       value: "main"
     - name: image-name
       value: "goods-price-comparison-service"
-    # Use node IP + node port for registry access from within pods
-    # For local clusters: $(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="InternalIP")].address}'):32242
     - name: registry
       value: "10.89.0.2:32242"
+    - name: test-goals
+      value: "test"
