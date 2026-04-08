@@ -56,24 +56,3 @@ spec:
         mvn $MAVEN_ARGS
         
         echo "✅ Tests passed"
-
-    - name: report
-      image: busybox
-      workingDir: $(workspaces.source.path)
-      script: |
-        #!/bin/bash
-        echo "📊 Test Results:"
-        
-        # Check for test reports
-        if [ -f "target/surefire-reports/"*.xml ]; then
-          echo "Surefire reports found:"
-          ls -la target/surefire-reports/*.xml | wc -l
-        fi
-        
-        if [ -f "target/failsafe-reports/"*.xml ]; then
-          echo "Failsafe reports found:"
-          ls -la target/failsafe-reports/*.xml | wc -l
-        fi
-        
-        echo ""
-        echo "Test artifacts available in target/ directory"
