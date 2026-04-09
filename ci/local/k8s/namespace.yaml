@@ -1,8 +1,0 @@
-# 01 - Namespace for goods-price-service
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: goods-price-ci
-  labels:
-    name: goods-price-ci
-    environment: local
