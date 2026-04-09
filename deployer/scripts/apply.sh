@@ -113,6 +113,12 @@ for task in "$TASKS_DIR"/*.yaml; do
     fi
 done
 
+# Patch tasks with correct workingDir (envsubst doesn't handle $(workspaces.*.path))
+log "Patching task workingDir values..."
+kubectl patch task maven-test -n "$PIPELINE_NAMESPACE" --type='json' -p='[{"op": "replace", "path": "/spec/steps/0/workingDir", "value": "$(workspaces.output.path)"}]' 2>/dev/null || warn "Failed to patch maven-test workingDir"
+kubectl patch task docker-build -n "$PIPELINE_NAMESPACE" --type='json' -p='[{"op": "replace", "path": "/spec/steps/0/workingDir", "value": "$(workspaces.output.path)"}]' 2>/dev/null || warn "Failed to patch docker-build workingDir"
+log "  Patched task workingDir values"
+
 # Install git-clone task from Tekton catalog
 log "Installing git-clone task from Tekton catalog..."
 kubectl apply -n "${PIPELINE_NAMESPACE}" -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml || warn "Failed to install git-clone task"

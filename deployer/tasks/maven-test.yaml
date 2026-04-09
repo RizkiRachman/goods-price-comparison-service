@@ -22,7 +22,7 @@ spec:
   steps:
     - name: test
       image: ${MAVEN_IMAGE}
-      workingDir: $(workspaces.source.path)
+      workingDir: $(workspaces.output.path)
       volumeMounts:
         - name: maven-settings
           mountPath: /root/.m2/settings.xml
