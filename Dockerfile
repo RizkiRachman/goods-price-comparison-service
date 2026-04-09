@@ -6,7 +6,7 @@ RUN java -Djarmode=layertools -jar app.jar extract
 
 # Stage 2: Minimal runtime image with ARM support
 FROM amazoncorretto:17-alpine3.17
-RUN apk add --no-cache curl && \
+RUN apk add --no-cache curl shadow && \
     groupadd -r spring && useradd -r -g spring -s /bin/false -M spring
 WORKDIR /app
 

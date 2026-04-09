@@ -77,10 +77,18 @@ else
 fi
 
 # Create GitHub Maven credentials secret if it doesn't exist
-log "Checking github-maven-credentials secret..."
+log "Creating github-maven-credentials secret..."
 if ! kubectl get secret github-maven-credentials -n "$PIPELINE_NAMESPACE" &>/dev/null; then
-    warn "github-maven-credentials secret not found. Please create it manually:"
-    warn "  kubectl create secret generic github-maven-credentials --from-literal=username=<username> --from-literal=token=<token> -n $PIPELINE_NAMESPACE"
+    if [ -n "$GITHUB_USERNAME" ] && [ -n "$GITHUB_TOKEN" ]; then
+        kubectl create secret generic github-maven-credentials \
+            --from-literal=username="$GITHUB_USERNAME" \
+            --from-literal=token="$GITHUB_TOKEN" \
+            -n "$PIPELINE_NAMESPACE"
+        log "  Created github-maven-credentials secret"
+    else
+        warn "GITHUB_USERNAME or GITHUB_TOKEN not set. Please set them in .env file or create secret manually:"
+        warn "  kubectl create secret generic github-maven-credentials --from-literal=username=<username> --from-literal=token=<token> -n $PIPELINE_NAMESPACE"
+    fi
 else
     log "github-maven-credentials secret exists"
 fi
@@ -122,10 +130,6 @@ log "  Patched task workingDir values"
 # Install git-clone task from Tekton catalog
 log "Installing git-clone task from Tekton catalog..."
 kubectl apply -n "${PIPELINE_NAMESPACE}" -f https://raw.githubusercontent.com/tektoncd/catalog/main/task/git-clone/0.9/git-clone.yaml || warn "Failed to install git-clone task"
-
-# Patch git-clone task to add cleanup step for permission issues
-log "Patching git-clone task for permission cleanup..."
-kubectl patch task git-clone -n "${PIPELINE_NAMESPACE}" --type='json' -p='[{"op": "replace", "path": "/spec/steps/0/script", "value": "#!/bin/sh\nset -e\n\n# Clean up workspace with proper permissions\nif [ -d \"$(workspaces.source.path)\" ]; then\n  chmod -R u+w \"$(workspaces.source.path)\" 2>/dev/null || true\n  rm -rf \"$(workspaces.source.path)\"/* 2>/dev/null || true\nfi\n\n# Clone the repository\nCHECKOUT_DIR=\"$(workspaces.source.path)\"\n\nif [ \"${params.DELETE_EXISTING}\" = \"true\" ]; then\n  rm -rf \"${CHECKOUT_DIR}\"\nfi\n\nmkdir -p \"${CHECKOUT_DIR}\"\n\ncd \"${CHECKOUT_DIR}\"\n\nif [ -n \"${params.PROXY_URL}\" ]; then\n  export HTTP_PROXY=\"${params.PROXY_URL}\"\n  export HTTPS_PROXY=\"${params.PROXY_URL}\"\n  export NO_PROXY=\"${params.NO_PROXY}\"\nfi\n\nif [ -n \"${params.PROXY_CERT_BUNDLE_PATH}\" ]; then\n  export GIT_SSL_CAINFO=\"${params.PROXY_CERT_BUNDLE_PATH}\"\nfi\n\nif [ \"${params.HTTPS_PROXY}\" != \"\" ]; then\n  export HTTPS_PROXY=\"${params.HTTPS_PROXY}\"\nfi\n\nif [ \"${params.NO_PROXY}\" != \"\" ]; then\n  export NO_PROXY=\"${params.NO_PROXY}\"\nfi\n\nif [ -n \"${params.GIT_INIT_IMAGE}\" ]; then\n  git clone \"${params.URL}\" \"${CHECKOUT_DIR}\" --depth=1 --branch=\"${params.REVISION}\" --single-branch\nelse\n  git init\n  git remote add origin \"${params.URL}\"\n  git fetch origin \"${params.REVISION}\" --depth=1\n  git checkout FETCH_HEAD\nfi"}]' 2>/dev/null || warn "Failed to patch git-clone task"
 
 # Apply pipelines (skip pipeline-run files as they use generateName)
 log "Applying Tekton pipelines..."

@@ -1,0 +1,19 @@
+# Task: Cleanup workspace permissions
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: cleanup
+  namespace: ${PIPELINE_NAMESPACE}
+spec:
+  workspaces:
+    - name: output
+  steps:
+    - name: cleanup
+      image: ${KUBECTL_IMAGE}
+      workingDir: $(workspaces.output.path)
+      script: |
+        #!/bin/bash
+        set -e
+        # Fix permissions for files created by previous builds
+        chmod -R u+w $(workspaces.output.path) 2>/dev/null || true
+        echo "Workspace permissions cleaned up"

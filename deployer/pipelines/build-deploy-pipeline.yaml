@@ -38,10 +38,19 @@ spec:
       default: ${DEPLOYMENT_NAME}
 
   tasks:
+    # 0. Cleanup workspace
+    - name: cleanup
+      taskRef:
+        name: cleanup
+      workspaces:
+        - name: output
+          workspace: shared-workspace
+
     # 1. Clone source code
     - name: clone
       taskRef:
         name: git-clone
+      runAfter: [cleanup]
       workspaces:
         - name: output
           workspace: shared-workspace
