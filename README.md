@@ -176,6 +176,10 @@ A smart microservice that extracts product prices from receipt images using OCR 
 | **Docker** | Containerization |
 | **Docker Compose** | Local development stack |
 | **GitHub Actions** | CI/CD pipeline |
+| **Kubernetes** | Container orchestration |
+| **Vault** | Secrets management |
+| **Terraform** | Infrastructure as code |
+| **Kind** | Local Kubernetes development |
 
 ---
 
@@ -486,6 +490,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🔗 Related Projects
 
+- [dev-infrastructure](https://github.com/RizkiRachman/dev-infrastructure) - Initial setup tools and infrastructure configuration
 - [common-utils-java](https://github.com/RizkiRachman/common-utils-java) - Shared utility library
 - [common-exception-java](https://github.com/RizkiRachman/common-exception-java) - Shared exception library
 - [spring-boot-playground](https://github.com/RizkiRachman/spring-boot-playground) - Proof of concept

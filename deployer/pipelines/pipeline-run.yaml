@@ -13,20 +13,20 @@ spec:
         claimName: ${DEPLOYMENT_NAME}-pvc
   params:
     - name: git-url
-      value: ${GIT_REPO_URL}
+      value: "${GIT_REPO_URL}"
     - name: git-revision
-      value: ${GIT_REPO_DEFAULT_BRANCH}
+      value: "${GIT_REPO_DEFAULT_BRANCH}"
     - name: image-name
-      value: ${IMAGE_NAME}
+      value: "${IMAGE_NAME}"
     - name: image-tag
-      value: ${IMAGE_TAG}
+      value: "${IMAGE_TAG}"
     - name: registry-host
-      value: ${REGISTRY_KIND_HOST}
+      value: "${REGISTRY_CLUSTER_HOST}"
     - name: registry-port
-      value: ${REGISTRY_PORT}
+      value: "${REGISTRY_CLUSTER_PORT}"
     - name: test-goals
       value: "test"
     - name: deployment-namespace
-      value: ${DEPLOYMENT_NAMESPACE}
+      value: "${DEPLOYMENT_NAMESPACE}"
     - name: deployment-name
-      value: ${DEPLOYMENT_NAME}
+      value: "${DEPLOYMENT_NAME}"

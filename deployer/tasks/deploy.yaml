@@ -6,20 +6,20 @@ metadata:
   namespace: ${PIPELINE_NAMESPACE}
 spec:
   workspaces:
-    - name: output
+    - name: source
   params:
     - name: IMAGE
       type: string
       description: "Full image reference to deploy"
     - name: NAMESPACE
       type: string
-      default: ${DEPLOYMENT_NAMESPACE}
+      default: "${DEPLOYMENT_NAMESPACE}"
     - name: DEPLOYMENT_NAME
       type: string
-      default: ${DEPLOYMENT_NAME}
+      default: "${DEPLOYMENT_NAME}"
     - name: DEPLOYMENT_PORT
       type: string
-      default: ${DEPLOYMENT_PORT}
+      default: "${DEPLOYMENT_PORT}"
     - name: ROLLOUT_TIMEOUT
       type: string
       default: "300s"
@@ -41,8 +41,10 @@ spec:
         
         cd $(workspaces.source.path)
         
-        # Create namespace if it doesn't exist
-        kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+        # Extract registry host from image
+        REGISTRY_HOST=$(echo "${IMAGE}" | cut -d'/' -f1)
+        
+        echo "Configuring insecure registry: ${REGISTRY_HOST}"
         
         # Check if deployment exists, if not create a basic one
         if ! kubectl get deployment "${DEPLOYMENT_NAME}" -n "${NAMESPACE}" &>/dev/null; then
@@ -50,12 +52,17 @@ spec:
           kubectl create deployment "${DEPLOYMENT_NAME}" \
             -n "${NAMESPACE}" \
             --image="${IMAGE}" \
-            --port=$(params.DEPLOYMENT_PORT) || true
+            --port=$(params.DEPLOYMENT_PORT)
+          
+          # Set image pull policy and pull secrets
+          kubectl patch deployment "${DEPLOYMENT_NAME}" -n "${NAMESPACE}" -p '{"spec":{"template":{"spec":{"imagePullPolicy":"Always","imagePullSecrets":[{"name":"registry-credentials"}]}}}}' 2>/dev/null || true
         else
           echo "📄 Updating existing deployment..."
           kubectl set image deployment/"${DEPLOYMENT_NAME}" \
             -n "${NAMESPACE}" \
             "${DEPLOYMENT_NAME}"="${IMAGE}" || true
+          
+          kubectl patch deployment "${DEPLOYMENT_NAME}" -n "${NAMESPACE}" -p '{"spec":{"template":{"spec":{"imagePullSecrets":[{"name":"registry-credentials"}]}}}}' 2>/dev/null || true
         fi
         
         echo "⏳ Waiting for rollout to complete (timeout: $(params.ROLLOUT_TIMEOUT))..."

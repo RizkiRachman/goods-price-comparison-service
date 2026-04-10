@@ -1,5 +1,6 @@
 #!/bin/bash
-# Clean up Tekton resources
+# Clean up service-specific Tekton resources
+# Does NOT delete shared infrastructure (namespace, SA, RBAC, registry secret)
 
 set -e
 
@@ -13,12 +14,14 @@ log()   { echo -e "${GREEN}[INFO]${NC} $1"; }
 
 # Load environment
 if [ -f "$DEPLOYER_DIR/.env" ]; then
-    export $(grep -v '^#' "$DEPLOYER_DIR/.env" | xargs)
+    set -a && source "$DEPLOYER_DIR/.env" && set +a
 fi
 
-PIPELINE_NAMESPACE="${PIPELINE_NAMESPACE:-goods-price-ci}"
+PIPELINE_NAMESPACE="${PIPELINE_NAMESPACE:-tekton-pipelines}"
+DEPLOYMENT_NAME="${DEPLOYMENT_NAME:-goods-price-service}"
 
-warn "This will delete all Tekton resources in namespace: ${PIPELINE_NAMESPACE}"
+warn "This will delete service-specific Tekton resources in namespace: ${PIPELINE_NAMESPACE}"
+warn "Shared infrastructure (SA, RBAC, registry secret) will NOT be deleted."
 read -p "Are you sure? (yes/no): " confirm
 
 if [ "$confirm" != "yes" ]; then
@@ -27,38 +30,27 @@ if [ "$confirm" != "yes" ]; then
 fi
 
 log "Deleting PipelineRuns..."
-kubectl delete pipelineruns --all -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
+kubectl delete pipelineruns -n "$PIPELINE_NAMESPACE" -l tekton.dev/pipeline=goods-price-pipeline 2>/dev/null || true
 
 log "Deleting TaskRuns..."
-kubectl delete taskruns --all -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
+kubectl delete taskruns -n "$PIPELINE_NAMESPACE" -l tekton.dev/pipeline=goods-price-pipeline 2>/dev/null || true
 
-log "Deleting Pipelines..."
-kubectl delete pipelines --all -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
+log "Deleting Pipeline..."
+kubectl delete pipeline goods-price-pipeline -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
 
 log "Deleting Tasks..."
-kubectl delete tasks --all -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
+kubectl delete task cleanup maven-build maven-test docker-build deploy -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
 
-log "Deleting TriggerBindings..."
-kubectl delete triggerbindings --all -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
+log "Deleting PVCs..."
+kubectl delete pvc "${DEPLOYMENT_NAME}-pvc" maven-cache-pvc -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
 
-log "Deleting Secrets..."
-kubectl delete secret registry-credentials -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
+log "Deleting service-specific secrets..."
+kubectl delete secret github-maven-credentials maven-settings-secret -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
 
-log "Deleting RoleBindings..."
-kubectl delete rolebinding tekton-triggers-rolebinding -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
-kubectl delete clusterrolebinding tekton-triggers-${PIPELINE_NAMESPACE}-cluster-binding 2>/dev/null || true
+log "Deleting service RBAC..."
+kubectl delete rolebinding "${DEPLOYMENT_NAME}-binding" -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
+kubectl delete role "${DEPLOYMENT_NAME}-role" -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
 
-log "Deleting ClusterRoleBinding..."
-kubectl delete clusterrolebinding ${PIPELINE_SERVICE_ACCOUNT:-tekton-sa}-binding 2>/dev/null || true
-
-log "Deleting ClusterRole..."
-kubectl delete clusterrole ${PIPELINE_SERVICE_ACCOUNT:-tekton-sa}-role 2>/dev/null || true
-
-log "Deleting ServiceAccounts..."
-kubectl delete serviceaccount tekton-triggers-sa -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
-kubectl delete serviceaccount ${PIPELINE_SERVICE_ACCOUNT:-tekton-sa} -n "$PIPELINE_NAMESPACE" 2>/dev/null || true
-
-log "Deleting Namespace..."
-kubectl delete namespace "$PIPELINE_NAMESPACE" 2>/dev/null || true
-
-log "✅ Cleanup complete!"
+log ""
+log "✅ Service resources cleaned up!"
+log "Shared infrastructure is still running in namespace: $PIPELINE_NAMESPACE"
