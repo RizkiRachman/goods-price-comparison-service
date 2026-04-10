@@ -4,8 +4,8 @@ WORKDIR /app
 COPY target/*.jar app.jar
 RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted
 
-# Stage 2: Minimal runtime image
-FROM amazoncorretto:17-alpine3.19
+# Stage 2: Minimal runtime image (JRE-only, no full JDK)
+FROM eclipse-temurin:17-jre-alpine
 RUN addgroup -S spring && adduser -S spring -G spring && \
     apk add --no-cache curl
 WORKDIR /app
