@@ -169,3 +169,13 @@ build/
 .claude-plugin/
 .claudeignore
 CLAUDE.md
+
+# Windsurf
+.windsurf/
+
+# Other AI Agents
+.cursor/
+.copilot/
+.aider/
+.continue/
+.tabby/

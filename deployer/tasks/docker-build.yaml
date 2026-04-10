@@ -32,3 +32,4 @@ spec:
         - --destination=$(params.IMAGE)
         - --skip-tls-verify
         - --insecure
+        - --cache=true

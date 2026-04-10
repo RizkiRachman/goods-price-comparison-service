@@ -1,20 +1,20 @@
 # Stage 1: Extract Spring Boot layers from fat JAR
-FROM amazoncorretto:17-alpine3.17 AS layers
+FROM amazoncorretto:17-alpine3.19 AS layers
 WORKDIR /app
 COPY target/*.jar app.jar
-RUN java -Djarmode=layertools -jar app.jar extract
+RUN java -Djarmode=tools -jar app.jar extract --layers --destination extracted
 
-# Stage 2: Minimal runtime image with ARM support
-FROM amazoncorretto:17-alpine3.17
-RUN apk add --no-cache curl shadow && \
-    groupadd -r spring && useradd -r -g spring -s /bin/false -M spring
+# Stage 2: Minimal runtime image
+FROM amazoncorretto:17-alpine3.19
+RUN addgroup -S spring && adduser -S spring -G spring && \
+    apk add --no-cache curl
 WORKDIR /app
 
 # Copy layers in order: least → most frequently changed (maximizes cache reuse)
-COPY --chown=spring:spring --from=layers /app/dependencies/ ./
-COPY --chown=spring:spring --from=layers /app/spring-boot-loader/ ./
-COPY --chown=spring:spring --from=layers /app/snapshot-dependencies/ ./
-COPY --chown=spring:spring --from=layers /app/application/ ./
+COPY --chown=spring:spring --from=layers /app/extracted/dependencies/ ./
+COPY --chown=spring:spring --from=layers /app/extracted/spring-boot-loader/ ./
+COPY --chown=spring:spring --from=layers /app/extracted/snapshot-dependencies/ ./
+COPY --chown=spring:spring --from=layers /app/extracted/application/ ./
 
 USER spring
 EXPOSE 8080
@@ -24,4 +24,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
 
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC"
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS org.springframework.boot.loader.launch.JarLauncher"]
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-XX:+UseG1GC", "org.springframework.boot.loader.launch.JarLauncher"]

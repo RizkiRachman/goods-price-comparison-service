@@ -1,5 +1,5 @@
 #!/bin/bash
-# Check the status of Tekton resources
+# Check the status of Tekton resources for this service
 
 set -e
 
@@ -13,12 +13,12 @@ error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
 # Load environment
 if [ -f "$DEPLOYER_DIR/.env" ]; then
-    export $(grep -v '^#' "$DEPLOYER_DIR/.env" | xargs)
+    set -a && source "$DEPLOYER_DIR/.env" && set +a
 fi
 
-PIPELINE_NAMESPACE="${PIPELINE_NAMESPACE:-goods-price-ci}"
+PIPELINE_NAMESPACE="${PIPELINE_NAMESPACE:-tekton-pipelines}"
 
-log "=== Tekton Resources Status ==="
+log "=== Goods-Price Service - Tekton Status ==="
 log "Namespace: ${PIPELINE_NAMESPACE}"
 log ""
 
@@ -40,3 +40,7 @@ kubectl get taskruns -n "$PIPELINE_NAMESPACE" 2>/dev/null || warn "No taskruns f
 log ""
 log "--- Pods ---"
 kubectl get pods -n "$PIPELINE_NAMESPACE" 2>/dev/null || warn "No pods found"
+
+log ""
+log "--- PVCs ---"
+kubectl get pvc -n "$PIPELINE_NAMESPACE" 2>/dev/null || warn "No PVCs found"

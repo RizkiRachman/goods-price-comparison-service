@@ -1,120 +1,141 @@
 # Tekton Deployment Setup
 
-This directory contains Tekton configuration for building and deploying the goods-price-comparison-service to a remote Tekton server.
+This directory contains service-specific Tekton pipeline and task definitions for building and deploying the goods-price-comparison-service. It integrates with the shared [dev-infrastructure](https://github.com/RizkiRachman/dev-infrastructure) Tekton server.
+
+## Architecture
+
+```
+dev-infrastructure (shared)          goods-price-comparison-service (this repo)
+─────────────────────────           ───────────────────────────────────────────
+k3d cluster + registry              deployer/
+Tekton Pipelines/Dashboard/Triggers   ├── tasks/          Service-specific tasks
+Namespace, SA, RBAC, registry secret  ├── pipelines/      Pipeline definition
+                                      ├── pvc/            Workspace + Maven cache
+                                      └── scripts/        Apply/run/status/cleanup
+```
+
+The shared infrastructure (k3d cluster, Tekton installation, service account, RBAC, registry secret) is managed by `dev-infrastructure`. This deployer only registers service-specific resources (tasks, pipeline, PVCs, secrets) into the shared `tekton-pipelines` namespace.
 
 ## Directory Structure
 
 ```
 deployer/
 ├── .env.template          # Environment variables template
-├── manifests/             # Kubernetes infrastructure manifests
-│   ├── namespace.yaml
-│   ├── serviceaccount.yaml
-│   ├── registry-secret.yaml
-│   └── triggers/
-│       ├── rbac.yaml
-│       └── triggerbinding.yaml
+├── k8s-setup/              # RBAC for scoped service permissions
+│   ├── rbac-role.yaml      # Role: scoped to service resources only
+│   └── rbac-rolebinding.yaml # RoleBinding: binds RBAC_USER to Role
 ├── tasks/                 # Tekton task definitions
-│   ├── git-clone.yaml
-│   ├── maven-build.yaml
-│   ├── maven-test.yaml
-│   ├── docker-build.yaml
-│   └── deploy.yaml
+│   ├── cleanup.yaml       # Workspace cleanup before build
+│   ├── maven-build.yaml   # Maven compile + package (skip tests)
+│   ├── maven-test.yaml    # Maven test/verify
+│   ├── docker-build.yaml  # Kaniko build + push to registry
+│   └── deploy.yaml        # kubectl deploy to cluster
 ├── pipelines/             # Tekton pipeline definitions
-│   ├── build-deploy-pipeline.yaml
-│   └── pipeline-run.yaml
+│   ├── pipeline.yaml      # Pipeline: cleanup→clone→build→test→image→deploy
+│   └── pipeline-run.yaml  # PipelineRun template (generateName)
+├── pvc/                   # Persistent Volume Claims
+│   ├── workspace-pvc.yaml # 2Gi workspace PVC
+│   └── maven-cache-pvc.yaml # 5Gi Maven cache PVC
 └── scripts/               # Helper scripts
-    ├── apply.sh
-    ├── run-pipeline.sh
-    ├── status.sh
-    └── cleanup.sh
+    ├── apply.sh           # Apply service resources to shared cluster
+    ├── run-pipeline.sh    # Trigger a new PipelineRun
+    ├── status.sh          # Check status of service Tekton resources
+    ├── cleanup.sh         # Remove service resources (keeps shared infra)
+    └── create-maven-settings-secret.sh  # Create maven settings secret
 ```
 
 ## Quick Start
 
-1. **Configure environment variables**
+1. **Start dev-infrastructure** (if not already running)
    ```bash
-   cp .env.template .env
-   # Edit .env with your specific values
+   cd ../dev-infrastructure
+   ./scripts/init.sh  # Option 7: Setup All
+   ./services/tekton/scripts/start.sh
    ```
 
-2. **Apply Tekton resources**
+2. **Configure environment variables**
+   ```bash
+   cp .env.template .env
+   # Edit .env — set GITHUB_USERNAME and GITHUB_TOKEN for GitHub Packages
+   ```
+
+3. **Apply service resources**
    ```bash
    ./scripts/apply.sh
    ```
 
-3. **Run the pipeline**
+4. **Run the pipeline**
    ```bash
    ./scripts/run-pipeline.sh
    ```
 
-4. **Check status**
+5. **Check status**
    ```bash
    ./scripts/status.sh
    ```
 
+## RBAC Scoping
+
+The `k8s-setup/` directory defines a scoped `Role` + `RoleBinding` that limits what this service can do in the shared `tekton-pipelines` namespace:
+
+| Allowed | Blocked (shared infra) |
+|---------|----------------------|
+| Tasks, TaskRuns, Pipelines, PipelineRuns | ServiceAccount `tekton-sa` |
+| PVCs (workspace, maven-cache) | ClusterRole `tekton-sa-role` |
+| Secrets (`github-maven-credentials`, `maven-settings-secret`) | ClusterRoleBinding `tekton-sa-binding` |
+| Pods, Pods/log (read-only) | Secret `registry-credentials` |
+| Deployments, ReplicaSets | Secret `gcr-key` |
+| ConfigMaps (read-only) | |
+
+The `RBAC_USER` in `.env` identifies this service in the RoleBinding. This follows the dev-infrastructure pattern where each component gets its own scoped identity.
+
 ## Environment Variables
 
-Key variables in `.env`:
+Service-specific configuration in `.env`:
 
-- `PIPELINE_NAMESPACE` - Kubernetes namespace for Tekton resources (default: `goods-price-ci`)
-- `PIPELINE_SERVICE_ACCOUNT` - Service account for pipeline execution (default: `tekton-sa`)
-- `REGISTRY_KIND_HOST` - Container registry hostname
-- `REGISTRY_PORT` - Container registry port
-- `REGISTRY_USERNAME` - Registry username (optional)
-- `REGISTRY_PASSWORD` - Registry password (optional)
-- `GIT_REPO_URL` - Git repository URL
-- `GIT_REPO_DEFAULT_BRANCH` - Default git branch (default: `main`)
-- `IMAGE_NAME` - Docker image name
-- `IMAGE_TAG` - Docker image tag (default: `latest`)
-- `DEPLOYMENT_NAMESPACE` - Kubernetes namespace for deployment
-- `DEPLOYMENT_NAME` - Kubernetes deployment name
+- `RBAC_USER` - Service identity for RBAC RoleBinding (default: `goods-price-service`)
+- `GITHUB_USERNAME` - GitHub username for Maven Packages access
+- `GITHUB_TOKEN` - GitHub token for Maven Packages access
+
+All other values (namespace, registry host, image names) are hardcoded in the YAML files and aligned with dev-infrastructure defaults.
 
 ## Pipeline Flow
 
-The `goods-price-pipeline` executes the following steps:
+The `goods-price-pipeline` executes:
 
-1. **git-clone** - Clone source code from Git repository
-2. **maven-build** - Build the application with Maven (skip tests)
-3. **maven-test** - Run Maven tests
-4. **docker-build** - Build and push Docker image using Kaniko
-5. **deploy** - Deploy to Kubernetes
+1. **cleanup** - Clean workspace from previous builds
+2. **git-clone** - Clone source code (from Tekton catalog)
+3. **maven-build** - Build with Maven (skip tests)
+4. **maven-test** - Run Maven tests
+5. **docker-build** - Build and push Docker image using Kaniko
+6. **deploy** - Deploy to Kubernetes
 
 ## Scripts
 
-### Tekton Scripts
-- `apply.sh` - Apply all Tekton resources to the cluster
+- `apply.sh` - Apply service tasks, pipeline, PVCs, and secrets to the shared cluster
 - `run-pipeline.sh` - Trigger a new PipelineRun
 - `status.sh` - Check status of Tekton resources
-- `cleanup.sh` - Remove all Tekton resources
-
-### Kubernetes Dashboard Scripts
-- `k8s-dashboard.sh` - Manage Kubernetes Dashboard (install/token/start)
-  ```bash
-  ./scripts/k8s-dashboard.sh install  # Install dashboard
-  ./scripts/k8s-dashboard.sh token    # Get login token
-  ./scripts/k8s-dashboard.sh start    # Start dashboard
-  ```
+- `cleanup.sh` - Remove service-specific resources (does NOT touch shared infrastructure)
 
 ## Prerequisites
 
-- kubectl configured to connect to your Tekton server
-- envsubst installed (for variable substitution)
-- Container registry accessible from the Tekton cluster
+- [dev-infrastructure](https://github.com/RizkiRachman/dev-infrastructure) running with k3d cluster and Tekton installed
+- kubectl configured to use the dev-infra cluster context
+- GitHub credentials for Maven Packages (optional, if using private packages)
 
 ## Troubleshooting
 
 Check PipelineRun status:
 ```bash
-kubectl get pipelineruns -n goods-price-ci
+kubectl get pipelineruns -n tekton-pipelines
 ```
 
 View PipelineRun logs:
 ```bash
-tkn pipelinerun logs -f -n goods-price-ci <pipeline-run-name>
+tkn pipelinerun logs -f -n tekton-pipelines <pipeline-run-name>
 ```
 
 Check pod logs:
 ```bash
-kubectl logs -n goods-price-ci -l tekton.dev/pipelineRun=<run-name> --all-containers
+kubectl logs -n tekton-pipelines -l tekton.dev/pipelineRun=<run-name> --all-containers
 ```
