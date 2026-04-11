@@ -1,7 +1,7 @@
 # Lightweight Spring Boot image for ARM64 (JRE-only, ~120MB)
-FROM eclipse-temurin:17-jre-alpine
-RUN addgroup -S spring && adduser -S spring -G spring && \
-    apk add --no-cache curl ca-certificates
+FROM eclipse-temurin:17-jre
+RUN groupadd -r spring && useradd -r -g spring spring && \
+    apt-get update && apt-get install -y curl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY target/*.jar app.jar
 RUN chown spring:spring app.jar
