@@ -1,9 +1,10 @@
-# Simple Spring Boot Dockerfile
-FROM amazoncorretto:17-alpine3.19
+# Lightweight Spring Boot image for ARM64 (JRE-only, ~120MB)
+FROM eclipse-temurin:17-jre-alpine
 RUN addgroup -S spring && adduser -S spring -G spring && \
-    apk add --no-cache curl
+    apk add --no-cache curl ca-certificates
 WORKDIR /app
 COPY target/*.jar app.jar
+RUN chown spring:spring app.jar
 USER spring
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
