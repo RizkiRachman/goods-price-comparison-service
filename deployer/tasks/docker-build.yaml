@@ -33,3 +33,4 @@ spec:
         - --skip-tls-verify
         - --insecure
         - --cache=true
+        - --snapshot-mode=redo
