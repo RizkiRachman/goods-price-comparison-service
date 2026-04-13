@@ -282,6 +282,13 @@
         </profile>
         <profile>
             <id>flyway</id>
+            <properties>
+                <DATABASE_HOST/>
+                <DATABASE_PORT/>
+                <DATABASE_NAME/>
+                <DATABASE_USERNAME/>
+                <DATABASE_PASSWORD/>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
