@@ -4,7 +4,8 @@ RUN groupadd -r spring && useradd -r -g spring spring && \
     apt-get update && apt-get install -y curl ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY target/*.jar app.jar
-RUN chown spring:spring app.jar
+COPY db/migration/ db/migration/
+RUN chown -R spring:spring app.jar db/migration/
 USER spring
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
