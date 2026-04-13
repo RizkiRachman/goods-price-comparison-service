@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **Package restructuring**: Moved all domain code from `service/` and `config/properties/` into modular `module/` package structure
+  - `module/llm/` — LLM providers, service, and config (`LlmProperties`)
+  - `module/price/entity/` + `module/price/repository/` — Price domain
+  - `module/product/entity/` + `module/product/repository/` — Product domain
+  - `module/receipt/entity/`, `dto/`, `repository/`, `service/`, `event/` — Receipt domain
+  - `module/store/entity/` + `module/store/repository/` — Store domain
+  - Application-wide configs remain in global `config/` package
+- **Database migration to PostgreSQL**: Switched from H2 to PostgreSQL with parameterized credentials (`${database-name}`, `${database-username}`, `${database-password}`)
+- **Flyway disabled on startup**: Migrations now run via Maven profile (`mvn flyway:migrate -Pflyway`) for CI/CD pipeline control
+- **Flyway migrations moved outside Spring resources**: SQL scripts now live in project root `db/migration/` for CI/CD access
+- **Flyway migration structure**: Organized into `tables/`, `alter/`, `data/` subdirectories with per-table files (V1-V5)
+- **Test configuration**: All `@SpringBootTest` classes now use `@ActiveProfiles("test")`; Flyway runs against H2 during tests with `ddl-auto=validate`
+
+### Added
+- Flyway Maven profile in `pom.xml` for running migrations via `mvn flyway:migrate -Pflyway`
+- JPA entities: `Store`, `Product`, `Price`, `ReceiptItem`
+- JPA repositories: `StoreRepository`, `ProductRepository`, `PriceRepository`, `ReceiptItemRepository`
+- `Receipt` entity updated with `@OneToMany` relationship to `ReceiptItem`
+- Flyway migration scripts (V1-V5) for all tables with FKs and indexes
+
+### Removed
+- Removed `deployer/` folder (moved to separate repository)
+- Removed empty `service/` and `config/properties/` packages
+- Removed H2 console and H2 as default database
+
 ### Added
 - Initial Spring Boot project setup with Maven
 - PostgreSQL database configuration with Flyway migrations

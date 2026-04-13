@@ -1,6 +1,6 @@
 package com.example.goodsprice;
 
-import com.example.goodsprice.config.properties.LlmProperties;
+import com.example.goodsprice.module.llm.config.LlmProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;

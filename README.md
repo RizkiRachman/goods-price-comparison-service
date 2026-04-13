@@ -74,15 +74,16 @@ A smart microservice that extracts product prices from receipt images using OCR 
                         │ JDBC
                         ▼
 ┌─────────────────────────────────────────────────────────────┐
-│              PostgreSQL / H2 Database*                       │
+│              PostgreSQL Database                             │
 │  ┌──────────┐  ┌──────────┐  ┌────────────────────────┐   │
-│  │ receipts │  │  stores  │  │    price_records       │   │
+│  │ receipts │  │  stores  │  │    prices              │   │
 │  │(async    │  │  (50-100)│  │    (100K-10M)          │   │
 │  │ tracking)│  └──────────┘  └────────────────────────┘   │
-│  └──────────┘                                               │
+│  └──────────┘  ┌──────────┐  ┌────────────────────────┐   │
+│                │ products │  │   receipt_items        │   │
+│                │(1K-10K)  │  │   (per-receipt lines) │   │
+│                └──────────┘  └────────────────────────┘   │
 └─────────────────────────────────────────────────────────────┘
-
-*For local development, H2 in-memory database can be used instead
 ```
 
 ### Async Flow Steps:
@@ -149,7 +150,7 @@ A smart microservice that extracts product prices from receipt images using OCR 
 | Component | Purpose |
 |-----------|---------|
 | **PostgreSQL** | Relational data storage |
-| **Flyway** | Database migrations (auto-run on startup) |
+| **Flyway** | Database migrations (via Maven profile) |
 | **Partitioning** | Monthly partitions for price_records |
 | **Indexes** | Optimized queries for product/store lookups |
 
@@ -210,69 +211,89 @@ A smart microservice that extracts product prices from receipt images using OCR 
 
 ---
 
-## 📊 Database Schema (3 Tables)
+## 📊 Database Schema (5 Tables)
 
 ```
 stores (50-100 records)
-├── store_id (PK)
-├── name (Unique)
-├── location
-└── created_at
+├── id (PK, BIGINT)
+├── name (VARCHAR 255)
+├── location (VARCHAR 255)
+├── created_at, updated_at
 
 products (1,000-10,000 records)
-├── product_id (PK)
-├── name (Unique)
-├── category
-├── unit
-└── created_at
+├── id (PK, BIGINT)
+├── name (VARCHAR 255)
+├── category (VARCHAR 255)
+├── unit (VARCHAR 255)
+├── created_at, updated_at
 
-price_records (100K-10M records)
-├── record_id (PK)
-├── product_id (FK)
-├── store_id (FK)
-├── price
-├── quantity
-├── unit_price
-├── is_promo
-├── source_image
+receipts (async tracking)
+├── id (PK, UUID)
+├── image_hash (UNIQUE)
+├── original_filename
+├── status (PENDING/PROCESSING/COMPLETED/FAILED)
+├── error_message
+├── store_name, store_location, receipt_date
+├── total_amount, extracted_data
+├── created_at, updated_at, processed_at
+
+prices (100K-10M records)
+├── id (PK, BIGINT)
+├── product_id (FK → products)
+├── store_id (FK → stores)
+├── price, unit_price
 ├── date_recorded
-└── created_at
+├── is_promo
+├── created_at, updated_at
+
+receipt_items (per-receipt line items)
+├── id (PK, BIGINT)
+├── receipt_id (FK → receipts)
+├── product_name, category
+├── quantity, unit_price, total_price, unit
 ```
 
-**Why 3 Tables?**
+**Why 5 Tables?**
 - ✅ Minimal storage (no duplication)
 - ✅ Fast queries (2 JOINs max)
 - ✅ Easy to maintain
 - ✅ Scalable to millions of records
-- ✅ Simple OCR integration
+- ✅ Receipt tracking with async processing
+- ✅ Per-item receipt line extraction
 
 ### Database Migrations (Flyway)
 
-**No manual execution required!** Flyway runs automatically on application startup.
+Flyway is **disabled on application startup** and run via Maven profile for CI/CD control.
 
-**How it works:**
-1. Place SQL migration files in `src/main/resources/db/migration/`
-2. Name format: `V1__create_stores_table.sql`
-3. Spring Boot auto-detects and executes them
-4. Flyway tracks applied migrations in `flyway_schema_history` table
-
-**Example migration:**
-```sql
--- V1__create_stores_table.sql
-CREATE TABLE stores (
-    store_id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    location VARCHAR(200),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+**Migration structure:**
+```
+db/migration/
+├── tables/              ← CREATE TABLE scripts (per-table)
+│   ├── V1__create_stores_table.sql
+│   ├── V2__create_products_table.sql
+│   ├── V3__create_receipts_table.sql
+│   ├── V4__create_prices_table.sql
+│   └── V5__create_receipt_items_table.sql
+├── alter/               ← ALTER TABLE scripts (future)
+└── data/               ← Seed data scripts (future)
 ```
 
-**Benefits:**
-- ✅ Zero manual database setup
-- ✅ Version controlled schema
-- ✅ Auto-applies on startup
-- ✅ Rollback support
-- ✅ Works in all environments (dev, staging, prod)
+**Run migrations:**
+```bash
+# Migrate (apply pending)
+mvn flyway:migrate -Pflyway \
+  -Ddatabase-name=goods-price-service \
+  -Ddatabase-username=your_user \
+  -Ddatabase-password=your_password
+
+# Check status
+mvn flyway:info -Pflyway
+
+# Validate
+mvn flyway:validate -Pflyway
+```
+
+**During tests:** Flyway runs automatically against H2 in-memory database with `ddl-auto=validate`.
 
 ---
 
@@ -326,9 +347,7 @@ CREATE TABLE stores (
 - common-exception-java
 ```
 
-### Quick Start (Local Development)
-
-Run the application with H2 in-memory database (no PostgreSQL required):
+### Quick Start
 
 ```bash
 # 1. Clone the repository
@@ -339,40 +358,31 @@ cd goods-price-comparison-service
 cd ../common-utils-java && mvn clean install
 cd ../common-exception-java && mvn clean install
 
-# 3. Run with local profile (H2 database)
+# 3. Build and test
 cd ../goods-price-comparison-service
-mvn spring-boot:run -Dspring-boot.run.profiles=local
+mvn clean verify
 
-# 4. Access H2 Console (optional)
-open http://localhost:8080/h2-console
-# JDBC URL: jdbc:h2:mem:price_comparison
-```
+# 4. Run database migrations (requires PostgreSQL)
+mvn flyway:migrate -Pflyway \
+  -Ddatabase-name=goods-price-service \
+  -Ddatabase-username=your_user \
+  -Ddatabase-password=your_password
 
-### Production Setup (PostgreSQL)
-
-For production deployment with PostgreSQL:
-
-```bash
-# 1. Setup database
-createdb price_comparison
-psql price_comparison < schema.sql
-
-# 2. Run with default profile (uses application.properties)
+# 5. Run the application
 mvn spring-boot:run
 ```
 
-### Configuration Profiles
+### Configuration
 
-**Local Development** (`application-local.properties`):
-- Uses H2 in-memory database
-- No PostgreSQL required
-- H2 console enabled at `/h2-console`
-- Flyway disabled (auto DDL)
+The application uses PostgreSQL with parameterized credentials. Set these properties via environment variables, Maven `-D` flags, or a properties file:
 
-**Production** (`application.properties`):
-- Uses PostgreSQL database
-- Flyway migrations enabled
-- All security features active
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `database-name` | Database name | - |
+| `database-username` | Database user | - |
+| `database-password` | Database password | - |
+| `DATABASE_HOST` | PostgreSQL host | `localhost` |
+| `DATABASE_PORT` | PostgreSQL port | `5432` |
 
 ### Build & Test
 
@@ -392,58 +402,50 @@ java -jar target/goods-price-comparison-service-1.0.0-SNAPSHOT.jar --spring.prof
 
 ### Environment Variables
 
-Create `.env` file for local development:
-
-```properties
-# Database (only needed for production profile)
-DATABASE_URL=jdbc:postgresql://localhost:5432/price_comparison
-DATABASE_USERNAME=postgres
-DATABASE_PASSWORD=your_password
-
-# OCR Services
-GOOGLE_VISION_API_KEY=your_google_vision_api_key
-
-# File Upload
-UPLOAD_DIR=/tmp/receipts
-```
-
-### Installation
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/RizkiRachman/goods-price-comparison-service.git
-cd goods-price-comparison-service
-
-# 2. Install shared libraries
-cd ../common-utils-java && mvn clean install
-cd ../common-exception-java && mvn clean install
-
-# 3. Setup database
-createdb price_comparison
-cd ../goods-price-comparison-service
-psql price_comparison < schema.sql
-
-# 4. Run the application
-mvn spring-boot:run
-```
-
-### Configuration
-
-Create `application-local.properties`:
-
 ```properties
 # Database
-spring.datasource.url=jdbc:postgresql://localhost:5432/price_comparison
-spring.datasource.username=your_username
-spring.datasource.password=your_password
+database-name=goods-price-service
+database-username=your_user
+database-password=your_password
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
 
-# OCR
-ocr.google.vision.api.key=${GOOGLE_VISION_API_KEY}
-ocr.fallback.enabled=true
+# LLM
+GEMINI_API_KEY=your_gemini_api_key
+```
 
-# File Upload
-upload.max.size=10MB
-upload.temp.dir=/tmp/receipts
+### Project Structure
+
+```
+com.example.goodsprice
+├── Application.java
+├── config/                          ← Application-wide configs
+│   ├── AsyncConfiguration.java
+│   └── CacheConfiguration.java
+├── controller/                      ← REST controllers
+└── module/                          ← Domain modules
+    ├── llm/
+    │   ├── config/LlmProperties.java
+    │   ├── LLMProvider.java
+    │   ├── LLMService.java
+    │   ├── LlmProviderFactory.java
+    │   ├── GeminiLLMProvider.java
+    │   └── LocalLLMProvider.java
+    ├── price/
+    │   ├── entity/Price.java
+    │   └── repository/PriceRepository.java
+    ├── product/
+    │   ├── entity/Product.java
+    │   └── repository/ProductRepository.java
+    ├── receipt/
+    │   ├── entity/ (Receipt, ReceiptItem, ReceiptStatus)
+    │   ├── dto/ (ReceiptResult, ReceiptUploadData, ReceiptUploadResult)
+    │   ├── repository/ (ReceiptRepository, ReceiptItemRepository)
+    │   ├── service/ReceiptService.java
+    │   └── event/ (ReceiptProcessEvent, ReceiptProcessEventListener)
+    └── store/
+        ├── entity/Store.java
+        └── repository/StoreRepository.java
 ```
 
 ---

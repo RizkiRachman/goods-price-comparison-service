@@ -3,13 +3,14 @@ package com.example.goodsprice.controller;
 import com.example.goodsprice.api.model.ReceiptResultResponse;
 import com.example.goodsprice.api.model.ReceiptStatusResponse;
 import com.example.goodsprice.api.model.ReceiptUploadResponse;
-import com.example.goodsprice.service.receipt.Receipt;
-import com.example.goodsprice.service.receipt.ReceiptRepository;
-import com.example.goodsprice.service.receipt.ReceiptStatus;
+import com.example.goodsprice.module.receipt.entity.Receipt;
+import com.example.goodsprice.module.receipt.repository.ReceiptRepository;
+import com.example.goodsprice.module.receipt.entity.ReceiptStatus;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for ReceiptController with async processing.
  */
 @SpringBootTest
+@ActiveProfiles("test")
 @TestPropertySource(locations = "classpath:application-test.properties")
 class ReceiptControllerTest {
 
