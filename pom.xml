@@ -32,6 +32,10 @@
         <!-- Test coverage -->
         <jacoco.version>0.8.11</jacoco.version>
         <coverage.minimum>0.90</coverage.minimum>
+
+        <!-- Database -->
+        <postgresql.version>42.7.5</postgresql.version>
+        <flyway.version>10.20.1</flyway.version>
     </properties>
 
     <repositories>
@@ -278,6 +282,10 @@
         </profile>
         <profile>
             <id>flyway</id>
+            <properties>
+                <database-host>localhost</database-host>
+                <database-port>5432</database-port>
+            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -285,7 +293,7 @@
                         <artifactId>flyway-maven-plugin</artifactId>
                         <version>${flyway.version}</version>
                         <configuration>
-                            <url>jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${database-name}</url>
+                            <url>jdbc:postgresql://${database-host}:${database-port}/${database-name}</url>
                             <user>${database-username}</user>
                             <password>${database-password}</password>
                             <locations>
@@ -296,6 +304,11 @@
                             <baselineOnMigrate>true</baselineOnMigrate>
                         </configuration>
                         <dependencies>
+                            <dependency>
+                                <groupId>org.flywaydb</groupId>
+                                <artifactId>flyway-database-postgresql</artifactId>
+                                <version>${flyway.version}</version>
+                            </dependency>
                             <dependency>
                                 <groupId>org.postgresql</groupId>
                                 <artifactId>postgresql</artifactId>
