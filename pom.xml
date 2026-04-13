@@ -276,6 +276,36 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>flyway</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.flywaydb</groupId>
+                        <artifactId>flyway-maven-plugin</artifactId>
+                        <version>${flyway.version}</version>
+                        <configuration>
+                            <url>jdbc:postgresql://${DATABASE_HOST:localhost}:${DATABASE_PORT:5432}/${database-name}</url>
+                            <user>${database-username}</user>
+                            <password>${database-password}</password>
+                            <locations>
+                                <location>filesystem:db/migration/tables</location>
+                                <location>filesystem:db/migration/alter</location>
+                                <location>filesystem:db/migration/data</location>
+                            </locations>
+                            <baselineOnMigrate>true</baselineOnMigrate>
+                        </configuration>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.postgresql</groupId>
+                                <artifactId>postgresql</artifactId>
+                                <version>${postgresql.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 
 </project>
