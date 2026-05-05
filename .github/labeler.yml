@@ -1,0 +1,162 @@
+# PR Labeler Configuration
+# Uses GitHub Actions Labeler: https://github.com/actions/labeler
+
+# ============================================
+# API & Contract Changes
+# ============================================
+
+# OpenAPI Specification Changes
+openapi:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/main/resources/openapi/**
+          - src/main/resources/openapi/**.yaml
+          - src/main/resources/openapi/**.yml
+
+# Breaking API Changes - needs manual review
+breaking-change:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/main/resources/openapi/paths/**
+          - src/main/resources/openapi/schemas/**
+          - src/main/resources/openapi/main.yaml
+
+# ============================================
+# CI/CD & Automation
+# ============================================
+
+# CI/CD Pipeline Changes
+workflow:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/workflows/**
+          - .github/workflows/**.yml
+          - .github/workflows/**.yaml
+
+# GitHub Configuration (excluding workflows)
+github-config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/ISSUE_TEMPLATE/**
+          - .github/PULL_REQUEST_TEMPLATE.md
+          - .github/labeler.yml
+          - .github/CODEOWNERS
+          - .github/dependabot.yml
+
+# ============================================
+# Documentation
+# ============================================
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - docs/**
+          - README.md
+          - CHANGELOG.md
+          - CONTRIBUTING.md
+          - LICENSE
+          - '**/*.md'
+
+# AI Documentation
+ai-docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .ai/**
+          - .ai/*.md
+          - .ai/rules/**
+          - .ai/skills/**
+          - .ai/context/**
+
+# ============================================
+# Code Changes
+# ============================================
+
+# Java Source Code (excluding generated)
+java:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/main/java/**
+          - src/test/java/**
+          - src/main/java/**.java
+          - src/test/java/**.java
+
+# Test Changes
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/test/**
+          - '**/test/**/*'
+          - '**/*Test.java'
+          - '**/*Tests.java'
+
+# Script Changes
+scripts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - scripts/**
+          - scripts/**.js
+          - scripts/**.sh
+          - scripts/**.py
+
+# ============================================
+# Configuration & Dependencies
+# ============================================
+
+# Build Configuration
+config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - pom.xml
+          - .spectral.yaml
+          - .spectral.yml
+          - Makefile
+          - .editorconfig
+          - .gitignore
+          - .gitattributes
+
+# Container & Docker
+container:
+  - changed-files:
+      - any-glob-to-any-file:
+          - Dockerfile
+          - Dockerfile.*
+          - docker-compose.yml
+          - docker-compose.*.yml
+          - .dockerignore
+
+# Dependencies
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - pom.xml
+          - package.json
+          - package-lock.json
+          - requirements.txt
+          - gradle.properties
+
+# ============================================
+# Special Labels
+# ============================================
+
+# Release/Version Bump
+release:
+  - changed-files:
+      - any-glob-to-any-file:
+          - pom.xml
+          - CHANGELOG.md
+
+# Security Related
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/workflows/codeql.yml
+          - .github/dependabot.yml
+          - pom.xml
+
+# ============================================
+# Size Labels (based on changed files count)
+# ============================================
+
+# Note: Size labels are typically handled by a separate action
+# This is here as a placeholder for documentation
+# Use github-actions/pr-size-labeler for size labels

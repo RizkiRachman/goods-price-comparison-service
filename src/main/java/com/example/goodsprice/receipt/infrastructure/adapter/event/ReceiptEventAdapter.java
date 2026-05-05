@@ -28,4 +28,9 @@ public class ReceiptEventAdapter implements ReceiptEventOutPort {
   public void publishReceiptApproved(ReceiptDomain receipt) {
     publisher.publishEvent(new ReceiptApprovedEvent(receipt.getId()));
   }
+
+  @Override
+  public void publishReceiptCorrected(ReceiptDomain receipt) {
+    publisher.publishEvent(new ReceiptCorrectedEvent(receipt.getId()));
+  }
 }

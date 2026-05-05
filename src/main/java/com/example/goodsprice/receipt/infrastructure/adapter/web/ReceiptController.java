@@ -2,6 +2,7 @@ package com.example.goodsprice.receipt.infrastructure.adapter.web;
 
 import com.example.goodsprice.api.controller.ReceiptsApi;
 import com.example.goodsprice.api.model.ReceiptApproveResponse;
+import com.example.goodsprice.api.model.ReceiptCorrectRequest;
 import com.example.goodsprice.api.model.ReceiptRejectRequest;
 import com.example.goodsprice.api.model.ReceiptRejectResponse;
 import com.example.goodsprice.api.model.ReceiptResultResponse;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ReceiptController implements ReceiptsApi {
 
   private final ReceiptWebAdapter adapter;
+  private final ReceiptCorrectionWebAdapter correctionAdapter;
 
   @Override
   public ResponseEntity<ReceiptUploadResponse> uploadReceipt(MultipartFile image) {
@@ -44,5 +46,11 @@ public class ReceiptController implements ReceiptsApi {
   public ResponseEntity<ReceiptRejectResponse> rejectReceipt(
       UUID id, ReceiptRejectRequest receiptRejectRequest) {
     return ResponseEntity.ok(adapter.reject(id));
+  }
+
+  @Override
+  public ResponseEntity<ReceiptResultResponse> correctReceipt(
+      UUID id, ReceiptCorrectRequest receiptCorrectRequest) {
+    return ResponseEntity.ok(correctionAdapter.correct(id, receiptCorrectRequest));
   }
 }

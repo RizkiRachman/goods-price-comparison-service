@@ -1,0 +1,117 @@
+name: API Diff Commenter
+
+on:
+  pull_request:
+    paths:
+      - 'src/main/resources/openapi/**'
+    types: [opened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  api-diff:
+    name: Post API Diff Summary
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed OpenAPI files
+        id: changed
+        run: |
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          git diff --name-only origin/${{ github.base_ref }} HEAD | grep -E "src/main/resources/openapi/.*\\.(yaml|yml)$" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Count endpoints in current
+        id: current
+        run: |
+          PATHS=$(grep -E "^  /[a-z]" src/main/resources/openapi/main.yaml | wc -l)
+          SCHEMAS=$(grep -h "type: object" src/main/resources/openapi/schemas/*.yaml 2>/dev/null | wc -l || echo "0")
+          echo "paths=$PATHS" >> $GITHUB_OUTPUT
+          echo "schemas=$SCHEMAS" >> $GITHUB_OUTPUT
+
+      - name: Count endpoints in base
+        id: base
+        run: |
+          git show origin/${{ github.base_ref }}:src/main/resources/openapi/main.yaml > /tmp/base.yaml 2>/dev/null || touch /tmp/base.yaml
+          PATHS=$(grep -E "^  /[a-z]" /tmp/base.yaml | wc -l)
+          echo "paths=$PATHS" >> $GITHUB_OUTPUT
+
+      - name: Generate diff comment
+        id: diff
+        run: |
+          CURRENT_PATHS="${{ steps.current.outputs.paths }}"
+          BASE_PATHS="${{ steps.base.outputs.paths }}"
+          CURRENT_SCHEMAS="${{ steps.current.outputs.schemas }}"
+          
+          cat > comment.md << 'EOF'
+          ## 📊 API Changes Summary
+          
+          ### 🔍 Endpoints
+          - **This PR:** ${{ steps.current.outputs.paths }} endpoints
+          - **Base branch:** ${{ steps.base.outputs.paths }} endpoints
+          EOF
+          
+          if [ "$CURRENT_PATHS" -gt "$BASE_PATHS" ]; then
+            ADDED=$((CURRENT_PATHS - BASE_PATHS))
+            echo "- ✅ **Added:** $ADDED endpoint(s)" >> comment.md
+          elif [ "$CURRENT_PATHS" -lt "$BASE_PATHS" ]; then
+            REMOVED=$((BASE_PATHS - CURRENT_PATHS))
+            echo "- ⚠️ **Removed:** $REMOVED endpoint(s)" >> comment.md
+          else
+            echo "- 📝 Modified existing endpoints" >> comment.md
+          fi
+          
+          cat >> comment.md << 'EOF'
+          
+          ### 📦 Schemas
+          - **Object schemas:** ${{ steps.current.outputs.schemas }}
+          
+          ### 📁 Changed Files
+          EOF
+          
+          echo "${{ steps.changed.outputs.files }}" | grep -v "^EOF$" | sed 's/^/- `/' | sed 's/$/`/' >> comment.md
+          
+          cat >> comment.md << 'EOF'
+          
+          ---
+          💡 Review the [OpenAPI specification](https://github.com/${{ github.repository }}/blob/${{ github.head_ref }}/src/main/resources/openapi/main.yaml) for detailed changes.
+          EOF
+          
+          cat comment.md
+
+      - name: Post/Update PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('comment.md', 'utf8');
+            
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            
+            const existing = comments.find(c => c.user.type === 'Bot' && c.body.includes('📊 API Changes Summary'));
+            
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
