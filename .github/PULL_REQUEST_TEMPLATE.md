@@ -24,7 +24,7 @@
 - [ ] `./scripts/check-conventions.sh` — convention checks pass
 - [ ] New code has unit tests (100% coverage for new code)
 - [ ] CHANGELOG.md updated under `[Unreleased]`
-- [ ] Documentation updated (README, docs/, AGENTS.md if applicable)
+- [ ] Documentation updated (README, docs/ if applicable)
 - [ ] No unused code, parameters, or variables (YAGNI)
 - [ ] No redundant variable assignments
 

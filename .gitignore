@@ -169,6 +169,7 @@ build/
 .claude-plugin/
 .claudeignore
 CLAUDE.md
+AGENTS.md
 
 # Windsurf
 .windsurf/
@@ -177,6 +178,7 @@ CLAUDE.md
 .run/
 
 # Other AI Agents
+.opencode/
 .cursor/
 .copilot/
 .aider/
