@@ -1,0 +1,46 @@
+<FindBugsFilter>
+  <!-- Test code excluded — SpotBugs focuses on main sources only -->
+  <Match>
+    <Source name="~.*Test\.java" />
+  </Match>
+
+  <!-- Infrastructure: Spring/Lombok bean exposure is intentional -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
+    <Package name="~.*\.infrastructure\..*" />
+  </Match>
+
+  <!-- Records and DTOs: components intentionally expose their values -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
+    <Class name="~.*\.dto\..*" />
+  </Match>
+
+  <!-- Event records: byte[] exposure is intentional for async processing -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
+    <Class name="~.*\.event\.ReceiptUploadedEvent" />
+  </Match>
+
+  <!-- Domain services: ObjectMapper and repository exposure via Lombok -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP2" />
+    <Class name="~.*\.domain\.service\..*" />
+  </Match>
+
+  <!-- Shopping domain models: Lombok @Builder/@Getter/@Setter expose internal collections (Lombok-generated) -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
+    <Class name="~.*\.shopping\.application\.domain\.model\..*" />
+  </Match>
+
+  <!-- Adapters intentionally throw RuntimeException on failure -->
+  <Match>
+    <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION" />
+  </Match>
+
+  <!-- Generic catch blocks in providers and utilities -->
+  <Match>
+    <Bug pattern="REC_CATCH_EXCEPTION" />
+  </Match>
+</FindBugsFilter>

@@ -27,7 +27,7 @@
         <!-- Shared libraries -->
         <common-utils.version>1.0.0-SNAPSHOT</common-utils.version>
         <common-exception.version>1.0.0-SNAPSHOT</common-exception.version>
-        <api.version>1.2.3</api.version>
+        <api.version>1.4.4</api.version>
         
         <!-- Test coverage -->
         <jacoco.version>0.8.11</jacoco.version>
@@ -141,6 +141,14 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
+        </dependency>
+
+        <!-- ArchUnit for hexagonal architecture tests -->
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>1.3.0</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- Google GenAI SDK for Gemini -->

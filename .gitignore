@@ -173,6 +173,9 @@ CLAUDE.md
 # Windsurf
 .windsurf/
 
+# IntelliJ run configurations (may contain secrets)
+.run/
+
 # Other AI Agents
 .cursor/
 .copilot/

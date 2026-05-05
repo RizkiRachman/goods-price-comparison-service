@@ -7,124 +7,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- **Package restructuring**: Moved all domain code from `service/` and `config/properties/` into modular `module/` package structure
-  - `module/llm/` — LLM providers, service, and config (`LlmProperties`)
-  - `module/price/entity/` + `module/price/repository/` — Price domain
-  - `module/product/entity/` + `module/product/repository/` — Product domain
-  - `module/receipt/entity/`, `dto/`, `repository/`, `service/`, `event/` — Receipt domain
-  - `module/store/entity/` + `module/store/repository/` — Store domain
-  - Application-wide configs remain in global `config/` package
-- **Database migration to PostgreSQL**: Switched from H2 to PostgreSQL with parameterized credentials (`${database-name}`, `${database-username}`, `${database-password}`)
-- **Flyway disabled on startup**: Migrations now run via Maven profile (`mvn flyway:migrate -Pflyway`) for CI/CD pipeline control
-- **Flyway migrations moved outside Spring resources**: SQL scripts now live in project root `db/migration/` for CI/CD access
-- **Flyway migration structure**: Organized into `tables/`, `alter/`, `data/` subdirectories with per-table files (V1-V5)
-- **Test configuration**: All `@SpringBootTest` classes now use `@ActiveProfiles("test")`; Flyway runs against H2 during tests with `ddl-auto=validate`
-
 ### Added
-- Flyway Maven profile in `pom.xml` for running migrations via `mvn flyway:migrate -Pflyway`
-- JPA entities: `Store`, `Product`, `Price`, `ReceiptItem`
-- JPA repositories: `StoreRepository`, `ProductRepository`, `PriceRepository`, `ReceiptItemRepository`
-- `Receipt` entity updated with `@OneToMany` relationship to `ReceiptItem`
-- Flyway migration scripts (V1-V5) for all tables with FKs and indexes
 
-### Removed
-- Removed `deployer/` folder (moved to separate repository)
-- Removed empty `service/` and `config/properties/` packages
-- Removed H2 console and H2 as default database
-
-### Added
-- Initial Spring Boot project setup with Maven
-- PostgreSQL database configuration with Flyway migrations
-- H2 in-memory database for local development (`application-local.properties`)
-- Application entry point (`Application.java`)
-- Test configuration with JUnit 5 and Spring Boot Test
-- Code quality tools: JaCoCo, Checkstyle, SpotBugs
-- AI documentation structure with `.ai/` directory
-  - `AGENTS.md` - AI agent guidelines
-  - `rules/CODING_STANDARDS.md` - Coding standards
-  - `rules/PR_WORKFLOW.md` - PR workflow
-  - `skills/JAVA.md` - Java guidelines
-  - `skills/TESTING.md` - Testing and coverage requirements
-  - `context/PROJECT_OVERVIEW.md` - Project overview
-- CHANGELOG.md and CONTRIBUTING.md for project documentation
-- Strict merge rules in AI documentation (explicit permission required)
-- Added `goods-price-comparison-api` as Maven dependency for OpenAPI generated DTOs
-- Created API controller skeletons implementing OpenAPI interfaces:
-  - SystemController, ReceiptController, PriceController
-  - ShoppingController, ProductController, AlertController
-- Added comprehensive unit tests for all controllers (100% coverage)
+- **Hexagonal architecture restructuring**: Each service (`receipt`, `price`, `product`, `store`, `llm`, `shopping`, `alert`, `system`) now follows ports-and-adapters pattern with strict layer separation
+  - `application/` — pure Java domain services, ports, and domain models (no Spring/JPA)
+  - `infrastructure/adapter/` — web controllers, persistence JPA, event adapters
+  - `infrastructure/handler/` — async event handlers via `@Async` + `@TransactionalEventListener(AFTER_COMMIT)`
+- **Common utilities**: `common/` package with `ObjectUtils`, `JsonUtils`, `NumberUtils`, `HashUtils`, `ValidationUtils`, `PaginationUtils`, `SortingUtils`, `ProductNameUtils`
+- **Common constants**: `common/constant/` with `AppConstants`, `ErrorCodes`, `ErrorMessageConstants`, `EntityConstants`, `ParamConstants`, `SortConstants`
+- **Common DTOs**: `PageRequest`, `PageResponse` for paginated APIs
+- **Global exception handler**: `GlobalExceptionHandler` with structured error responses for domain exceptions
+- **Jackson configuration**: `JacksonConfiguration` with `JsonNullableModule` and `JavaTimeModule` for OpenAPI compatibility
+- **Price summary batch service**: `PriceSummaryBatchService` with `@Scheduled` batch job for computing product price aggregates (avg, min, max)
+- **Price summary scheduler**: `PriceSummaryBatchScheduler` with configurable cron expression
+- **Product price query service**: `ProductPriceQueryService` for efficient product+price queries with pagination
+- **Product comparators**: `ProductComparators` for flexible product sorting
+- **Store lookup service**: `StoreLookupService` for cross-service store resolution
+- **LLM provider configuration**: `LlmProviderConfiguration` with dynamic provider selection (`local`, `gemini`, `groq`)
+- **Groq LLM provider**: `GroqLlmProvider` for Groq API integration
+- **LLM constants**: `LlmConstants` with JSON keys, provider names, and MIME types
+- **Receipt event system**: `ReceiptUploadedEvent`, `ReceiptProcessedEvent`, `ReceiptApprovedEvent` with corresponding async handlers
+- **Receipt approve processor executor**: Second thread pool (`receiptApproveProcessorExecutor`) for receipt approval processing
+- **ArchUnit tests**: `HexagonalArchitectureTest` with 7 rules enforcing hexagonal layer boundaries, port contracts, and JPA-free domains
+- **Price tests**: `PriceSummaryBatchServiceTest`, `PriceSummaryMapperTest`, `PriceSummaryRepositoryAdapterTest`
+- **Product DTO mapper test**: `ProductDtoMapperTest`
+- **Product name utils test**: `ProductNameUtilsTest`
+- **Release plan skill**: `.opencode/skills/release-plan/SKILL.md` — end-to-end release workflow
+- **PR template**: `.github/PULL_REQUEST_TEMPLATE.md` with structured summary, type of change, and quality checklist
+- **Knowledge skills**: `.opencode/skills/` — `java-developer`, `qa-expert`, `system-analyst`, `business-analyst`, `devops-expert`, `security-expert`, `front-end-expert`, `software-developer`, `token-optimize`
+- **Custom agents**: `.opencode/agents/` — `development` (five-lens orchestrator), `security-performance` (read-only auditor)
+- **Documentation**: `docs/ARCHITECTURE_HYBRID.md`, `docs/DEVELOPER_GUIDE.md`, `docs/ERD.md`, `docs/USER_GUIDE.md`, `docs/PROMPT_DRAFT.md`
+- **Planning docs**: `planning/PRODUCT_PRICE_AGGREGATION_MASTER_PLAN.md` and supporting strategy documents
+- **Migration scripts**: `V8__create_product_price_summaries_table.sql`, `V6`-`V9` alter scripts
+- **Convention checker script**: `scripts/check-conventions.sh` with 7 convention checks
+- **SpotBugs exclusion config**: `config/spotbugs/exclude.xml`
 
 ### Changed
-- Reorganized `.ai/` directory structure to match `goods-price-comparison-api` layout
-- Simplified commit message guidelines to be meaningful and natural
-- Updated Spring Boot from `3.3.0` to `3.4.4` (latest stable supporting Java 17)
-- Updated PR workflow documentation to include application startup verification
 
-### Fixed
-- Fixed test configuration (`application-test.properties`) - removed invalid `spring.profiles.active`
-- Fixed H2 database dependency scope (changed from `test` to `runtime`)
-- Changed default database from PostgreSQL to H2 (no profile required to run)
-- Reorganized configuration structure: parent `application.properties` imports modular configs from `config/` folder
-- Cleaned up unused property files and simplified configuration structure
-
-### Added
-- LLM Provider Interface (`LLMProvider`) for agnostic LLM integration
-- LLM Service (`LLMService`) for receipt data extraction
-- Local LLM Provider implementation (`LocalLLMProvider`) for Ollama
-- Configuration Properties (`LlmProperties`) with type-safe property binding
-- LLM Configuration class (`LLMConfiguration`) for provider bean creation
-- Modular configuration files in `config/` folder:
-  - `database.properties` - H2 database configuration
-  - `llm.properties` - LLM provider settings
-  - `features.properties` - Feature flags
-  - `logging.properties` - Logging configuration
-  - `service.properties` - Service settings
-  - `ocr.properties` - OCR configuration
-- Documentation: `docs/CONFIGURATION.md` for configuration guide
-- Unit tests for LLM configuration and service (4 new tests)
-- Google Gemini LLM Provider (`GeminiLLMProvider`)
-  - Uses official Google GenAI SDK (`com.google.genai:google-genai:1.0.0`)
-  - Vision API support for receipt OCR
-  - Free tier: 60 requests/minute
-  - Default provider for reliable image processing
-  - Supports gemini-1.5-flash-latest model
-- **Async Receipt Processing with Status Tracking** (NEW)
-  - Non-blocking receipt upload API (returns immediately with job ID)
-  - Background processing using Spring Events and ThreadPool
-  - Receipt status tracking: PENDING → PROCESSING → COMPLETED/FAILED
-  - Database persistence for receipts with full audit trail
-  - Image deduplication using SHA-256 hash
-  - Retry support for FAILED receipts (deletes old record, creates new)
-  - Extracted data stored as JSON (includes items list)
-  - Thread pool optimization to prevent connection pool exhaustion
-  - Graceful shutdown and timeout handling
-- Receipt Entity (`Receipt`) for database storage
-  - Tracks processing status, extracted data, error messages
-  - Supports retry logic with `resetForRetry()` method
-- Receipt Repository (`ReceiptRepository`) for data access
-- Async Configuration (`AsyncConfiguration`)
-  - ThreadPoolTaskExecutor with optimized settings
-  - Core pool: 3, Max pool: 10, Queue: 50
-  - CallerRunsPolicy for graceful degradation
-  - Thread timeout and graceful shutdown support
-- Receipt Event System
-  - `ReceiptProcessEvent` - Event fired for async processing
-  - `ReceiptProcessEventListener` - Background processor
-  - Handles retries, timeouts, and error recovery
-- LLM Provider Type Configuration
-  - Added `type` field to provider config (local vs cloud)
-  - Provider type loaded from properties (not hardcoded)
-  - Removed default value from LlmProperties.provider field
-  - Properties file is now source of truth for provider selection
-  - Fixed `core.llm.provider` to `llm.provider` in config
-  - Updated tests to handle missing API keys gracefully
-  - Added `isLocal()` and `isCloud()` helper methods
+- **Package restructuring**: Moved from flat `module/` package structure to full hexagonal architecture per service
+  - Old `module/receipt/` → `receipt/application/` + `receipt/infrastructure/`
+  - Old `module/price/` → `price/application/` + `price/infrastructure/`
+  - Old `module/product/` → `product/application/` + `product/infrastructure/`
+  - Old `module/store/` → `store/application/` + `store/infrastructure/`
+  - Old `module/llm/` → `llm/application/` + `llm/infrastructure/`
+  - Old `controller/` controllers → each service's `infrastructure/adapter/web/`
+- **Application.java**: Updated `LlmProperties` import from `module.llm.config` to `llm.infrastructure.config`
+- **API spec version**: Updated from `1.2.3` to `1.4.4` for new DTOs (`ProductDetail`, `ListProducts200Response`, `EntityStatus`, etc.)
+- **AsyncConfiguration**: Split into `receiptProcessorExecutor` (core=3, max=10) and `receiptApproveProcessorExecutor` (core=2, max=5)
+- **`.gitignore` expanded**: Consolidated AI agent ignores under organized sections
 
 ### Removed
-- Deleted `application-local.properties` (no longer needed)
-- Deleted `INTELLIJ_FIX.md` (resolved)
-- Deleted example and test files for property references
+
+- Removed `controller/` package — controllers now live in respective service packages
+- Removed `module/llm/` — replaced by `llm/` hexagonal service
+- Removed `module/price/` — replaced by `price/` hexagonal service
+- Removed `module/product/` — replaced by `product/` hexagonal service
+- Removed `module/receipt/` — replaced by `receipt/` hexagonal service
+- Removed `module/store/` — replaced by `store/` hexagonal service
+- Removed old test files at `module/llm/` and `controller/` — replaced by service-specific tests
 
 ## [0.1.0] - 2026-03-30
 
