@@ -39,7 +39,7 @@ jobs:
           </settings>
           EOF
 
-      - run: mvn clean package -DskipTests -q
+      - run: mvn clean package -DskipTests -q -U
       - run: mvn deploy -DskipTests
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4

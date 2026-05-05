@@ -42,7 +42,7 @@ jobs:
           EOF
 
       - name: Build with Maven
-        run: mvn clean package -DskipTests -q
+        run: mvn clean package -DskipTests -q -U
 
       - name: Run tests
         run: mvn test
