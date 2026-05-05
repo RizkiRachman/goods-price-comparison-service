@@ -1,0 +1,38 @@
+package com.example.goodsprice.common.util;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+public final class JsonUtils {
+
+  private JsonUtils() {}
+
+  private static final ObjectMapper MAPPER = new ObjectMapper();
+
+  @SuppressWarnings("unchecked")
+  public static List<Map<String, Object>> extractItems(String extractedDataJson) {
+    if (Objects.isNull(extractedDataJson) || extractedDataJson.isBlank())
+      return Collections.emptyList();
+    try {
+      var data = MAPPER.readValue(extractedDataJson, new TypeReference<Map<String, Object>>() {});
+      var itemsRaw = data.get("items");
+      if (Objects.isNull(itemsRaw) || !(itemsRaw instanceof List)) return Collections.emptyList();
+      return (List<Map<String, Object>>) itemsRaw;
+    } catch (Exception e) {
+      return Collections.emptyList();
+    }
+  }
+
+  public static Map<String, Object> parseJson(String json) {
+    if (Objects.isNull(json) || json.isBlank()) return Collections.emptyMap();
+    try {
+      return MAPPER.readValue(json, new TypeReference<Map<String, Object>>() {});
+    } catch (Exception e) {
+      return Collections.emptyMap();
+    }
+  }
+}
