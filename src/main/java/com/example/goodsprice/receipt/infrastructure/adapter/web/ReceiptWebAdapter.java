@@ -6,7 +6,6 @@ import com.example.goodsprice.api.model.ReceiptResultResponse;
 import com.example.goodsprice.api.model.ReceiptStatusResponse;
 import com.example.goodsprice.api.model.ReceiptUploadResponse;
 import com.example.goodsprice.api.model.Status;
-import com.example.goodsprice.common.util.JsonUtils;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.receipt.application.port.in.ReceiptInPort;
 import com.example.goodsprice.receipt.infrastructure.adapter.web.mapper.ReceiptDtoMapper;
@@ -47,17 +46,7 @@ public class ReceiptWebAdapter {
   }
 
   public ReceiptResultResponse getResult(UUID id) {
-    var receipt = receiptInPort.findById(id);
-    var response = new ReceiptResultResponse();
-    response.receiptId(receipt.getId());
-    response.storeName(receipt.getStoreName());
-    response.storeLocation(receipt.getStoreLocation());
-    response.setTotalAmount(ObjectUtils.getOrNull(receipt.getTotalAmount(), d -> d.doubleValue()));
-
-    var rawItems = JsonUtils.extractItems(receipt.getExtractedDataJson());
-    response.setItems(rawItems.stream().map(mapper::toItem).filter(Objects::nonNull).toList());
-
-    return response;
+    return mapper.toResultResponse(receiptInPort.findById(id));
   }
 
   public ReceiptApproveResponse approve(UUID id) {

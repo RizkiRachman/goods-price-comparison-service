@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Admin API**: New `POST /v1/admin/jobs/{jobName}` endpoint for manual job triggering with `AdminApi` interface, `AdminController`, `AdminWebAdapter`, `JobRegistry`, and `JobExecutor` pattern
+- **Price calculation job**: `product-prices-calculate` job registered via `ProductPricesCalculateJob` for on-demand price summary recalculation
+- **Receipt correction event**: `ReceiptCorrectedEvent` fired after correction submission with two independent async handlers:
+  - `ReceiptCorrectedEventHandler`: updates products and prices from corrected receipt items
+  - `ReceiptCorrectedPriceCalcHandler`: triggers price summary recalculation
+- **Receipt correction flow**: Full correction pipeline with `ReceiptCorrectionInPort`, `ReceiptCorrectionService`, `ReceiptCorrectionWebAdapter`, and `ReceiptDtoMapper.toResultResponse()`
+
+### Changed
+- **Receipt correction API models**: Request changed from `ReceiptCorrectionRequest` → `ReceiptCorrectRequest`, response changed from `ReceiptCorrectionResponse` → `ReceiptResultResponse` (aligns with API v1.5.0)
+- **Receipt correction response**: Now returns full receipt data (store name, location, date, items, total amount) via `ReceiptCorrectionWebAdapter` instead of a skeleton response
+- **ReceiptDtoMapper**: Extracted `toResultResponse()` mapper method, refactored `ReceiptWebAdapter.getResult()` to use it (DRY)
 
 - **Hexagonal architecture restructuring**: Each service (`receipt`, `price`, `product`, `store`, `llm`, `shopping`, `alert`, `system`) now follows ports-and-adapters pattern with strict layer separation
   - `application/` — pure Java domain services, ports, and domain models (no Spring/JPA)
