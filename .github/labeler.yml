@@ -2,26 +2,6 @@
 # Uses GitHub Actions Labeler: https://github.com/actions/labeler
 
 # ============================================
-# API & Contract Changes
-# ============================================
-
-# OpenAPI Specification Changes
-openapi:
-  - changed-files:
-      - any-glob-to-any-file:
-          - src/main/resources/openapi/**
-          - src/main/resources/openapi/**.yaml
-          - src/main/resources/openapi/**.yml
-
-# Breaking API Changes - needs manual review
-breaking-change:
-  - changed-files:
-      - any-glob-to-any-file:
-          - src/main/resources/openapi/paths/**
-          - src/main/resources/openapi/schemas/**
-          - src/main/resources/openapi/main.yaml
-
-# ============================================
 # CI/CD & Automation
 # ============================================
 
@@ -56,16 +36,6 @@ documentation:
           - CONTRIBUTING.md
           - LICENSE
           - '**/*.md'
-
-# AI Documentation
-ai-docs:
-  - changed-files:
-      - any-glob-to-any-file:
-          - .ai/**
-          - .ai/*.md
-          - .ai/rules/**
-          - .ai/skills/**
-          - .ai/context/**
 
 # ============================================
 # Code Changes
@@ -107,8 +77,6 @@ config:
   - changed-files:
       - any-glob-to-any-file:
           - pom.xml
-          - .spectral.yaml
-          - .spectral.yml
           - Makefile
           - .editorconfig
           - .gitignore
@@ -129,8 +97,6 @@ dependencies:
   - changed-files:
       - any-glob-to-any-file:
           - pom.xml
-          - package.json
-          - package-lock.json
           - requirements.txt
           - gradle.properties
 
