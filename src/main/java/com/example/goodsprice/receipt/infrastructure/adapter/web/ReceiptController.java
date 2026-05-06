@@ -10,7 +10,9 @@ import com.example.goodsprice.api.model.ReceiptStatusResponse;
 import com.example.goodsprice.api.model.ReceiptUploadResponse;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -43,6 +45,7 @@ public class ReceiptController implements ReceiptsApi {
   }
 
   @Override
+  @PostMapping(consumes = MediaType.ALL_VALUE)
   public ResponseEntity<ReceiptRejectResponse> rejectReceipt(
       UUID id, ReceiptRejectRequest receiptRejectRequest) {
     return ResponseEntity.ok(adapter.reject(id));
