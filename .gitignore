@@ -187,5 +187,11 @@ opencode.json
 .tabby/
 run/
 .run/
-scripts/
 settings.xml
+# Local dev scripts (keep check-conventions.sh for CI)
+scripts/delete-all-data.sh
+scripts/drop-all-tables.sh
+scripts/session-keepalive.sh
+
+# Planning documents (local dev artifacts)
+planning/
