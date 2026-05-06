@@ -7,7 +7,8 @@ public enum LlmProviderType {
   OPENAI,
   ANTHROPIC,
   GEMINI,
-  GROQ;
+  GROQ,
+  SUMOPOD;
 
   public static LlmProviderType fromValue(String value) {
     if (value == null || value.isBlank()) return LOCAL;
@@ -16,6 +17,7 @@ public enum LlmProviderType {
       case "anthropic" -> ANTHROPIC;
       case "gemini" -> GEMINI;
       case "groq" -> GROQ;
+      case "sumopod" -> SUMOPOD;
       default -> LOCAL;
     };
   }
