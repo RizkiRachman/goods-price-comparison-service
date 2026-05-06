@@ -3,7 +3,6 @@ package com.example.goodsprice.receipt.infrastructure.adapter.web;
 import com.example.goodsprice.api.controller.ReceiptsApi;
 import com.example.goodsprice.api.model.ReceiptApproveResponse;
 import com.example.goodsprice.api.model.ReceiptCorrectRequest;
-import com.example.goodsprice.api.model.ReceiptRejectRequest;
 import com.example.goodsprice.api.model.ReceiptRejectResponse;
 import com.example.goodsprice.api.model.ReceiptResultResponse;
 import com.example.goodsprice.api.model.ReceiptStatusResponse;
@@ -43,8 +42,7 @@ public class ReceiptController implements ReceiptsApi {
   }
 
   @Override
-  public ResponseEntity<ReceiptRejectResponse> rejectReceipt(
-      UUID id, ReceiptRejectRequest receiptRejectRequest) {
+  public ResponseEntity<ReceiptRejectResponse> rejectReceipt(UUID id) {
     return ResponseEntity.ok(adapter.reject(id));
   }
 
