@@ -170,12 +170,23 @@ public class SumopodLlmProvider implements LlmProviderPort {
       return result;
 
     } catch (Exception e) {
-      log.error("Failed to parse Sumopod response: {}", responseBody, e);
+      log.error("Failed to parse Sumopod response: {}", sanitizeForLog(responseBody), e);
       var fallback = new HashMap<String, Object>();
       fallback.put(KEY_RAW_TEXT, responseBody.toString());
       fallback.put(KEY_ERROR, "Failed to parse structured response: " + e.getMessage());
       return fallback;
     }
+  }
+
+  private String sanitizeForLog(Object value) {
+    if (value == null) {
+      return "null";
+    }
+    return value
+        .toString()
+        .replace('\r', ' ')
+        .replace('\n', ' ')
+        .replaceAll("[\\p{Cntrl}&&[^\t]]", "");
   }
 
   @Override
