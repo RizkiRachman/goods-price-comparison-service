@@ -37,6 +37,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **LLM provider configuration**: `LlmProviderConfiguration` with dynamic provider selection (`local`, `gemini`, `groq`)
 - **Groq LLM provider**: `GroqLlmProvider` for Groq API integration
 - **LLM constants**: `LlmConstants` with JSON keys, provider names, and MIME types
+- **Sumopod LLM provider**: `SumopodLlmProvider` as OpenAI-compatible provider with configurable base URL, model, timeout, and API key; `SUMOPOD` added to `LlmProviderType` enum; provider registration in `LlmProviderConfiguration`
+- **Groq constants generalized**: `GROQ_*` constants renamed to `GENERAL_*` for multi-provider reuse; `GroqLlmProvider` updated to use generalized constants
+- **Provider enable/disable flags**: Per-provider `enabled` property in `llm.properties` (e.g., `llm.sumopod.enabled=true`)
 - **Receipt event system**: `ReceiptUploadedEvent`, `ReceiptProcessedEvent`, `ReceiptApprovedEvent` with corresponding async handlers
 - **Receipt approve processor executor**: Second thread pool (`receiptApproveProcessorExecutor`) for receipt approval processing
 - **ArchUnit tests**: `HexagonalArchitectureTest` with 7 rules enforcing hexagonal layer boundaries, port contracts, and JPA-free domains
