@@ -8,6 +8,7 @@ public final class LlmConstants {
   public static final String PROVIDER_LOCAL = "local";
   public static final String PROVIDER_GEMINI = "gemini";
   public static final String PROVIDER_GROQ = "groq";
+  public static final String PROVIDER_SUMOPOD = "sumopod";
 
   // Deployment types
   public static final String TYPE_LOCAL = "local";
@@ -33,22 +34,22 @@ public final class LlmConstants {
   public static final String KEY_ERROR = "error";
 
   // Groq API request keys
-  public static final String GROQ_MODEL = "model";
-  public static final String GROQ_MESSAGES = "messages";
-  public static final String GROQ_MAX_TOKENS = "max_tokens";
-  public static final String GROQ_TEMPERATURE = "temperature";
-  public static final String GROQ_RESPONSE_FORMAT = "response_format";
-  public static final String GROQ_ROLE = "role";
-  public static final String GROQ_CONTENT = "content";
-  public static final String GROQ_TYPE = "type";
-  public static final String GROQ_TEXT = "text";
-  public static final String GROQ_IMAGE_URL = "image_url";
-  public static final String GROQ_URL = "url";
-  public static final String GROQ_VALUE_JSON_OBJECT = "json_object";
+  public static final String GENERAL_MODEL = "model";
+  public static final String GENERAL_MESSAGES = "messages";
+  public static final String GENERAL_MAX_TOKENS = "max_tokens";
+  public static final String GENERAL_TEMPERATURE = "temperature";
+  public static final String GENERAL_RESPONSE_FORMAT = "response_format";
+  public static final String GENERAL_ROLE = "role";
+  public static final String GENERAL_CONTENT = "content";
+  public static final String GENERAL_TYPE = "type";
+  public static final String GENERAL_TEXT = "text";
+  public static final String GENERAL_IMAGE_URL = "image_url";
+  public static final String GENERAL_URL = "url";
+  public static final String GENERAL_VALUE_JSON_OBJECT = "json_object";
 
   // Groq API response keys
-  public static final String GROQ_CHOICES = "choices";
-  public static final String GROQ_MESSAGE = "message";
+  public static final String GENERAL_CHOICES = "choices";
+  public static final String GENERAL_MESSAGE = "message";
 
   // Gemini response parsing
   public static final String CODE_BLOCK_MARKER = "```";

@@ -17,7 +17,7 @@ import static com.example.goodsprice.llm.infrastructure.config.LlmConstants.GENE
 import static com.example.goodsprice.llm.infrastructure.config.LlmConstants.GENERAL_VALUE_JSON_OBJECT;
 import static com.example.goodsprice.llm.infrastructure.config.LlmConstants.KEY_ERROR;
 import static com.example.goodsprice.llm.infrastructure.config.LlmConstants.KEY_RAW_TEXT;
-import static com.example.goodsprice.llm.infrastructure.config.LlmConstants.PROVIDER_GROQ;
+import static com.example.goodsprice.llm.infrastructure.config.LlmConstants.PROVIDER_SUMOPOD;
 
 import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
 import com.example.goodsprice.llm.infrastructure.config.LlmProperties;
@@ -37,22 +37,22 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class GroqLlmProvider implements LlmProviderPort {
+public class SumopodLlmProvider implements LlmProviderPort {
 
   private final LlmProperties llmProperties;
   private final RestTemplate restTemplate = new RestTemplate();
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private static final String GENERAL_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+  private static final String SUMOPOD_API_URL = "https://ai.sumopod.com/v1/chat/completions";
 
   @Override
   public Map<String, Object> extractReceiptData(String imageBase64) {
-    var config = llmProperties.getGroq();
-    log.info("Extracting receipt data using Groq model: {}", config.getModel());
+    var config = llmProperties.getSumopod();
+    log.info("Extracting receipt data using Sumopod model: {}", config.getModel());
 
     if (!isAvailable()) {
       throw new IllegalStateException(
-          "Groq provider is not available. Check API key configuration.");
+          "Sumopod provider is not available. Check API key configuration.");
     }
 
     try {
@@ -63,17 +63,18 @@ public class GroqLlmProvider implements LlmProviderPort {
       var requestBody = buildRequestBody(imageBase64, config.getModel());
       var entity = new HttpEntity<>(requestBody, headers);
 
-      ResponseEntity<Map> response = restTemplate.postForEntity(GENERAL_API_URL, entity, Map.class);
+      ResponseEntity<Map> response =
+          restTemplate.postForEntity(SUMOPOD_API_URL, entity, Map.class);
       if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
-        throw new RuntimeException("Groq API returned error: " + response.getStatusCode());
+        throw new RuntimeException("Sumopod API returned error: " + response.getStatusCode());
       }
 
       return parseResponse(response.getBody());
 
     } catch (Exception e) {
-      log.error("Failed to extract receipt data from Groq (model: {})", config.getModel(), e);
+      log.error("Failed to extract receipt data from Sumopod (model: {})", config.getModel(), e);
       throw new RuntimeException(
-          "Receipt extraction failed with Groq model '%s': %s"
+          "Receipt extraction failed with Sumopod model '%s': %s"
               .formatted(config.getModel(), e.getMessage()),
           e);
     }
@@ -154,14 +155,14 @@ public class GroqLlmProvider implements LlmProviderPort {
     try {
       var choices = (List<Map<String, Object>>) responseBody.get(GENERAL_CHOICES);
       if (choices == null || choices.isEmpty()) {
-        throw new RuntimeException("Empty response from Groq API");
+        throw new RuntimeException("Empty response from Sumopod API");
       }
 
       var message = (Map<String, Object>) choices.get(0).get(GENERAL_MESSAGE);
       var content = (String) message.get(GENERAL_CONTENT);
 
       if (content == null || content.isBlank()) {
-        throw new RuntimeException("Empty content in Groq response");
+        throw new RuntimeException("Empty content in Sumopod response");
       }
 
       @SuppressWarnings("unchecked")
@@ -169,7 +170,7 @@ public class GroqLlmProvider implements LlmProviderPort {
       return result;
 
     } catch (Exception e) {
-      log.error("Failed to parse Groq response: {}", responseBody, e);
+      log.error("Failed to parse Sumopod response: {}", responseBody, e);
       var fallback = new HashMap<String, Object>();
       fallback.put(KEY_RAW_TEXT, responseBody.toString());
       fallback.put(KEY_ERROR, "Failed to parse structured response: " + e.getMessage());
@@ -179,12 +180,12 @@ public class GroqLlmProvider implements LlmProviderPort {
 
   @Override
   public String getProviderName() {
-    return PROVIDER_GROQ;
+    return PROVIDER_SUMOPOD;
   }
 
   @Override
   public boolean isAvailable() {
-    var config = llmProperties.getGroq();
+    var config = llmProperties.getSumopod();
     return config.getApiKey() != null && !config.getApiKey().isBlank() && config.isEnabled();
   }
 }

@@ -179,8 +179,13 @@ AGENTS.md
 
 # Other AI Agents
 .opencode/
+opencode.json
 .cursor/
 .copilot/
 .aider/
 .continue/
 .tabby/
+run/
+.run/
+scripts/
+settings.xml

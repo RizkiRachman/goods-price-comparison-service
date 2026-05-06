@@ -15,6 +15,7 @@ public class LlmProperties {
   private ProviderConfig anthropic = new ProviderConfig();
   private ProviderConfig gemini = new ProviderConfig();
   private ProviderConfig groq = new ProviderConfig();
+  private ProviderConfig sumopod = new ProviderConfig();
 
   public ProviderConfig getActiveProvider() {
     return switch (LlmProviderType.fromValue(provider)) {
@@ -22,6 +23,7 @@ public class LlmProperties {
       case ANTHROPIC -> anthropic;
       case GEMINI -> gemini;
       case GROQ -> groq;
+      case SUMOPOD -> sumopod;
       default -> local;
     };
   }
