@@ -55,6 +55,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Product name utils test**: `ProductNameUtilsTest`
 - **Release plan skill**: `.opencode/skills/release-plan/SKILL.md` — end-to-end release workflow
 - **PR template**: `.github/PULL_REQUEST_TEMPLATE.md` with structured summary, type of change, and quality checklist
+- **Unit constants**: `UnitConstants.isWeight()` centralizes weight/volume unit detection across price and shopping modules
+- **Batch price query by product IDs**: `PriceInPort.findAllByProductIds()` + `PriceRepositoryPort.findAllByProductIds()` + `JpaPriceRepository.findAllByProductIds()` for multi-product price lookups
+- **Shopping optimizer tests**: `ShoppingOptimizerTest` with 11 test cases covering null inputs, weight-based pricing, non-weight pricing, null/zero price exclusion, mixed products, same-store grouping, missing store, and missing product scenarios
 - **Knowledge skills**: `.opencode/skills/` — `java-developer`, `qa-expert`, `system-analyst`, `business-analyst`, `devops-expert`, `security-expert`, `front-end-expert`, `software-developer`, `token-optimize`
 - **Custom agents**: `.opencode/agents/` — `development` (five-lens orchestrator), `security-performance` (read-only auditor)
 - **Documentation**: `docs/ARCHITECTURE_HYBRID.md`, `docs/DEVELOPER_GUIDE.md`, `docs/ERD.md`, `docs/USER_GUIDE.md`, `docs/PROMPT_DRAFT.md`
@@ -76,6 +79,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **API spec version**: Updated from `1.2.3` to `1.4.4` for new DTOs (`ProductDetail`, `ListProducts200Response`, `EntityStatus`, etc.)
 - **AsyncConfiguration**: Split into `receiptProcessorExecutor` (core=3, max=10) and `receiptApproveProcessorExecutor` (core=2, max=5)
 - **`.gitignore` expanded**: Consolidated AI agent ignores under organized sections
+- **Shopping optimizer unit-aware pricing**: `ShoppingOptimizer` now selects best price using `unitPrice` for weight-based products and `price` for non-weight products via `UnitConstants.isWeight()`
+- **Shopping optimizer stream refactor**: Converted all imperative loops to Java 17 streams; extracted `findBestPrice()`, `isValidPriceValue()`, and `effectivePriceValue()` helper methods for testability
+- **Price summary batch service**: Replaced inline weight-unit set with `UnitConstants.isWeight()`; removed redundant Javadoc comments
 
 ### Removed
 

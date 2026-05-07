@@ -1,5 +1,6 @@
 package com.example.goodsprice.price.application.domain.service;
 
+import com.example.goodsprice.common.constant.UnitConstants;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
 import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
@@ -12,20 +13,13 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-/**
- * Batch service for updating product price summaries. Runs on a schedule to pre-compute price
- * statistics for fast product list queries. Uses a simplified batch-only approach without events or
- * queues.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,13 +32,6 @@ public class PriceSummaryBatchService {
   @Value("${price.summary.batch.batch-size:100}")
   private int batchSize;
 
-  private static final Set<String> WEIGHT_VOLUME_UNITS =
-      Set.of("KG", "KILOGRAM", "GRAM", "G", "LITER", "L", "ML", "MILLILITER", "ONS");
-
-  /**
-   * Updates price summaries for products that have new prices since last calculation. Processes
-   * products in batches to avoid memory issues with large datasets.
-   */
   @Transactional
   public void updateSummaries() {
     log.info("Starting price summary batch update");
@@ -95,7 +82,6 @@ public class PriceSummaryBatchService {
       log.info("Saved {} price summaries", summariesToSave.size());
     }
 
-    // Update product timestamps
     for (ProductDomain product : products) {
       productRepository.updateSummaryLastCalculated(product.getId(), calculationTime);
     }
@@ -141,10 +127,7 @@ public class PriceSummaryBatchService {
   }
 
   private boolean isWeightVolumeUnit(String unit) {
-    if (Objects.isNull(unit)) {
-      return false;
-    }
-    return WEIGHT_VOLUME_UNITS.contains(unit.toUpperCase(Locale.ROOT));
+    return UnitConstants.isWeight(unit);
   }
 
   private PriceStatistics calculateStatistics(List<PriceDomain> prices, String unit) {

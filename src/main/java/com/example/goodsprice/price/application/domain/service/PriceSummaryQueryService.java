@@ -9,10 +9,6 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-/**
- * Service that implements PriceSummaryInPort to provide price summary data to other services. This
- * service acts as a bridge between the price module and the product module.
- */
 @Service
 @RequiredArgsConstructor
 public class PriceSummaryQueryService implements PriceSummaryInPort {

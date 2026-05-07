@@ -45,7 +45,6 @@ public class PriceService implements PriceInPort {
             .build();
     priceRecord = priceRepository.save(priceRecord);
 
-    // Update product's lastPriceUpdate timestamp to trigger summary recalculation
     productRepository.updateLastPriceUpdate(productId, LocalDateTime.now());
 
     log.info("Price created: product={}, store={}, price={}", productId, storeId, price);
@@ -80,6 +79,11 @@ public class PriceService implements PriceInPort {
   }
 
   @Override
+  public List<PriceDomain> findAllByProductIds(List<Long> productIds) {
+    return priceRepository.findAllByProductIds(productIds);
+  }
+
+  @Override
   @Transactional
   public void deleteById(Long id) {
     var price = priceRepository.findById(id);
@@ -102,7 +106,6 @@ public class PriceService implements PriceInPort {
 
     existing = priceRepository.save(existing);
 
-    // Update product's lastPriceUpdate timestamp to trigger summary recalculation
     productRepository.updateLastPriceUpdate(existing.getProductId(), LocalDateTime.now());
 
     log.info("Price updated: id={}, price={}", id, existing.getPrice());

@@ -23,6 +23,8 @@ public interface PriceInPort {
 
   Map<Long, PriceDomain> findCheapestByProducts(List<Long> productIds);
 
+  List<PriceDomain> findAllByProductIds(List<Long> productIds);
+
   void deleteById(Long id);
 
   PriceDomain update(

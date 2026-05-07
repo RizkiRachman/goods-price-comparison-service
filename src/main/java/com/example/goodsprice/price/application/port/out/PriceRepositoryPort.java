@@ -21,13 +21,9 @@ public interface PriceRepositoryPort {
 
   List<PriceDomain> findCheapestByProductIds(List<Long> productIds);
 
+  List<PriceDomain> findAllByProductIds(List<Long> productIds);
+
   void deleteById(Long id);
 
-  /**
-   * Finds distinct product IDs that have prices recorded for specific stores.
-   *
-   * @param storeIds the list of store IDs
-   * @return list of distinct product IDs
-   */
   List<Long> findProductIdsByStoreIds(List<Long> storeIds);
 }

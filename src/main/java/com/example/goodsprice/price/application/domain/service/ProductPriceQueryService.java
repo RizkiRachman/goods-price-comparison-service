@@ -7,10 +7,6 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-/**
- * Service that implements ProductPriceQueryInPort to provide price-related queries to the product
- * service.
- */
 @Service
 @RequiredArgsConstructor
 public class ProductPriceQueryService implements ProductPriceQueryInPort {
