@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Batch query support**: `PriceInPort.findCheapestByProducts()` and `ProductInPort.findAllByNames()` to avoid N+1 query problems
+- **Shopping optimizer extraction**: `ShoppingOptimizer` extracted from `ShoppingService` with `ShoppingContext` for clean pipeline-based route optimization
+- **Code quality tooling**: Spotless (Google Java Format), Checkstyle, PMD, SpotBugs with FindSecBugs plugins wired into `verify` lifecycle
+- **SAST security scan**: OWASP Dependency-Check profile (`mvn verify -P security-check`) for CVE detection in dependencies (fails on CVSS >= 7)
+- **Pipeline utility**: `common/util/Pipeline.java` for functional pipeline pattern
+
+### Changed
 - **Admin API**: New `POST /v1/admin/jobs/{jobName}` endpoint for manual job triggering with `AdminApi` interface, `AdminController`, `AdminWebAdapter`, `JobRegistry`, and `JobExecutor` pattern
 - **Price calculation job**: `product-prices-calculate` job registered via `ProductPricesCalculateJob` for on-demand price summary recalculation
 - **Receipt correction event**: `ReceiptCorrectedEvent` fired after correction submission with two independent async handlers:
