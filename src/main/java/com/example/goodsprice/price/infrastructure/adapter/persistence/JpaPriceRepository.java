@@ -14,7 +14,8 @@ public interface JpaPriceRepository extends JpaRepository<PriceEntity, Long> {
   List<PriceEntity> findByProductId(Long productId);
 
   @Query(
-      "SELECT p FROM PriceEntity p WHERE p.productId = :productId AND p.dateRecorded BETWEEN :startDate AND :endDate ORDER BY p.dateRecorded ASC")
+      "SELECT p FROM PriceEntity p WHERE p.productId = :productId AND p.dateRecorded BETWEEN"
+          + " :startDate AND :endDate ORDER BY p.dateRecorded ASC")
   List<PriceEntity> findByProductIdAndDateRange(
       @Param("productId") Long productId,
       @Param("startDate") LocalDate startDate,
@@ -24,7 +25,8 @@ public interface JpaPriceRepository extends JpaRepository<PriceEntity, Long> {
   List<PriceEntity> findCheapestByProductId(@Param("productId") Long productId);
 
   @Query(
-      "SELECT p FROM PriceEntity p WHERE p.productId IN :productIds AND p.price = (SELECT MIN(p2.price) FROM PriceEntity p2 WHERE p2.productId = p.productId)")
+      "SELECT p FROM PriceEntity p WHERE p.productId IN :productIds AND p.price = (SELECT"
+          + " MIN(p2.price) FROM PriceEntity p2 WHERE p2.productId = p.productId)")
   List<PriceEntity> findCheapestByProductIds(@Param("productIds") List<Long> productIds);
 
   /**

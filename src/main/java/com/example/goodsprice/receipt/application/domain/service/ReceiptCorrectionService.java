@@ -34,9 +34,12 @@ public class ReceiptCorrectionService implements ReceiptCorrectionInPort {
     if (Objects.isNull(receipt)) throw new ReceiptNotFoundException(receiptId);
 
     if (Objects.nonNull(correction.getStoreName())) receipt.setStoreName(correction.getStoreName());
-    if (Objects.nonNull(correction.getStoreLocation())) receipt.setStoreLocation(correction.getStoreLocation());
-    if (Objects.nonNull(correction.getReceiptDate())) receipt.setReceiptDate(correction.getReceiptDate());
-    if (Objects.nonNull(correction.getTotalAmount())) receipt.setTotalAmount(correction.getTotalAmount());
+    if (Objects.nonNull(correction.getStoreLocation()))
+      receipt.setStoreLocation(correction.getStoreLocation());
+    if (Objects.nonNull(correction.getReceiptDate()))
+      receipt.setReceiptDate(correction.getReceiptDate());
+    if (Objects.nonNull(correction.getTotalAmount()))
+      receipt.setTotalAmount(correction.getTotalAmount());
 
     var items = correction.getItems();
     if (Objects.nonNull(items) && !items.isEmpty()) {
@@ -50,14 +53,18 @@ public class ReceiptCorrectionService implements ReceiptCorrectionInPort {
   }
 
   private String toItemsJson(List<ReceiptItemCorrectionDomain> items) {
-    var itemsData = items.stream().map(item -> Map.<String, Object>of(
-        "productName", item.getProductName(),
-        "category", item.getCategory(),
-        "quantity", item.getQuantity(),
-        "unitPrice", item.getUnitPrice(),
-        "totalPrice", item.getTotalPrice(),
-        "unitType", item.getUnit()
-    )).toList();
+    var itemsData =
+        items.stream()
+            .map(
+                item ->
+                    Map.<String, Object>of(
+                        "productName", item.getProductName(),
+                        "category", item.getCategory(),
+                        "quantity", item.getQuantity(),
+                        "unitPrice", item.getUnitPrice(),
+                        "totalPrice", item.getTotalPrice(),
+                        "unitType", item.getUnit()))
+            .toList();
     try {
       return objectMapper.writeValueAsString(Map.of("items", itemsData));
     } catch (JsonProcessingException e) {

@@ -19,9 +19,11 @@ public class ProductPricesCalculateJob {
 
   @PostConstruct
   void register() {
-    jobRegistry.register(JOB_NAME, () -> {
-      log.info("Executing job: {}", JOB_NAME);
-      batchService.updateSummaries();
-    });
+    jobRegistry.register(
+        JOB_NAME,
+        () -> {
+          log.info("Executing job: {}", JOB_NAME);
+          batchService.updateSummaries();
+        });
   }
 }

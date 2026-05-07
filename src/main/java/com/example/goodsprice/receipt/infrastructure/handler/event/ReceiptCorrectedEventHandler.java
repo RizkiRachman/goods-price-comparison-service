@@ -65,7 +65,9 @@ public class ReceiptCorrectedEventHandler {
               .toList();
       receiptItemRepository.saveAll(receiptItemEntities);
       log.info(
-          "Saved {} corrected receipt_items for receipt: {}", receiptItemEntities.size(), event.receiptId());
+          "Saved {} corrected receipt_items for receipt: {}",
+          receiptItemEntities.size(),
+          event.receiptId());
 
       // Step 2: Create or update products and prices
       for (var item : items) {

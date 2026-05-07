@@ -12,4 +12,5 @@ public class ShoppingItemDomain {
   private String productName;
   private Double price;
   private Double quantity;
+  private String unit;
 }

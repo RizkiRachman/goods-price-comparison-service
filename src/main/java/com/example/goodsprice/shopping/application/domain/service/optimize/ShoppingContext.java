@@ -13,7 +13,7 @@ class ShoppingContext {
   List<ProductDomain> products = List.of();
   Map<Long, PriceDomain> cheapestByProductId = Map.of();
   Map<Long, StoreDomain> storeById = Map.of();
-  List<ProductDomain> validProducts = List.of();
+  Map<Long, ProductDomain> validProducts = Map.of();
   List<StoreVisitDomain> route = List.of();
 
   ShoppingContext(List<String> itemNames) {

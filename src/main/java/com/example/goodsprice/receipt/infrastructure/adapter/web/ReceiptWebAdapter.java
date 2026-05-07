@@ -10,7 +10,6 @@ import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.receipt.application.port.in.ReceiptInPort;
 import com.example.goodsprice.receipt.infrastructure.adapter.web.mapper.ReceiptDtoMapper;
 import java.io.IOException;
-import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -9,7 +9,6 @@ import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.springframework.stereotype.Component;

@@ -63,8 +63,7 @@ public class SumopodLlmProvider implements LlmProviderPort {
       var requestBody = buildRequestBody(imageBase64, config.getModel());
       var entity = new HttpEntity<>(requestBody, headers);
 
-      ResponseEntity<Map> response =
-          restTemplate.postForEntity(SUMOPOD_API_URL, entity, Map.class);
+      ResponseEntity<Map> response = restTemplate.postForEntity(SUMOPOD_API_URL, entity, Map.class);
       if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
         throw new RuntimeException("Sumopod API returned error: " + response.getStatusCode());
       }
@@ -83,52 +82,52 @@ public class SumopodLlmProvider implements LlmProviderPort {
   private Map<String, Object> buildRequestBody(String imageBase64, String model) {
     var prompt =
         """
-                You are an expert data extraction assistant for receipt images.
+You are an expert data extraction assistant for receipt images.
 
-                EXTRACTION RULES:
-                1. Store Name: UPPERCASE. Date: YYYY-MM-DD.
-                2. Items: List each line item. Ignore SUBTOTAL, TAX, TOTAL, DISCOUNT, barcode lines.
-                3. Product Name: UPPERCASE, clean whitespace.
+EXTRACTION RULES:
+1. Store Name: UPPERCASE. Date: YYYY-MM-DD.
+2. Items: List each line item. Ignore SUBTOTAL, TAX, TOTAL, DISCOUNT, barcode lines.
+3. Product Name: UPPERCASE, clean whitespace.
 
-                CRITICAL — unitType Decision (read carefully):
+CRITICAL — unitType Decision (read carefully):
 
-                Does the receipt show this item as SOLD BY WEIGHT (loose/bulk)?
-                → Look for items like loose produce, bulk grains, where the receipt shows weight.
-                → If YES → unitType = KILOGRAM. Quantity = weight as decimal (e.g., 0.07 for 70g).
-                → unitPrice = price per KG. Math: quantity × unitPrice = totalPrice.
-                → Example: "BAWANG PUTIH" (loose garlic, 0.07kg × Rp41,500 = Rp2,739).
+Does the receipt show this item as SOLD BY WEIGHT (loose/bulk)?
+→ Look for items like loose produce, bulk grains, where the receipt shows weight.
+→ If YES → unitType = KILOGRAM. Quantity = weight as decimal (e.g., 0.07 for 70g).
+→ unitPrice = price per KG. Math: quantity × unitPrice = totalPrice.
+→ Example: "BAWANG PUTIH" (loose garlic, 0.07kg × Rp41,500 = Rp2,739).
 
-                Otherwise → unitType = PIECE. Quantity = count (always 1 if one unit).
-                → unitPrice = totalPrice (same number, price per piece/package).
-                → Math: quantity × unitPrice = totalPrice, so 1 × unitPrice = totalPrice.
-                → Example: "SHRIMP ROLL 350GR" → PIECE, quantity=1, unitPrice=45000, totalPrice=45000.
-                → Example: "BERAS ROJOLELE 5KG" → PIECE, quantity=1, unitPrice=75000, totalPrice=75000.
-                → Example: "TELUR 10 BUTIR" → PIECE, quantity=10, unitPrice=2500, totalPrice=25000.
-                → Example: "COCA COLA 1.5L" → PIECE, quantity=1, unitPrice=9000, totalPrice=9000.
+Otherwise → unitType = PIECE. Quantity = count (always 1 if one unit).
+→ unitPrice = totalPrice (same number, price per piece/package).
+→ Math: quantity × unitPrice = totalPrice, so 1 × unitPrice = totalPrice.
+→ Example: "SHRIMP ROLL 350GR" → PIECE, quantity=1, unitPrice=45000, totalPrice=45000.
+→ Example: "BERAS ROJOLELE 5KG" → PIECE, quantity=1, unitPrice=75000, totalPrice=75000.
+→ Example: "TELUR 10 BUTIR" → PIECE, quantity=10, unitPrice=2500, totalPrice=25000.
+→ Example: "COCA COLA 1.5L" → PIECE, quantity=1, unitPrice=9000, totalPrice=9000.
 
-                REMEMBER: If product name has a weight like "350GR" or "5KG" or "500ML" — that's a
-                PACKAGE SIZE, not actual weight. Price is fixed per package. Use PIECE.
+REMEMBER: If product name has a weight like "350GR" or "5KG" or "500ML" — that's a
+PACKAGE SIZE, not actual weight. Price is fixed per package. Use PIECE.
 
-                Standardized unitType list: [KILOGRAM, LITER, PIECE, DOZEN].
-                Categories: lowercase ("food", "drink", "produce", "dairy", "snack", "household", "unknown").
+Standardized unitType list: [KILOGRAM, LITER, PIECE, DOZEN].
+Categories: lowercase ("food", "drink", "produce", "dairy", "snack", "household", "unknown").
 
-                OUTPUT FORMAT (raw JSON, no markdown):
-                {
-                  "storeName": "string (UPPERCASE)",
-                  "date": "string (YYYY-MM-DD)",
-                  "items": [
-                    {
-                      "productName": "string (UPPERCASE)",
-                      "quantity": "number (>0)",
-                      "unitPrice": "number (positive float)",
-                      "totalPrice": "number (positive float)",
-                      "unitType": "string (KILOGRAM|LITER|PIECE|DOZEN)",
-                      "category": "string (lowercase)"
-                    }
-                  ],
-                  "totalAmount": "number (positive float)"
-                }
-                """;
+OUTPUT FORMAT (raw JSON, no markdown):
+{
+  "storeName": "string (UPPERCASE)",
+  "date": "string (YYYY-MM-DD)",
+  "items": [
+    {
+      "productName": "string (UPPERCASE)",
+      "quantity": "number (>0)",
+      "unitPrice": "number (positive float)",
+      "totalPrice": "number (positive float)",
+      "unitType": "string (KILOGRAM|LITER|PIECE|DOZEN)",
+      "category": "string (lowercase)"
+    }
+  ],
+  "totalAmount": "number (positive float)"
+}
+""";
 
     var imageUrl = DATA_IMAGE_JPEG_PREFIX + imageBase64;
     var messages =
@@ -140,7 +139,10 @@ public class SumopodLlmProvider implements LlmProviderPort {
                 List.of(
                     Map.of(GENERAL_TYPE, GENERAL_TEXT, GENERAL_TEXT, prompt),
                     Map.of(
-                        GENERAL_TYPE, GENERAL_IMAGE_URL, GENERAL_IMAGE_URL, Map.of(GENERAL_URL, imageUrl)))));
+                        GENERAL_TYPE,
+                        GENERAL_IMAGE_URL,
+                        GENERAL_IMAGE_URL,
+                        Map.of(GENERAL_URL, imageUrl)))));
 
     var body = new HashMap<String, Object>();
     body.put(GENERAL_MODEL, model);

@@ -28,8 +28,11 @@ public class AsyncConfiguration {
     executor.setWaitForTasksToCompleteOnShutdown(true);
     executor.setAwaitTerminationSeconds(60);
     executor.initialize();
-    log.info("Receipt processor executor initialized: core={}, max={}, queue={}",
-        executor.getCorePoolSize(), executor.getMaxPoolSize(), executor.getQueueCapacity());
+    log.info(
+        "Receipt processor executor initialized: core={}, max={}, queue={}",
+        executor.getCorePoolSize(),
+        executor.getMaxPoolSize(),
+        executor.getQueueCapacity());
     return executor;
   }
 
@@ -46,8 +49,11 @@ public class AsyncConfiguration {
     executor.setWaitForTasksToCompleteOnShutdown(true);
     executor.setAwaitTerminationSeconds(60);
     executor.initialize();
-    log.info("Receipt approve processor executor initialized: core={}, max={}, queue={}",
-        executor.getCorePoolSize(), executor.getMaxPoolSize(), executor.getQueueCapacity());
+    log.info(
+        "Receipt approve processor executor initialized: core={}, max={}, queue={}",
+        executor.getCorePoolSize(),
+        executor.getMaxPoolSize(),
+        executor.getQueueCapacity());
     return executor;
   }
 }
