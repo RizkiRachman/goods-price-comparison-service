@@ -13,9 +13,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Code quality tooling**: Spotless (Google Java Format), Checkstyle, PMD, SpotBugs with FindSecBugs plugins wired into `verify` lifecycle
 - **SAST security scan**: OWASP Dependency-Check profile (`mvn verify -P security-check`) for CVE detection in dependencies (fails on CVSS >= 7)
 - **Pipeline utility**: `common/util/Pipeline.java` for functional pipeline pattern
+- **Serial version UIDs**: Added `serialVersionUID` to `PriceNotFoundException`, `ProductNotFoundException`, `DuplicateReceiptException`, `ReceiptNotFoundException`, and `StoreNotFoundException` for serialization safety
+- **Checkstyle `@SuppressWarnings` support**: Added `SuppressWarningsFilter` and `SuppressWarningsHolder` to Checkstyle config for per-method suppression
 
 ### Changed
-- **Admin API**: New `POST /v1/admin/jobs/{jobName}` endpoint for manual job triggering with `AdminApi` interface, `AdminController`, `AdminWebAdapter`, `JobRegistry`, and `JobExecutor` pattern
+- **API spec version**: Updated `goods-price-comparison-api` from `1.5.1` to `1.6.0`
+- **Thread safety**: Replaced `HashMap` with `ConcurrentHashMap` in `JobRegistry` and `ShoppingOptimizer` for safe concurrent access
+- **LlmService**: Added missing `@Override` annotations on `getCurrentProvider()` and `isAvailable()`; simplified hex encoding with `String.format("%02x", b)`; extracted `HEX_PAD_LENGTH` constant
+- **LenientOffsetDateTimeDeserializer**: Added `@Slf4j` logging instead of empty catch block; preserved cause exception in thrown `IOException` for better debugging
+- **Wildcard imports**: Replaced star imports with explicit imports in `ProductController`, `ProductWebAdapter`, `HexagonalArchitectureTest`, and all affected test files (Checkstyle compliance)
+- **ProductDtoMapperTest**: Added `@SuppressWarnings("checkstyle:MethodName")` annotation
+- **SpotBugs exclusion**: Broadened `EI_EXPOSE_REP` exclusion from shopping-only domain models to all domain models (consistent policy)
 - **Price calculation job**: `product-prices-calculate` job registered via `ProductPricesCalculateJob` for on-demand price summary recalculation
 - **Receipt correction event**: `ReceiptCorrectedEvent` fired after correction submission with two independent async handlers:
   - `ReceiptCorrectedEventHandler`: updates products and prices from corrected receipt items

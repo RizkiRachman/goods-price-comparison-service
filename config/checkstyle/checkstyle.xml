@@ -15,7 +15,12 @@
     <!-- Every source file must end with a newline -->
     <module name="NewlineAtEndOfFile"/>
 
+    <!-- Enable @SuppressWarnings annotations to suppress checkstyle violations -->
+    <module name="SuppressWarningsFilter"/>
+
     <module name="TreeWalker">
+        <!-- Required to process @SuppressWarnings annotations -->
+        <module name="SuppressWarningsHolder"/>
 
         <!-- ===== Naming ===== -->
         <module name="PackageName">

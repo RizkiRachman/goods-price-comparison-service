@@ -9,7 +9,9 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class LenientOffsetDateTimeDeserializer extends JsonDeserializer<OffsetDateTime> {
 
   @Override
@@ -20,7 +22,7 @@ public class LenientOffsetDateTimeDeserializer extends JsonDeserializer<OffsetDa
     try {
       return OffsetDateTime.parse(text, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     } catch (DateTimeParseException e) {
-      // fallback: accept plain date like "2026-04-15" as start of day UTC
+      log.debug("ISO_OFFSET_DATE_TIME parse failed for '{}', trying ISO_LOCAL_DATE fallback", text);
     }
 
     try {
@@ -29,7 +31,8 @@ public class LenientOffsetDateTimeDeserializer extends JsonDeserializer<OffsetDa
     } catch (DateTimeParseException e) {
       throw new IOException(
           "Cannot parse date '%s'. Expected format: yyyy-MM-dd or yyyy-MM-ddTHH:mm:ssXXX"
-              .formatted(text));
+              .formatted(text),
+          e);
     }
   }
 }

@@ -8,6 +8,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 
+@SuppressWarnings("checkstyle:MethodName")
 class ProductDtoMapperTest {
 
   private final ProductDtoMapper mapper = new ProductDtoMapper();

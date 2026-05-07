@@ -1,7 +1,12 @@
 package com.example.goodsprice.product.infrastructure.adapter.web;
 
 import com.example.goodsprice.api.controller.ProductsApi;
-import com.example.goodsprice.api.model.*;
+import com.example.goodsprice.api.model.CreateProductRequest;
+import com.example.goodsprice.api.model.EntityStatus;
+import com.example.goodsprice.api.model.ListProducts200Response;
+import com.example.goodsprice.api.model.Product;
+import com.example.goodsprice.api.model.ProductTrendResponse;
+import com.example.goodsprice.api.model.UpdateProductRequest;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

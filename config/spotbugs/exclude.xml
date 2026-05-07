@@ -28,10 +28,10 @@
     <Class name="~.*\.domain\.service\..*" />
   </Match>
 
-  <!-- Shopping domain models: Lombok @Builder/@Getter/@Setter expose internal collections (Lombok-generated) -->
+  <!-- Domain models: Lombok @Builder/@Getter/@Setter expose internal collections intentionally -->
   <Match>
     <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
-    <Class name="~.*\.shopping\.application\.domain\.model\..*" />
+    <Class name="~.*\.application\.domain\.model\..*" />
   </Match>
 
   <!-- Adapters intentionally throw RuntimeException on failure -->

@@ -22,6 +22,9 @@ public class LlmService implements LlmInPort {
 
   private static final String LLM_RESPONSE_CACHE = "llm-responses";
 
+  private static final int HEX_PAD_LENGTH = 1;
+
+  @Override
   @Cacheable(
       value = LLM_RESPONSE_CACHE,
       key = "#root.target.generateImageHash(#imageBase64)",
@@ -45,9 +48,7 @@ public class LlmService implements LlmInPort {
       var hash = digest.digest(imageBase64.getBytes(StandardCharsets.UTF_8));
       var hexString = new StringBuilder();
       for (byte b : hash) {
-        var hex = Integer.toHexString(0xff & b);
-        if (hex.length() == 1) hexString.append('0');
-        hexString.append(hex);
+        hexString.append(String.format("%02x", b));
       }
       return hexString.toString();
     } catch (NoSuchAlgorithmException e) {
@@ -56,10 +57,12 @@ public class LlmService implements LlmInPort {
     }
   }
 
+  @Override
   public String getCurrentProvider() {
     return llmProvider.getProviderName();
   }
 
+  @Override
   public boolean isAvailable() {
     return llmProvider.isAvailable();
   }

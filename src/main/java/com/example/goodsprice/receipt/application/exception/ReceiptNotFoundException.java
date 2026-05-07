@@ -6,6 +6,8 @@ import java.util.UUID;
 
 public class ReceiptNotFoundException extends RuntimeException {
 
+  private static final long serialVersionUID = 1L;
+
   public ReceiptNotFoundException(UUID id) {
     super(RECEIPT_NOT_FOUND_MSG.formatted(id));
   }
