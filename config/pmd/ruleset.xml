@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<ruleset name="Goods Price Comparison PMD Rules"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>PMD rules for the goods-price-comparison-service</description>
+
+    <!-- ===== Best Practices ===== -->
+    <rule ref="category/java/bestpractices.xml">
+        <!-- Lombok @Builder replaces constructors -->
+        <exclude name="AtLeastOneConstructor"/>
+        <!-- Spring beans use field injection intentionally (constructor via Lombok) -->
+        <exclude name="AccessorMethodGeneration"/>
+        <!-- JUnit: comprehensive assertions are encouraged -->
+        <exclude name="JUnitTestContainsTooManyAsserts"/>
+        <exclude name="JUnitAssertionsShouldIncludeMessage"/>
+        <!-- Test helpers often use abstractions not worth naming -->
+        <exclude name="JUnitTestsShouldIncludeAssert"/>
+        <!-- Guarded log statements: SLF4J parameterized logging is sufficient -->
+        <exclude name="GuardLogStatement"/>
+        <!-- Array can be reused across callers -->
+        <exclude name="MethodReturnsInternalArray"/>
+    </rule>
+
+    <!-- ===== Error Prone ===== -->
+    <rule ref="category/java/errorprone.xml">
+        <!-- Spring @Configuration beans are not true singletons in the DataFlowAnalysis sense -->
+        <exclude name="SingletonClassReturningNewInstance"/>
+        <!-- Null checks via Optional or Spring's Assert are preferred -->
+        <exclude name="NullAssignment"/>
+        <!-- Lombok-generated code triggers these -->
+        <exclude name="BeanMembersShouldSerialize"/>
+        <!-- Records / DTOs catch broad exceptions at boundaries intentionally -->
+        <exclude name="AvoidCatchingGenericException"/>
+        <!-- Spring event handlers may re-throw -->
+        <exclude name="AvoidRethrowingException"/>
+    </rule>
+
+    <!-- ===== Security ===== -->
+    <rule ref="category/java/security.xml"/>
+
+    <!-- ===== Multithreading ===== -->
+    <rule ref="category/java/multithreading.xml">
+        <!-- Spring manages bean concurrency; DoNotUseThreads is too restrictive -->
+        <exclude name="DoNotUseThreads"/>
+    </rule>
+
+</ruleset>

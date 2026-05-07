@@ -179,7 +179,7 @@ AGENTS.md
 
 # Other AI Agents
 .opencode/
-opencode.json
+opencode-backup.json
 .cursor/
 .copilot/
 .aider/

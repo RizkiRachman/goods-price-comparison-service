@@ -3,6 +3,7 @@ package com.example.goodsprice.price.application.port.in;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public interface PriceInPort {
 
@@ -19,6 +20,8 @@ public interface PriceInPort {
   List<PriceDomain> searchByProduct(Long productId, LocalDate startDate, LocalDate endDate);
 
   PriceDomain findCheapestByProduct(Long productId);
+
+  Map<Long, PriceDomain> findCheapestByProducts(List<Long> productIds);
 
   void deleteById(Long id);
 

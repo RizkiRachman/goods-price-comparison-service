@@ -50,6 +50,11 @@ public class PriceRepositoryAdapter implements PriceRepositoryPort {
   }
 
   @Override
+  public List<PriceDomain> findCheapestByProductIds(List<Long> productIds) {
+    return jpaRepo.findCheapestByProductIds(productIds).stream().map(mapper::toDomain).toList();
+  }
+
+  @Override
   public void deleteById(Long id) {
     jpaRepo.deleteById(id);
   }

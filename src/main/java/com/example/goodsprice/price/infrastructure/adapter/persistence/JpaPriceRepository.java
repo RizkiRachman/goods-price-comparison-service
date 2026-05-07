@@ -23,6 +23,10 @@ public interface JpaPriceRepository extends JpaRepository<PriceEntity, Long> {
   @Query("SELECT p FROM PriceEntity p WHERE p.productId = :productId ORDER BY p.price ASC")
   List<PriceEntity> findCheapestByProductId(@Param("productId") Long productId);
 
+  @Query(
+      "SELECT p FROM PriceEntity p WHERE p.productId IN :productIds AND p.price = (SELECT MIN(p2.price) FROM PriceEntity p2 WHERE p2.productId = p.productId)")
+  List<PriceEntity> findCheapestByProductIds(@Param("productIds") List<Long> productIds);
+
   /**
    * Finds distinct product IDs that have prices recorded for specific stores.
    *

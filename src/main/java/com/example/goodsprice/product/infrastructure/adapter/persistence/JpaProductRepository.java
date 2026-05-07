@@ -14,6 +14,8 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Long>
 
   Optional<ProductEntity> findByName(String name);
 
+  List<ProductEntity> findByNameIn(List<String> names);
+
   boolean existsByName(String name);
 
   List<ProductEntity> findByCategory(String category);

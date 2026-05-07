@@ -8,7 +8,10 @@ import com.example.goodsprice.product.application.port.out.ProductRepositoryPort
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -68,6 +71,13 @@ public class PriceService implements PriceInPort {
   public PriceDomain findCheapestByProduct(Long productId) {
     var prices = priceRepository.findCheapestByProductId(productId);
     return prices.isEmpty() ? null : prices.get(0);
+  }
+
+  @Override
+  public Map<Long, PriceDomain> findCheapestByProducts(List<Long> productIds) {
+    return priceRepository.findCheapestByProductIds(productIds).stream()
+        .collect(
+            Collectors.toMap(PriceDomain::getProductId, Function.identity(), (a, b) -> a));
   }
 
   @Override
