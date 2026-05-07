@@ -14,13 +14,13 @@ import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -116,8 +116,8 @@ public class ShoppingOptimizer {
   }
 
   private ShoppingContext buildRoute(ShoppingContext ctx) {
-    Map<Long, ProductDomain> validProducts = new HashMap<>();
-    Map<Long, List<ProductDomain>> productsByStore = new HashMap<>();
+    Map<Long, ProductDomain> validProducts = new ConcurrentHashMap<>();
+    Map<Long, List<ProductDomain>> productsByStore = new ConcurrentHashMap<>();
 
     for (ProductDomain product : ctx.products) {
       PriceDomain bestPrice = ctx.bestPricesByProductId.get(product.getId());

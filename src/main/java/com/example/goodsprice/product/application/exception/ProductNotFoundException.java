@@ -5,6 +5,8 @@ import static com.example.goodsprice.common.constant.ErrorMessageConstants.PRODU
 
 public class ProductNotFoundException extends RuntimeException {
 
+  private static final long serialVersionUID = 1L;
+
   public ProductNotFoundException(Long id) {
     super(PRODUCT_NOT_FOUND_ID_MSG.formatted(id));
   }

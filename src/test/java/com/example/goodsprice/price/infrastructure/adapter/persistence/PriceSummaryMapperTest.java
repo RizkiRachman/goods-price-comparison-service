@@ -1,6 +1,8 @@
 package com.example.goodsprice.price.infrastructure.adapter.persistence;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
 import com.example.goodsprice.price.infrastructure.adapter.persistence.entity.PriceSummaryEntity;

@@ -1,6 +1,12 @@
 package com.example.goodsprice.product.infrastructure.adapter.web;
 
-import com.example.goodsprice.api.model.*;
+import com.example.goodsprice.api.model.CreateProductRequest;
+import com.example.goodsprice.api.model.EntityStatus;
+import com.example.goodsprice.api.model.ListProducts200Response;
+import com.example.goodsprice.api.model.Product;
+import com.example.goodsprice.api.model.ProductListResponse;
+import com.example.goodsprice.api.model.ProductTrendResponse;
+import com.example.goodsprice.api.model.UpdateProductRequest;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
