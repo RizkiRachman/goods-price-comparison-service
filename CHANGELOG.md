@@ -29,8 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `ReceiptCorrectedEventHandler`: updates products and prices from corrected receipt items
   - `ReceiptCorrectedPriceCalcHandler`: triggers price summary recalculation
 - **Receipt correction flow**: Full correction pipeline with `ReceiptCorrectionInPort`, `ReceiptCorrectionService`, `ReceiptCorrectionWebAdapter`, and `ReceiptDtoMapper.toResultResponse()`
-
-### Changed
 - **Receipt correction API models**: Request changed from `ReceiptCorrectionRequest` → `ReceiptCorrectRequest`, response changed from `ReceiptCorrectionResponse` → `ReceiptResultResponse` (aligns with API v1.5.0)
 - **Receipt correction response**: Now returns full receipt data (store name, location, date, items, total amount) via `ReceiptCorrectionWebAdapter` instead of a skeleton response
 - **ReceiptDtoMapper**: Extracted `toResultResponse()` mapper method, refactored `ReceiptWebAdapter.getResult()` to use it (DRY)
