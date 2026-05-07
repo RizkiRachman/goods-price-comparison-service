@@ -11,7 +11,9 @@ class ShoppingContext {
 
   final List<String> itemNames;
   List<ProductDomain> products = List.of();
-  Map<Long, PriceDomain> cheapestByProductId = Map.of();
+  Map<Long, ProductDomain> productById = Map.of();
+  Map<Long, List<PriceDomain>> allPricesByProductId = Map.of();
+  Map<Long, PriceDomain> bestPricesByProductId = Map.of();
   Map<Long, StoreDomain> storeById = Map.of();
   Map<Long, ProductDomain> validProducts = Map.of();
   List<StoreVisitDomain> route = List.of();
