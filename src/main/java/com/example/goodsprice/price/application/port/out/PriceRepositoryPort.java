@@ -19,6 +19,8 @@ public interface PriceRepositoryPort {
 
   List<PriceDomain> findCheapestByProductId(Long productId);
 
+  List<PriceDomain> findCheapestByProductIds(List<Long> productIds);
+
   void deleteById(Long id);
 
   /**

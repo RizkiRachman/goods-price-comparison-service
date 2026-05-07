@@ -78,6 +78,11 @@ public class ProductService implements ProductInPort {
   }
 
   @Override
+  public List<ProductDomain> findAllByNames(List<String> names) {
+    return productRepository.findAllByNames(names);
+  }
+
+  @Override
   public List<ProductDomain> findAll() {
     return productRepository.findAll();
   }

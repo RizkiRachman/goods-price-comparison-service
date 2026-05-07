@@ -32,6 +32,11 @@ public class ProductRepositoryAdapter implements ProductRepositoryPort {
   }
 
   @Override
+  public List<ProductDomain> findAllByNames(List<String> names) {
+    return jpaRepo.findByNameIn(names).stream().map(mapper::toDomain).toList();
+  }
+
+  @Override
   public boolean existsByName(String name) {
     return jpaRepo.existsByName(name);
   }

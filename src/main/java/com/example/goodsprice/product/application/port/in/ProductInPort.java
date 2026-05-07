@@ -15,6 +15,8 @@ public interface ProductInPort {
 
   ProductDomain findByName(String name);
 
+  List<ProductDomain> findAllByNames(List<String> names);
+
   /**
    * Returns all products without pagination. Use {@link #search(ProductSearchCriteria)} for
    * paginated results.
