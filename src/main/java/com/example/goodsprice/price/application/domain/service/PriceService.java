@@ -76,8 +76,7 @@ public class PriceService implements PriceInPort {
   @Override
   public Map<Long, PriceDomain> findCheapestByProducts(List<Long> productIds) {
     return priceRepository.findCheapestByProductIds(productIds).stream()
-        .collect(
-            Collectors.toMap(PriceDomain::getProductId, Function.identity(), (a, b) -> a));
+        .collect(Collectors.toMap(PriceDomain::getProductId, Function.identity(), (a, b) -> a));
   }
 
   @Override

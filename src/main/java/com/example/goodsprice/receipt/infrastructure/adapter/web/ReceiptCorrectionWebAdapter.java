@@ -30,13 +30,15 @@ public class ReceiptCorrectionWebAdapter {
   }
 
   private ReceiptCorrectionDomain toDomain(ReceiptCorrectRequest request) {
-    var totalAmount = Objects.nonNull(request.getTotalAmount())
-        ? BigDecimal.valueOf(request.getTotalAmount())
-        : null;
+    var totalAmount =
+        Objects.nonNull(request.getTotalAmount())
+            ? BigDecimal.valueOf(request.getTotalAmount())
+            : null;
 
-    var items = Objects.nonNull(request.getItems())
-        ? request.getItems().stream().map(this::toItemDomain).toList()
-        : List.<ReceiptItemCorrectionDomain>of();
+    var items =
+        Objects.nonNull(request.getItems())
+            ? request.getItems().stream().map(this::toItemDomain).toList()
+            : List.<ReceiptItemCorrectionDomain>of();
 
     return ReceiptCorrectionDomain.builder()
         .storeName(request.getStoreName())
@@ -47,7 +49,8 @@ public class ReceiptCorrectionWebAdapter {
         .build();
   }
 
-  private ReceiptItemCorrectionDomain toItemDomain(com.example.goodsprice.api.model.ReceiptItem item) {
+  private ReceiptItemCorrectionDomain toItemDomain(
+      com.example.goodsprice.api.model.ReceiptItem item) {
     return ReceiptItemCorrectionDomain.builder()
         .productName(item.getProductName())
         .category(item.getCategory())

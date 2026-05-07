@@ -29,7 +29,8 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Long>
    */
   @Query(
       value =
-          "SELECT p FROM ProductEntity p WHERE p.lastPriceUpdate > p.summaryLastCalculated OR p.summaryLastCalculated IS NULL ORDER BY p.lastPriceUpdate ASC")
+          "SELECT p FROM ProductEntity p WHERE p.lastPriceUpdate > p.summaryLastCalculated OR"
+              + " p.summaryLastCalculated IS NULL ORDER BY p.lastPriceUpdate ASC")
   List<ProductEntity> findProductsNeedingSummaryUpdate(@Param("limit") int limit);
 
   /**

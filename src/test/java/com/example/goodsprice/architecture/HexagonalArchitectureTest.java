@@ -58,7 +58,8 @@ class HexagonalArchitectureTest {
         .orShould()
         .beAnnotatedWith(Id.class)
         .because(
-            "Domain models are pure POJOs with @Builder/@Getter/@Setter — JPA belongs in infrastructure entities")
+            "Domain models are pure POJOs with @Builder/@Getter/@Setter — JPA belongs in"
+                + " infrastructure entities")
         .check(classes);
   }
 
