@@ -11,11 +11,7 @@ import com.example.goodsprice.shopping.application.domain.model.ShoppingSavingsD
 import com.example.goodsprice.shopping.application.domain.model.StoreVisitDomain;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +26,8 @@ public class ShoppingOptimizer {
   private final ProductInPort productInPort;
   private final PriceInPort priceInPort;
   private final StoreRepositoryPort storeRepository;
+
+  private static final Set<String> WEIGHT_VOLUME_UNITS = Set.of("KG", "KILOGRAM", "GRAM", "G");
 
   public ShoppingOptimizationResult optimize(List<String> itemNames) {
     if (Objects.isNull(itemNames) || itemNames.isEmpty()) {
@@ -46,7 +44,8 @@ public class ShoppingOptimizer {
 
   private ShoppingContext resolveProducts(ShoppingContext ctx) {
     ctx.products = productInPort.findAllByNames(ctx.itemNames);
-    Set<String> found = ctx.products.stream().map(ProductDomain::getName).collect(Collectors.toSet());
+    Set<String> found =
+        ctx.products.stream().map(ProductDomain::getName).collect(Collectors.toSet());
     ctx.itemNames.stream()
         .filter(name -> !found.contains(name))
         .forEach(name -> log.warn("Product not found: {}", name));
@@ -65,10 +64,11 @@ public class ShoppingOptimizer {
 
   private ShoppingContext resolveStores(ShoppingContext ctx) {
     if (ctx.cheapestByProductId.isEmpty()) return ctx;
-    var storeIds = ctx.cheapestByProductId.values().stream()
-        .map(PriceDomain::getStoreId).distinct().toList();
-    ctx.storeById = storeRepository.findAllById(storeIds).stream()
-        .collect(Collectors.toMap(StoreDomain::getId, Function.identity()));
+    var storeIds =
+        ctx.cheapestByProductId.values().stream().map(PriceDomain::getStoreId).distinct().toList();
+    ctx.storeById =
+        storeRepository.findAllById(storeIds).stream()
+            .collect(Collectors.toMap(StoreDomain::getId, Function.identity()));
     ctx.cheapestByProductId.values().stream()
         .filter(price -> !ctx.storeById.containsKey(price.getStoreId()))
         .forEach(price -> log.warn("Store not found for id: {}", price.getStoreId()));
@@ -76,49 +76,66 @@ public class ShoppingOptimizer {
   }
 
   private ShoppingContext buildRoute(ShoppingContext ctx) {
-    ctx.validProducts = ctx.products.stream()
-        .filter(p -> ctx.cheapestByProductId.containsKey(p.getId()))
-        .filter(p -> ctx.storeById.containsKey(ctx.cheapestByProductId.get(p.getId()).getStoreId()))
-        .toList();
-    ctx.route = ctx.validProducts.stream()
-        .collect(Collectors.groupingBy(
-            p -> ctx.cheapestByProductId.get(p.getId()).getStoreId(),
-            LinkedHashMap::new,
-            Collectors.toList()))
-        .entrySet().stream()
-        .map(entry -> toStoreVisit(entry.getKey(), entry.getValue(), ctx))
-        .toList();
+    ctx.validProducts =
+        ctx.products.stream()
+            .filter(p -> ctx.cheapestByProductId.containsKey(p.getId()))
+            .filter(
+                p -> ctx.storeById.containsKey(ctx.cheapestByProductId.get(p.getId()).getStoreId()))
+            .collect(Collectors.toMap(ProductDomain::getId, Function.identity()));
+    ctx.route =
+        ctx.validProducts.values().stream()
+            .collect(
+                Collectors.groupingBy(
+                    p -> ctx.cheapestByProductId.get(p.getId()).getStoreId(),
+                    LinkedHashMap::new,
+                    Collectors.toList()))
+            .entrySet()
+            .stream()
+            .map(entry -> toStoreVisit(entry.getKey(), entry.getValue(), ctx))
+            .toList();
     return ctx;
   }
 
-  private StoreVisitDomain toStoreVisit(Long storeId, List<ProductDomain> products, ShoppingContext ctx) {
+  private StoreVisitDomain toStoreVisit(
+      Long storeId, List<ProductDomain> products, ShoppingContext ctx) {
     var store = ctx.storeById.get(storeId);
-    var items = products.stream()
-        .map(p -> ShoppingItemDomain.builder()
-            .productName(p.getName())
-            .price(ctx.cheapestByProductId.get(p.getId()).getPrice())
-            .quantity(1.0)
-            .build())
-        .toList();
-    var subtotal = products.stream()
-        .mapToDouble(p -> ctx.cheapestByProductId.get(p.getId()).getPrice())
-        .sum();
+    var items =
+        products.stream()
+            .map(
+                p ->
+                    ShoppingItemDomain.builder()
+                        .productName(p.getName())
+                        .price(ctx.cheapestByProductId.get(p.getId()).getPrice())
+                        .unit(p.getUnit())
+                        .build())
+            .toList();
+    var subtotal =
+        products.stream().mapToDouble(p -> ctx.cheapestByProductId.get(p.getId()).getPrice()).sum();
     return StoreVisitDomain.builder()
         .storeId(store.getId())
         .storeName(store.getName())
         .storeLocation(store.getLocation())
         .items(items)
         .subtotal(subtotal)
-        .estimatedTime("15 min")
         .build();
   }
 
   private ShoppingOptimizationResult toResult(ShoppingContext ctx) {
-    var totalCost = ctx.validProducts.stream()
-        .mapToDouble(p -> ctx.cheapestByProductId.get(p.getId()).getPrice())
-        .sum();
-    log.info("Shopping optimization: {} items across {} stores, total cost: {}",
-        ctx.validProducts.size(), ctx.route.size(), totalCost);
+    var totalCost =
+        ctx.validProducts.values().stream()
+            .mapToDouble(
+                p -> {
+                  var price = ctx.cheapestByProductId.get(p.getId());
+                  return WEIGHT_VOLUME_UNITS.contains(p.getUnit().toUpperCase(Locale.ROOT))
+                      ? price.getUnitPrice()
+                      : price.getPrice();
+                })
+            .sum();
+    log.info(
+        "Shopping optimization: {} items across {} stores, total cost: {}",
+        ctx.validProducts.size(),
+        ctx.route.size(),
+        totalCost);
     return ShoppingOptimizationResult.builder()
         .totalItems(ctx.validProducts.size())
         .totalCost(totalCost)
@@ -130,7 +147,10 @@ public class ShoppingOptimizer {
 
   private ShoppingOptimizationResult emptyResult() {
     return ShoppingOptimizationResult.builder()
-        .totalItems(0).totalCost(0.0).storesToVisit(0).route(List.of())
+        .totalItems(0)
+        .totalCost(0.0)
+        .storesToVisit(0)
+        .route(List.of())
         .savings(ShoppingSavingsDomain.builder().comparedToSingleStore(0.0).percentage(0.0).build())
         .build();
   }
