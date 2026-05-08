@@ -1,5 +1,6 @@
 package com.example.goodsprice.receipt.application.port.in;
 
+import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
 import java.util.List;
@@ -20,4 +21,6 @@ public interface ReceiptInPort {
   void process(UUID id, byte[] imageBytes);
 
   void insertItems(UUID id, List<java.util.Map<String, Object>> items);
+
+  void create(ReceiptCreateDomain receiptCreateDomain);
 }

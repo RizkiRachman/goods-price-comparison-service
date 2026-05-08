@@ -27,6 +27,15 @@ public final class JsonUtils {
     }
   }
 
+  public static String toJson(Object value) {
+    if (Objects.isNull(value)) return "[]";
+    try {
+      return MAPPER.writeValueAsString(value);
+    } catch (Exception e) {
+      return "[]";
+    }
+  }
+
   public static Map<String, Object> parseJson(String json) {
     if (Objects.isNull(json) || json.isBlank()) return Collections.emptyMap();
     try {

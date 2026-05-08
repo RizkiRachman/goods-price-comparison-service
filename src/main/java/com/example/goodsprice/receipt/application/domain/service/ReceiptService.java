@@ -3,6 +3,8 @@ package com.example.goodsprice.receipt.application.domain.service;
 import static com.example.goodsprice.common.constant.ErrorMessageConstants.ITEMS_NOT_EMPTY_MSG;
 
 import com.example.goodsprice.common.util.HashUtils;
+import com.example.goodsprice.common.util.JsonUtils;
+import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
 import com.example.goodsprice.receipt.application.exception.ReceiptNotFoundException;
@@ -137,6 +139,22 @@ public class ReceiptService implements ReceiptInPort {
     receipt.markAsCompleted(null, null, null, null, null);
     receiptRepository.save(receipt);
     log.info("Receipt items inserted: {}", id);
+  }
+
+  @Override
+  @Transactional
+  public void create(ReceiptCreateDomain request) {
+    var receipt =
+        ReceiptDomain.builder()
+            .status(ReceiptStatus.COMPLETED)
+            .storeName(request.getStoreName())
+            .extractedDataJson(JsonUtils.toJson(request.getItems()))
+            .totalAmount(request.getTotalAmount())
+            .storeLocation(request.getStoreLocation())
+            .receiptDate(request.getReceiptDate())
+            .build();
+    receipt = receiptRepository.save(receipt);
+    this.approve(receipt.getId());
   }
 
   private BigDecimal extractTotalAmount(Object value) {

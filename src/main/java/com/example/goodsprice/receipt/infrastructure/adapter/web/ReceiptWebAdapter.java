@@ -1,6 +1,7 @@
 package com.example.goodsprice.receipt.infrastructure.adapter.web;
 
 import com.example.goodsprice.api.model.ReceiptApproveResponse;
+import com.example.goodsprice.api.model.ReceiptCreateRequest;
 import com.example.goodsprice.api.model.ReceiptRejectResponse;
 import com.example.goodsprice.api.model.ReceiptResultResponse;
 import com.example.goodsprice.api.model.ReceiptStatusResponse;
@@ -60,5 +61,10 @@ public class ReceiptWebAdapter {
     return new ReceiptRejectResponse()
         .receiptId(id)
         .status(mapper.toStatus(receiptInPort.findById(id).getStatus()));
+  }
+
+  public void create(ReceiptCreateRequest request) {
+    var domain = mapper.toCreateDomain(request);
+    receiptInPort.create(domain);
   }
 }
