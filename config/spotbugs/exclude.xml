@@ -10,6 +10,12 @@
     <Package name="~.*\.infrastructure\..*" />
   </Match>
 
+  <!-- Configuration: Spring config beans exposure is intentional -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
+    <Package name="~.*\.config\.ratelimit.*" />
+  </Match>
+
   <!-- Records and DTOs: components intentionally expose their values -->
   <Match>
     <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />

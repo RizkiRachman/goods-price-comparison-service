@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Rate limiting**: Token-bucket rate limiter using Bucket4j with per-client-IP enforcement, configurable limits, and `@RateLimit` annotation for per-endpoint overrides
+  - `config/ratelimit/` — `RateLimitInterceptor`, `RateLimitBucketStore`, `RateLimitProperties`, `RateLimitExceededException`, `RateLimit` annotation
+  - `config/RateLimitConfiguration.java` — WebMvcConfigurer registering the interceptor
+  - `common/constant/HttpHeaderConstants.java` — `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `Retry-After` headers
+  - `GlobalExceptionHandler` enhanced with `handleRateLimitExceeded()` returning `429 Too Many Requests` with rate limit headers
+  - `config/rate-limiter.properties` — default 60 requests per 60-second window, per-endpoint overrides supported
+  - `ErrorCodes.RATE_LIMIT_EXCEEDED` added
+  - `bucket4j-core:8.10.1` dependency added to `pom.xml`
+
+### Added
 - **Batch query support**: `PriceInPort.findCheapestByProducts()` and `ProductInPort.findAllByNames()` to avoid N+1 query problems
 - **Shopping optimizer extraction**: `ShoppingOptimizer` extracted from `ShoppingService` with `ShoppingContext` for clean pipeline-based route optimization
 - **Code quality tooling**: Spotless (Google Java Format), Checkstyle, PMD, SpotBugs with FindSecBugs plugins wired into `verify` lifecycle
