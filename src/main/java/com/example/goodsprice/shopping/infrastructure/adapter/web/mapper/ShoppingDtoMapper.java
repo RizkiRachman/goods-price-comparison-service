@@ -6,9 +6,10 @@ import com.example.goodsprice.api.model.StoreVisit;
 import com.example.goodsprice.shopping.application.domain.model.ShoppingItemDomain;
 import com.example.goodsprice.shopping.application.domain.model.ShoppingSavingsDomain;
 import com.example.goodsprice.shopping.application.domain.model.StoreVisitDomain;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.Objects;
-import org.springframework.stereotype.Component;
 
 @Component
 public class ShoppingDtoMapper {
@@ -34,6 +35,7 @@ public class ShoppingDtoMapper {
     result.setProductName(domain.getProductName());
     result.setPrice(domain.getPrice());
     result.setQuantity(domain.getQuantity());
+    result.setUnit(domain.getUnit());
     return result;
   }
 
