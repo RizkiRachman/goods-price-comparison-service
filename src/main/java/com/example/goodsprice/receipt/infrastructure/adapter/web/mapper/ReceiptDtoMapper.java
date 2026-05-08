@@ -1,13 +1,18 @@
 package com.example.goodsprice.receipt.infrastructure.adapter.web.mapper;
 
+import com.example.goodsprice.api.model.ReceiptCreateRequest;
 import com.example.goodsprice.api.model.ReceiptItem;
 import com.example.goodsprice.api.model.ReceiptResultResponse;
 import com.example.goodsprice.api.model.Status;
+import com.example.goodsprice.common.util.DateUtils;
 import com.example.goodsprice.common.util.JsonUtils;
 import com.example.goodsprice.common.util.NumberUtils;
 import com.example.goodsprice.common.util.ObjectUtils;
+import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
+import com.example.goodsprice.receipt.application.domain.model.ReceiptItemDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Objects;
@@ -50,6 +55,28 @@ public class ReceiptDtoMapper {
     var rawItems = JsonUtils.extractItems(receipt.getExtractedDataJson());
     response.setItems(rawItems.stream().map(this::toItem).filter(Objects::nonNull).toList());
     return response;
+  }
+
+  public ReceiptCreateDomain toCreateDomain(ReceiptCreateRequest request) {
+    if (Objects.isNull(request)) return null;
+    return ReceiptCreateDomain.builder()
+        .receiptDate(DateUtils.format(request.getDate(), DateUtils.ISO_DATE))
+        .items(request.getItems().stream().map(this::toItemDomain).toList())
+        .storeName(request.getStoreName())
+        .totalAmount(BigDecimal.valueOf(request.getTotalAmount()))
+        .build();
+  }
+
+  public ReceiptItemDomain toItemDomain(ReceiptItem item) {
+    if (Objects.isNull(item)) return null;
+    return ReceiptItemDomain.builder()
+        .productName(item.getProductName())
+        .unitPrice(item.getUnitPrice())
+        .unit(item.getUnit())
+        .totalPrice(item.getTotalPrice())
+        .quantity(item.getQuantity())
+        .category(item.getCategory())
+        .build();
   }
 
   private LocalDate parseDate(String dateStr) {

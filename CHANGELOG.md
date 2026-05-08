@@ -8,11 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Create receipt API**: Direct receipt creation via `POST /api/v1/receipts/create` with store details and item list
+  - `ReceiptInPort.create()` — domain port for creating receipts from `ReceiptCreateDomain`
+  - `ReceiptService.create()` — creates receipt with `COMPLETED` status, serializes items to JSON, auto-approves
+  - `ReceiptWebAdapter.create()` — maps `ReceiptCreateRequest` → `ReceiptCreateDomain`, delegates to service
+  - `ReceiptDtoMapper.toCreateDomain()` and `toItemDomain()` — DTO-to-domain mappers
+  - `ReceiptController.createReceipt()` — returns `201 Created` on success
+  - Test coverage: `ReceiptServiceTest` with 6 test cases covering success, empty/null items, null amount, null store location, multiple items
+- **API spec**: Updated `goods-price-comparison-api` from `1.6.0` to `1.7.0` (includes `ReceiptCreateRequest` and `ReceiptItem` models)
+- **DateUtils**: `common/util/DateUtils.java` — utility to format `LocalDate`/`LocalDateTime`/`OffsetDateTime`/`Date` to string with a given pattern
 - **Rate limiting**: Token-bucket rate limiter using Bucket4j with per-client-IP enforcement, configurable limits, and `@RateLimit` annotation for per-endpoint overrides
   - `config/ratelimit/` — `RateLimitInterceptor`, `RateLimitBucketStore`, `RateLimitProperties`, `RateLimitExceededException`, `RateLimit` annotation
   - `config/RateLimitConfiguration.java` — WebMvcConfigurer registering the interceptor
   - `common/constant/HttpHeaderConstants.java` — `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `Retry-After` headers
   - `GlobalExceptionHandler` enhanced with `handleRateLimitExceeded()` returning `429 Too Many Requests` with rate limit headers
+
+### Added
+- **JsonUtils enhancement**: Added `JsonUtils.toJson(Object)` to serialize any object (including collections) to JSON string, returning `"[]"` for null values
+
+### Added
+- **DateUtils**: `common/util/DateUtils.java` — utility to format `LocalDate`/`LocalDateTime`/`OffsetDateTime`/`Date` to string with a given pattern
   - `config/rate-limiter.properties` — default 60 requests per 60-second window, per-endpoint overrides supported
   - `ErrorCodes.RATE_LIMIT_EXCEEDED` added
   - `bucket4j-core:8.10.1` dependency added to `pom.xml`

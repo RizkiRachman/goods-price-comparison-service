@@ -3,12 +3,15 @@ package com.example.goodsprice.receipt.infrastructure.adapter.web;
 import com.example.goodsprice.api.controller.ReceiptsApi;
 import com.example.goodsprice.api.model.ReceiptApproveResponse;
 import com.example.goodsprice.api.model.ReceiptCorrectRequest;
+import com.example.goodsprice.api.model.ReceiptCreateRequest;
 import com.example.goodsprice.api.model.ReceiptRejectResponse;
 import com.example.goodsprice.api.model.ReceiptResultResponse;
 import com.example.goodsprice.api.model.ReceiptStatusResponse;
 import com.example.goodsprice.api.model.ReceiptUploadResponse;
+import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -50,5 +53,11 @@ public class ReceiptController implements ReceiptsApi {
   public ResponseEntity<ReceiptResultResponse> correctReceipt(
       UUID id, ReceiptCorrectRequest receiptCorrectRequest) {
     return ResponseEntity.ok(correctionAdapter.correct(id, receiptCorrectRequest));
+  }
+
+  @Override
+  public ResponseEntity<Void> createReceipt(@Valid ReceiptCreateRequest receiptCreateRequest) {
+    adapter.create(receiptCreateRequest);
+    return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 }
