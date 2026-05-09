@@ -48,11 +48,9 @@ public class ProductEntity {
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
-  /** Timestamp of the most recent price update for this product. */
   @Column(name = "last_price_update")
   private LocalDateTime lastPriceUpdate;
 
-  /** Timestamp when the price summary was last calculated. */
   @Column(name = "summary_last_calculated")
   private LocalDateTime summaryLastCalculated;
 }

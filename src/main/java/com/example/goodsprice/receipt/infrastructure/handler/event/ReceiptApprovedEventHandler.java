@@ -48,7 +48,6 @@ public class ReceiptApprovedEventHandler {
       var store = resolveStore(receipt.getStoreName());
       var date = parseDate(receipt.getReceiptDate());
 
-      // Step 1: Store receipt_items
       var receiptItemEntities =
           items.stream()
               .map(
@@ -67,7 +66,6 @@ public class ReceiptApprovedEventHandler {
       log.info(
           "Saved {} receipt_items for receipt: {}", receiptItemEntities.size(), event.receiptId());
 
-      // Step 2: Create products and prices
       for (var item : items) {
         var productName = (String) item.get("productName");
         var category = (String) item.get("category");
