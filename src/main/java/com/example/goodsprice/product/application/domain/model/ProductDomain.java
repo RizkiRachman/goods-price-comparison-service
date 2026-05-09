@@ -22,23 +22,15 @@ public class ProductDomain {
   private String unit;
   private String status;
 
-  /** Timestamp of the most recent price update for this product. */
   private LocalDateTime lastPriceUpdate;
 
-  /** Timestamp when the price summary was last calculated. */
   private LocalDateTime summaryLastCalculated;
 
-  // Price summary fields - populated when includePrice=true
-
-  /** Average price across all stores (current 90-day window). */
   private BigDecimal avgPrice;
 
-  /** Minimum price across all stores (current 90-day window). */
   private BigDecimal minPrice;
 
-  /** Maximum price across all stores (current 90-day window). */
   private BigDecimal maxPrice;
 
-  /** Timestamp when the price data was last updated. */
   private LocalDateTime priceUpdatedAt;
 }
