@@ -1,33 +1,36 @@
+## Title
+
+<!-- Compelling, under 100 characters. Format: type(scope): action description -->
+
 ## Summary
 
-<!-- 1-3 bullet points describing what changed and why -->
+<!-- What changed and why. Lead with the most critical information (who, what, when, where, why). -->
 
 ## Related Issues
 
-- Closes #<!-- issue-number -->
-- Relates to #<!-- issue-number -->
+- Closes #
+- Relates to #
 
 ## Type of Change
 
-- [ ] feat: new feature
-- [ ] fix: bug fix
-- [ ] refactor: code restructuring
-- [ ] test: test additions/changes
-- [ ] docs: documentation
-- [ ] chore: build/tooling
+- [ ] feat
+- [ ] fix
+- [ ] refactor
+- [ ] test
+- [ ] docs
+- [ ] chore
 
 ## Quality Checklist
 
-- [ ] `mvn spotless:apply` — formatting is clean
-- [ ] `mvn test` — all tests pass (0 failures)
-- [ ] `mvn verify` — full quality gates pass (SpotBugs, PMD CPD)
-- [ ] `./scripts/check-conventions.sh` — convention checks pass
-- [ ] New code has unit tests (100% coverage for new code)
-- [ ] CHANGELOG.md updated under `[Unreleased]`
-- [ ] Documentation updated (README, docs/ if applicable)
-- [ ] No unused code, parameters, or variables (YAGNI)
-- [ ] No redundant variable assignments
+- [ ] `mvn verify` passes
+- [ ] ArchUnit rules pass
+- [ ] SpotBugs / PMD CPD clean
+- [ ] `./scripts/check-conventions.sh` passes
+- [ ] Unit tests cover new code
+- [ ] CHANGELOG.md updated
+- [ ] No TODOs, FIXMEs, or commented-out code
+- [ ] No secrets committed
 
 ## How to Test
 
-<!-- Step-by-step instructions to verify this change -->
+<!-- Steps for reviewer -->
