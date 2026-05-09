@@ -1,126 +1,92 @@
-# Developer Guide
+<a id="readme-top"></a>
 
-Complete guide for developers working on the Goods Price Comparison Service.
+[![Java 17][java-shield]][java-url]
+[![Spring Boot][spring-shield]][spring-url]
+[![Maven][maven-shield]][maven-url]
+[![PostgreSQL][postgres-shield]][postgres-url]
+[![Docker][docker-shield]][docker-url]
 
-## Table of Contents
+<br />
 
-- [Prerequisites](#prerequisites)
-- [Development Setup](#development-setup)
-- [Understanding the Architecture](#understanding-the-architecture)
-- [Project Structure](#project-structure)
-- [Development Workflow](#development-workflow)
-- [Database Management](#database-management)
-- [Testing](#testing)
-- [Quality Gates](#quality-gates)
-- [Adding New Features](#adding-new-features)
-- [Configuration](#configuration)
-- [Troubleshooting](#troubleshooting)
+<div align="center">
+  <h3 align="center">Goods Price Comparison Service — Developer Guide</h3>
+  <p align="center">
+    Everything you need to develop, test, and contribute to the project.
+    <br />
+    <a href="ARCHITECTURE_HYBRID.md"><strong>Read the Architecture Docs »</strong></a>
+  </p>
+</div>
 
-## Prerequisites
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#getting-started">Getting Started</a></li>
+    <li><a href="#project-structure">Project Structure</a></li>
+    <li><a href="#development-workflow">Development Workflow</a></li>
+    <li><a href="#writing-conventions">Writing Conventions</a></li>
+    <li><a href="#database">Database</a></li>
+    <li><a href="#testing">Testing</a></li>
+    <li><a href="#quality-gates">Quality Gates</a></li>
+    <li><a href="#adding-new-features">Adding New Features</a></li>
+    <li><a href="#configuration">Configuration</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+  </ol>
+</details>
 
-- **Java 17** or higher
-- **Maven 3.8+**
-- **Docker** (for PostgreSQL option)
-- **Git**
+## Getting Started
 
-## Development Setup
+### Prerequisites
 
-### Option 1: Quick Start (H2 Database)
+- Java 17+
+- Maven 3.8+
+- Docker (for PostgreSQL option)
+- Git
 
-Fastest setup for development - no external database needed.
+### Quick Start (H2)
 
 ```bash
-# Clone the repository
 git clone https://github.com/RizkiRachman/goods-price-comparison-service.git
 cd goods-price-comparison-service
 
-# Run quality checks
 mvn spotless:apply
 mvn verify
-
-# Start with H2 in-memory database
 mvn spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-**Access points:**
-- Application: http://localhost:8080
-- H2 Console: http://localhost:8080/h2-console (JDBC URL: `jdbc:h2:mem:goodspricedb`)
-- Swagger UI: http://localhost:8080/swagger-ui.html
+| Access | URL |
+|--------|-----|
+| Application | http://localhost:8080 |
+| H2 Console | http://localhost:8080/h2-console |
+| Swagger UI | http://localhost:8080/swagger-ui.html |
 
-### Option 2: PostgreSQL Setup (Production-like)
+H2 JDBC URL: `jdbc:h2:mem:goodspricedb`
 
-For testing with real database:
+### PostgreSQL Setup
 
 ```bash
-# 1. Start PostgreSQL via Docker
 docker run -d --name goodsprice-db \
   -e POSTGRES_DB=goodsprice \
   -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=password \
   -p 5432:5432 postgres:16
 
-# 2. Run migrations
 mvn flyway:migrate -Pflyway \
   -Dflyway.url=jdbc:postgresql://localhost:5432/goodsprice \
   -Dflyway.user=postgres \
   -Dflyway.password=password
 
-# 3. Set environment and run
-export DATABASE_HOST=localhost
-export DATABASE_PORT=5432
-export DATABASE_NAME=goodsprice
-export DATABASE_USERNAME=postgres
-export DATABASE_PASSWORD=password
-
+export DATABASE_HOST=localhost DATABASE_PORT=5432
+export DATABASE_NAME=goodsprice DATABASE_USERNAME=postgres DATABASE_PASSWORD=password
 mvn spring-boot:run
 ```
 
-## Understanding the Architecture
-
-This project uses a **three-layer hybrid architecture**:
-
-### Layer 1: Microservice Boundaries
-
-Eight bounded contexts (currently packages, designed for future services):
-- `receipt` - Receipt upload and processing
-- `price` - Price records and comparisons
-- `product` - Product catalog
-- `store` - Store directory
-- `llm` - AI/OCR integration
-- `shopping` - Shopping optimization
-- `alert` - Price alerts
-- `system` - System utilities
-
-### Layer 2: Hexagonal Architecture
-
-Each service follows ports & adapters pattern:
-
-```
-service/
-├── application/           # Pure Java, no framework dependencies
-│   ├── domain/model/      # Business entities
-│   ├── domain/service/    # Business logic
-│   ├── port/in/           # Driving ports (what the service CAN do)
-│   └── port/out/          # Driven ports (what the service NEEDS)
-└── infrastructure/        # Framework code
-    ├── adapter/web/       # REST controllers
-    ├── adapter/persistence/  # Database access
-    └── handler/event/     # Event consumers
-```
-
-### Layer 3: Event-Driven Communication
-
-Services communicate via events:
-- Spring `ApplicationEvent` (current - in-process)
-- Future: Kafka/RabbitMQ for distributed deployment
-
-See [Architecture Overview](ARCHITECTURE_HYBRID.md) for full details.
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Project Structure
 
 ```
 src/main/java/com/example/goodsprice/
-├── common/                    # Shared utilities
+├── common/                    # Shared utilities, constants, events
 │   ├── constant/             # AppConstants, ErrorCodes
 │   ├── exception/            # Custom exceptions
 │   └── util/                 # ObjectUtils, NumberUtils, JsonUtils
@@ -136,7 +102,7 @@ src/main/java/com/example/goodsprice/
 │       ├── adapter/persistence/  # ReceiptEntity, ReceiptRepositoryAdapter
 │       └── handler/event/    # ReceiptProcessEventListener
 │
-├── price/                     # Price service (similar structure)
+├── price/                     # Price service
 ├── product/                   # Product service
 ├── store/                     # Store service
 ├── llm/                       # LLM integration
@@ -144,40 +110,42 @@ src/main/java/com/example/goodsprice/
 └── alert/                     # Alert service
 ```
 
+Each service follows the hexagonal pattern: **ports → domain → adapters**. See the [Architecture Overview](ARCHITECTURE_HYBRID.md) for design rationale.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Development Workflow
 
-### 1. Making Changes
+### Branching
 
 ```bash
-# Create feature branch
-git checkout -b feature/your-feature-name
-
-# Make your changes
-# ... edit files ...
-
-# Format code
-mvn spotless:apply
-
-# Run tests
-mvn test
-
-# Full verification
-mvn verify
+git checkout -b ANEH-YYYYMMDD-SHORTDESC1-SHORTDESC2-SHORTDESC3
 ```
 
-### 2. Code Style
+### Committing
+
+```bash
+type(scope): brief description
+```
+
+Types: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `style`.
+
+Changelog is auto-generated from conventional commits via [changelogen](https://github.com/unjs/changelogen).
+
+### Code Style
 
 - **Google Java Style** (enforced by Spotless)
-- Use `mvn spotless:apply` to auto-format
+- Run `mvn spotless:apply` to auto-format before committing
 - Follow existing patterns in the codebase
 
-### 3. Writing Code
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-**Domain models:**
+## Writing Conventions
+
+### Domain Models
+
 ```java
-@Builder
-@Getter
-@Setter
+@Builder @Getter @Setter          // No JPA annotations
 public class Product {
     private Long id;
     private String name;
@@ -185,23 +153,43 @@ public class Product {
 }
 ```
 
-**Ports return nullable (not Optional):**
+### Ports
+
+Return **nullable**, never `Optional<T>`:
+
 ```java
 // Good
-Product findById(Long id);  // returns null if not found
+Product findById(Long id);
 
 // Avoid
 Optional<Product> findById(Long id);
 ```
 
-**Use utilities:**
+### Null Handling
+
+Use project utilities instead of raw checks:
+
 ```java
 ObjectUtils.getOrNull(obj, Parent::getChild)
 ValidationUtils.requireNonNull(value, "fieldName")
 NumberUtils.toDouble(obj)
+StringUtils.isBlank(str)
 ```
 
-## Database Management
+### Modern Java 17
+
+```java
+String.formatted()          // over String.format()
+fooList.toList()            // over .collect(Collectors.toList())
+Foo::bar                    // over x -> x.bar()
+instanceof Foo f            // pattern matching
+case X ->                   // switch expressions
+var                         // where type is obvious
+```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Database
 
 ### Migration Structure
 
@@ -215,128 +203,156 @@ db/migration/
 ### Creating Migrations
 
 ```bash
-# 1. Check latest version
 ls db/migration/tables/ db/migration/alter/
-
-# 2. Create new file
 touch db/migration/alter/V6__add_column_to_products.sql
-
-# 3. Write PostgreSQL-compatible SQL
-# 4. Test: mvn flyway:migrate -Pflyway
+mvn flyway:migrate -Pflyway
 ```
 
-### Naming Convention
+**Naming:** `V{version}__{description}.sql` (double underscore). Example: `V6__add_unit_column_to_products.sql`.
 
-- `V{version}__{description}.sql` (note: double underscore)
-- Example: `V6__add_unit_column_to_products.sql`
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Testing
 
 ### Test Types
 
-| Type | Location | Purpose |
-|------|----------|---------|
-| Unit | `application/domain/service/*Test` | Test business logic with mocked ports |
-| Integration | `infrastructure/adapter/persistence/*Test` | Test database layer |
-| Controller | `infrastructure/adapter/web/*Test` | Test REST endpoints |
-| Architecture | `architecture/HexagonalArchitectureTest` | Enforce architecture rules |
+| Type | Location | What It Tests |
+|------|----------|---------------|
+| Unit | `application/domain/service/*Test` | Business logic with mocked ports |
+| Integration | `infrastructure/adapter/persistence/*Test` | Database layer |
+| Controller | `infrastructure/adapter/web/*Test` | REST endpoints |
+| Architecture | `architecture/HexagonalArchitectureTest` | ArchUnit rules |
 
-### Running Tests
+### Commands
 
 ```bash
-# Unit tests only
-mvn test
-
-# All tests including integration
-mvn verify -Pintegration-tests
-
-# Single test
-mvn test -Dtest=ReceiptServiceTest
+mvn test                           # Unit tests only
+mvn verify                         # Full verification
+mvn test -Dtest=ReceiptServiceTest # Single test
 ```
 
-### Test Configuration
+Tests use `@ActiveProfiles("test")` — H2 in-memory, Flyway disabled, LLM set to `local`.
 
-Tests use `@ActiveProfiles("test")` with:
-- H2 in-memory database
-- Flyway disabled
-- LLM provider set to `local` (no API key needed)
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Quality Gates
 
-Every commit must pass:
+Run these in order. Each must pass before the next.
 
-| Check | Command | What It Finds |
-|-------|---------|---------------|
-| Tests | `mvn test` | Broken logic |
-| ArchUnit | (part of test) | Architecture violations |
-| Spotless | `mvn spotless:check` | Formatting issues |
-| SpotBugs | `mvn spotbugs:check` | Null bugs, encoding issues |
-| PMD CPD | `mvn pmd:cpd-check` | Code duplication (>100 tokens) |
+| Gate | Command | What It Catches |
+|------|---------|-----------------|
+| Formatting | `mvn spotless:apply` | Google Java Style violations |
+| Architecture | `mvn test` (ArchUnit) | Package dependency violations |
+| Static Analysis | `mvn verify` | SpotBugs bugs, PMD CPD duplicates |
+| Conventions | `./scripts/check-conventions.sh` | getOrNull usage, method refs, no JPA in domain |
+| Full Test | `mvn test && mvn verify` | All tests pass, 0 failures |
+| Security | `mvn verify -P security-check` | OWASP dependency vulnerabilities |
 
 ```bash
-# Run all checks
-mvn verify
-
-# Fix formatting
-mvn spotless:apply
-
-# Extra conventions check
-./scripts/check-conventions.sh
+mvn spotless:apply              # Quick fix
+mvn verify                      # Standard quality
+mvn verify -P security-check    # Full + security
 ```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Adding New Features
 
-### Step-by-Step Guide
+Follow this order to maintain hexagonal integrity:
 
-1. **Create ports first** (`application/port/in/` and `application/port/out/`)
-2. **Create domain model** (`application/domain/model/`)
-3. **Implement domain service** (`application/domain/service/`)
-4. **Create mapper** (domain ↔ entity, domain ↔ DTO)
-5. **Create adapter** (web, persistence, or event)
-
-### Example: Adding a New Endpoint
+### 1. Port Interface
 
 ```java
-// 1. Port (application/port/in/ProductInPort.java)
+// application/port/in/ProductInPort.java
 public interface ProductInPort {
     Product createProduct(CreateProductRequest request);
     Product getProduct(Long id);
 }
+```
 
-// 2. Domain Service (application/domain/service/ProductService.java)
+### 2. Domain Service
+
+```java
+// application/domain/service/ProductService.java
 @Service
 @RequiredArgsConstructor
 public class ProductService implements ProductInPort {
     private final ProductRepositoryPort repositoryPort;
-    
+
     @Override
     public Product createProduct(CreateProductRequest request) {
-        // Business logic here
-        Product product = Product.builder()
-            .name(request.getName())
-            .build();
-        return repositoryPort.save(product);
+        return repositoryPort.save(
+            Product.builder()
+                .name(request.getName())
+                .category(request.getCategory())
+                .build()
+        );
     }
 }
+```
 
-// 3. Web Adapter (infrastructure/adapter/web/ProductController.java)
+### 3. Web Adapter
+
+```java
+// infrastructure/adapter/web/ProductController.java
 @RestController
 @RequiredArgsConstructor
 public class ProductController implements ProductsApi {
     private final ProductInPort productInPort;
     private final ProductDtoMapper mapper;
-    
+
     @Override
     public ResponseEntity<ProductDto> createProduct(CreateProductRequest request) {
-        Product product = productInPort.createProduct(request);
-        return ResponseEntity.ok(mapper.toDto(product));
+        return ResponseEntity.ok(
+            mapper.toDto(productInPort.createProduct(request))
+        );
     }
 }
 ```
 
-## Configuration
+### 4. Persistence Adapter
 
-### Environment Variables
+```java
+// infrastructure/adapter/persistence/entity/ProductEntity.java
+@Entity @Table(name = "products")
+public class ProductEntity {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String name;
+    private String category;
+}
+
+// infrastructure/adapter/persistence/ProductRepositoryAdapter.java
+@Component
+@RequiredArgsConstructor
+public class ProductRepositoryAdapter implements ProductRepositoryPort {
+    private final JpaProductRepository jpaRepository;
+    private final ProductMapper mapper;
+
+    @Override
+    public Product save(Product product) {
+        return mapper.toDomain(
+            jpaRepository.save(mapper.toEntity(product))
+        );
+    }
+}
+```
+
+### Writing Order
+
+```
+1. Port interface (*InPort, *RepositoryPort)
+2. Domain service (implements *InPort)
+3. Mapper (domain ↔ DTO, domain ↔ entity)
+4. Adapter (orchestration via ports + mappers)
+5. Constants (AppConstants, ErrorCodes, ErrorMessageConstants)
+6. Events (*EventOutPort, *EventAdapter, handler)
+7. Tests (unit + ArchUnit compliance)
+```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Configuration
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -349,58 +365,52 @@ public class ProductController implements ProductsApi {
 | `GEMINI_API_KEY` | Google Gemini key | *(none)* |
 | `GROQ_API_KEY` | Groq AI key | *(none)* |
 
-### Profiles
+### Spring Profiles
 
-- `local` - H2 database, auto schema update
-- `default` - PostgreSQL, Flyway migrations
-- `test` - H2, disabled Flyway, mocked LLM
+| Profile | Database | Flyway | Use Case |
+|---------|----------|--------|----------|
+| `local` | H2 | Disabled | Local development |
+| `default` | PostgreSQL | Enabled | Production |
+| `test` | H2 | Disabled | Tests |
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Troubleshooting
 
-### Common Issues
-
-**Build fails with formatting errors:**
+**Formatting errors:**
 ```bash
 mvn spotless:apply
 ```
 
 **Database connection errors:**
-- Check PostgreSQL is running: `docker ps`
-- Verify credentials in environment variables
-- Run migrations: `mvn flyway:migrate -Pflyway`
-
-**ArchUnit test failures:**
-- Check for `application/` importing `infrastructure/`
-- Ensure domain models don't have JPA annotations
-- Verify ports don't return `Optional<T>`
-
-**LLM processing fails:**
-- Check `LLM_PROVIDER` is set correctly
-- For `local`: ensure Ollama is running
-- For `gemini`/`groq`: verify API keys
-
-### Release Process
-
-To ship a release, load the release-plan skill:
-
 ```bash
-# In opencode session
-/skill release-plan
+docker ps                              # Check PostgreSQL is running
+mvn flyway:migrate -Pflyway            # Run migrations
 ```
 
-The workflow covers:
-1. **Planning** — impact analysis, architecture alignment
-2. **Development** — port → service → mapper → adapter → tests
-3. **Quality Gates** — `spotless:apply` → `test` → `verify` → `check-conventions.sh`
-4. **Documentation** — CHANGELOG, README, docs/, AGENTS.md
-5. **Pull Request** — template with quality checklist
-6. **Release Review** — pre-merge checks, post-merge tagging
+**ArchUnit failures:**
+- `application/` importing `infrastructure/`
+- Domain models with JPA annotations
+- Ports returning `Optional<T>`
 
-See `.opencode/skills/release-plan/SKILL.md` for the complete checklist.
+**LLM errors:**
+- Verify `LLM_PROVIDER` setting
+- `local` requires Ollama running
+- `gemini`/`groq` require valid API keys
 
-### Getting Help
+**Need more help?** See [ARCHITECTURE_HYBRID.md](ARCHITECTURE_HYBRID.md), [ERD.md](ERD.md), or [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-- Check [Architecture Overview](ARCHITECTURE_HYBRID.md) for design decisions
-- Check [Database ERD](ERD.md) for schema information
-- Review existing services as examples
-- See [Contributing](../CONTRIBUTING.md) for PR process
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+---
+
+[java-shield]: https://img.shields.io/badge/Java_17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white
+[java-url]: https://www.oracle.com/java/
+[spring-shield]: https://img.shields.io/badge/Spring_Boot_3-6DB33F?style=for-the-badge&logo=springboot&logoColor=white
+[spring-url]: https://spring.io/projects/spring-boot
+[maven-shield]: https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white
+[maven-url]: https://maven.apache.org/
+[postgres-shield]: https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white
+[postgres-url]: https://www.postgresql.org/
+[docker-shield]: https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white
+[docker-url]: https://www.docker.com/

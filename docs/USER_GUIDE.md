@@ -1,106 +1,118 @@
-# User Guide
+<a id="readme-top"></a>
 
-A simple guide for using the Goods Price Comparison Service.
+[![REST API][rest-shield]][rest-url]
+
+<br />
+
+<div align="center">
+  <h3 align="center">Goods Price Comparison Service — User Guide</h3>
+  <p align="center">
+    Track and compare prices from your shopping receipts.
+    <br />
+    <a href="DEVELOPER_GUIDE.md"><strong>Developer Guide »</strong></a>
+  </p>
+</div>
+
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#what-is-this">What Is This?</a></li>
+    <li><a href="#quick-overview">Quick Overview</a></li>
+    <li><a href="#how-to-use">How to Use</a></li>
+    <li><a href="#understanding-your-data">Understanding Your Data</a></li>
+    <li><a href="#example-workflow">Example Workflow</a></li>
+    <li><a href="#tips">Tips</a></li>
+  </ol>
+</details>
 
 ## What Is This?
 
-This service helps you track and compare prices from your shopping receipts. Simply take a photo of your receipt, upload it, and the system will:
+Upload a photo of your receipt and the system will:
 
 1. **Extract items and prices** using AI
 2. **Store the data** for future reference
 3. **Show price comparisons** across different stores
 4. **Alert you** when prices drop
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Quick Overview
 
 ```
-📸 Take Photo → 🤖 AI Reads It → 💾 Save Prices → 🔍 Compare & Alert
+Take Photo → AI Reads It → Save Prices → Compare & Alert
 ```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## How to Use
 
 ### Step 1: Upload a Receipt
-
-Send your receipt image to the service:
 
 ```bash
 curl -X POST http://localhost:8080/receipts \
   -F "image=@your_receipt.jpg"
 ```
 
-Or use a tool like [Postman](https://www.postman.com/) or any HTTP client.
+Or use [Postman](https://www.postman.com/) or any HTTP client.
 
 **What happens:**
-- The system checks if you've already uploaded this receipt (duplicate detection)
+- System checks for duplicates (same receipt won't process twice)
 - Returns a job ID immediately
 - Processing happens in the background
 
-### Step 2: Check Processing Status
-
-Receipt processing takes a few seconds. Check the status:
+### Step 2: Check Status
 
 ```bash
 curl http://localhost:8080/receipts/{job-id}/status
 ```
 
-**Possible statuses:**
-- `PENDING` - Waiting to be processed
-- `PROCESSING` - AI is reading the receipt
-- `COMPLETED` - Done! Prices extracted successfully
-- `FAILED` - Something went wrong (you can retry)
+| Status | Meaning |
+|--------|---------|
+| `PENDING` | Waiting to be processed |
+| `PROCESSING` | AI is reading the receipt |
+| `COMPLETED` | Done! Prices extracted |
+| `FAILED` | Something went wrong (retry) |
 
-### Step 3: View Extracted Data
-
-Once complete, view the receipt details:
+### Step 3: View Results
 
 ```bash
 curl http://localhost:8080/receipts/{job-id}
 ```
 
-You'll see:
-- Store name and location
-- Purchase date
-- List of items with prices
-- Total amount
+You'll see store name, location, purchase date, items with prices, and total amount.
 
-### Step 4: Search and Compare Prices
-
-Find the best prices for products:
+### Step 4: Search & Compare
 
 ```bash
-# Search by product name
 curl "http://localhost:8080/prices?productName=milk"
-
-# Compare prices across stores
 curl "http://localhost:8080/prices/compare?productId=123"
-
-# View price history
 curl "http://localhost:8080/prices/history?productId=123"
 ```
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Understanding Your Data
 
-### Products
-Products are items you buy (e.g., "Whole Milk", "Organic Eggs"). The system automatically creates products when it sees new items on receipts.
+**Products** — Items you buy (e.g., "Whole Milk"). Created automatically when new items appear on receipts.
 
-### Stores
-Stores are where you shop (e.g., "Walmart", "Target"). Each store has a name and location.
+**Stores** — Where you shop (e.g., "Walmart"). Each has a name and location.
 
-### Prices
-Prices are linked to both a product and a store, with the date they were recorded. This lets you track price changes over time.
+**Prices** — Linked to both a product and a store with the date recorded. Enables tracking price changes over time.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Example Workflow
 
 ```bash
-# 1. Upload a receipt
-$ curl -X POST http://localhost:8080/receipts -F "image=@grocery_receipt.jpg"
+# Upload receipt
+$ curl -X POST http://localhost:8080/receipts -F "image=@receipt.jpg"
 {"id": "550e8400-e29b-41d4-a716-446655440000"}
 
-# 2. Check status
+# Check status
 $ curl http://localhost:8080/receipts/550e8400-e29b-41d4-a716-446655440000/status
 {"status": "COMPLETED"}
 
-# 3. View extracted items
+# View extracted items
 $ curl http://localhost:8080/receipts/550e8400-e29b-41d4-a716-446655440000
 {
   "storeName": "SuperMart",
@@ -111,24 +123,22 @@ $ curl http://localhost:8080/receipts/550e8400-e29b-41d4-a716-446655440000
   ]
 }
 
-# 4. Find cheapest milk
+# Find cheapest milk
 $ curl "http://localhost:8080/prices?productName=milk&sort=price,asc"
 ```
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Tips
 
-- **Upload clear photos** - Better image quality means better AI recognition
-- **Wait for processing** - Don't worry if status shows PENDING for a few seconds
-- **Duplicates are blocked** - Same receipt won't be processed twice
-- **Compare before shopping** - Check prices across stores to save money
+- **Clear photos** — Better image quality means better AI recognition
+- **Wait for processing** — PENDING for a few seconds is normal
+- **No duplicates** — Same receipt won't process twice
+- **Compare before shopping** — Check prices across stores to save money
 
-## API Documentation
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-Full API documentation is available at:
-- **Swagger UI**: http://localhost:8080/swagger-ui.html (when running locally)
+---
 
-## Getting Help
-
-- **For developers**: See [Developer Guide](DEVELOPER_GUIDE.md)
-- **For architecture details**: See [Architecture Overview](ARCHITECTURE_HYBRID.md)
-- **For database info**: See [Database ERD](ERD.md)
+[rest-shield]: https://img.shields.io/badge/REST_API-005571?style=for-the-badge&logo=swagger&logoColor=white
+[rest-url]: http://localhost:8080/swagger-ui.html

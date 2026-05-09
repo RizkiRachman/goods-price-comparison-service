@@ -1,10 +1,38 @@
-# Entity Relationship Diagram
+<a id="readme-top"></a>
 
-Visual representation of the database schema and relationships between entities.
+[![PostgreSQL][postgres-shield]][postgres-url]
+[![Flyway][flyway-shield]][flyway-url]
+
+<br />
+
+<div align="center">
+  <h3 align="center">Goods Price Comparison Service — Database Schema</h3>
+  <p align="center">
+    Entity relationship diagram, table definitions, and design decisions.
+    <br />
+    <a href="ARCHITECTURE_HYBRID.md"><strong>Read the Architecture Docs »</strong></a>
+  </p>
+</div>
+
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#entity-relationship-diagram">Entity Relationship Diagram</a></li>
+    <li><a href="#service-ownership">Service Ownership</a></li>
+    <li><a href="#table-definitions">Table Definitions</a></li>
+    <li><a href="#design-decisions">Design Decisions</a></li>
+    <li><a href="#indexes">Indexes</a></li>
+    <li><a href="#data-flow">Data Flow</a></li>
+    <li><a href="#migration-files">Migration Files</a></li>
+  </ol>
+</details>
 
 ## Overview
 
 The database follows a **schema-per-service** design aligned with the microservice architecture. Each service owns its tables and no service queries another service's tables directly.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Entity Relationship Diagram
 
@@ -78,6 +106,8 @@ erDiagram
     }
 ```
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Service Ownership
 
 | Service | Tables | Description |
@@ -86,6 +116,8 @@ erDiagram
 | **product-service** | `products` | Product catalog and categorization |
 | **store-service** | `stores` | Store directory with locations |
 | **price-service** | `prices` | Price records with historical tracking |
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Table Definitions
 
@@ -98,11 +130,11 @@ Stores receipt images and processing status.
 | `id` | UUID | PK | Unique identifier |
 | `image_hash` | VARCHAR | NOT NULL, UNIQUE | SHA-256 hash for duplicate detection |
 | `original_filename` | VARCHAR | | Original uploaded filename |
-| `status` | VARCHAR | NOT NULL | PENDING, PROCESSING, COMPLETED, FAILED, etc. |
+| `status` | VARCHAR | NOT NULL | PENDING, PROCESSING, COMPLETED, FAILED |
 | `error_message` | VARCHAR | | Error details if processing failed |
 | `store_name` | VARCHAR | | Extracted store name |
 | `store_location` | VARCHAR | | Extracted store location |
-| `receipt_date` | VARCHAR | | Date on receipt (as string) |
+| `receipt_date` | VARCHAR | | Date on receipt |
 | `total_amount` | DOUBLE | | Total amount from receipt |
 | `extracted_data_json` | TEXT | | Raw JSON from LLM extraction |
 | `created_at` | TIMESTAMP | | Record creation time |
@@ -118,11 +150,11 @@ Individual line items extracted from receipts.
 | `id` | BIGINT | PK | Auto-increment identifier |
 | `receipt_id` | UUID | NOT NULL, FK | References receipts.id |
 | `product_name` | VARCHAR | | Product name as shown on receipt |
-| `category` | VARCHAR | | Product category (optional) |
+| `category` | VARCHAR | | Product category |
 | `quantity` | DOUBLE | | Quantity purchased |
 | `unit_price` | DOUBLE | | Price per unit |
-| `total_price` | DOUBLE | | Total price (quantity * unit_price) |
-| `unit` | VARCHAR | | Unit of measurement (kg, pcs, etc.) |
+| `total_price` | DOUBLE | | Total price |
+| `unit` | VARCHAR | | Unit of measurement (kg, pcs) |
 
 ### products
 
@@ -135,7 +167,7 @@ Product catalog with categorization.
 | `category` | VARCHAR | | Product category |
 | `brand` | VARCHAR | | Product brand |
 | `unit` | VARCHAR | | Default unit of measurement |
-| `status` | VARCHAR | | ACTIVE, INACTIVE, etc. |
+| `status` | VARCHAR | | ACTIVE, INACTIVE |
 | `created_at` | TIMESTAMP | | Record creation time |
 | `updated_at` | TIMESTAMP | | Last update time |
 
@@ -152,7 +184,7 @@ Store directory with location information.
 | `address` | VARCHAR | | Full address |
 | `latitude` | DOUBLE | | GPS latitude |
 | `longitude` | DOUBLE | | GPS longitude |
-| `status` | VARCHAR | | ACTIVE, INACTIVE, etc. |
+| `status` | VARCHAR | | ACTIVE, INACTIVE |
 | `created_at` | TIMESTAMP | | Record creation time |
 | `updated_at` | TIMESTAMP | | Last update time |
 
@@ -168,36 +200,27 @@ Price records with historical tracking.
 | `price` | DOUBLE | NOT NULL | Price amount |
 | `unit_price` | DOUBLE | | Price per standard unit |
 | `date_recorded` | DATE | NOT NULL | When price was recorded |
-| `is_promo` | BOOLEAN | NOT NULL, DEFAULT FALSE | Whether this is a promotional price |
+| `is_promo` | BOOLEAN | NOT NULL, DEFAULT FALSE | Promotional price flag |
 | `created_at` | TIMESTAMP | | Record creation time |
 | `updated_at` | TIMESTAMP | | Last update time |
 
-## Key Design Decisions
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-### 1. No JPA Relationships
+## Design Decisions
 
-As per project architecture rules, entities do **NOT** use JPA relationship annotations (`@ManyToOne`, `@OneToMany`, `@JoinColumn`). Foreign keys are stored as primitive values (`Long storeId`, `UUID receiptId`). This ensures:
-- Service boundaries are respected
-- No accidental cross-service queries
-- Clear data ownership
+### No JPA Relationships
 
-### 2. UUID for Receipts
+Entities do not use JPA relationship annotations (`@ManyToOne`, `@OneToMany`, `@JoinColumn`). Foreign keys are stored as primitive values (`Long storeId`, `UUID receiptId`). This ensures service boundaries are respected and prevents accidental cross-service queries.
 
-Receipts use UUID identifiers to:
-- Support distributed systems (no sequence coordination needed)
-- Enable safe exposure in APIs without enumeration attacks
-- Match the external API specification
+### UUID for Receipts
 
-### 3. Auto-Increment for Domain Entities
+Receipts use UUID identifiers for distributed system support, safe API exposure, and alignment with the external API specification.
 
-Products, stores, and prices use auto-incrementing BIGINT for:
-- Smaller index sizes
-- Better locality for range queries
-- Simpler migration and data import
+### Auto-Increment for Domain Entities
 
-### 4. Receipt Status Enum
+Products, stores, and prices use auto-incrementing BIGINT for smaller index sizes, better locality for range queries, and simpler migration.
 
-Receipts track processing through a state machine:
+### Receipt Status Machine
 
 ```
 PENDING → PROCESSING → COMPLETED
@@ -207,43 +230,32 @@ FAILED   PENDING_REVIEW  APPROVED
          REJECTED
 ```
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Indexes
 
-Recommended indexes for common queries:
-
 ```sql
--- Receipt lookups by hash (duplicate detection)
 CREATE INDEX idx_receipts_image_hash ON receipts(image_hash);
-
--- Receipt items by receipt (fetch all items)
 CREATE INDEX idx_receipt_items_receipt_id ON receipt_items(receipt_id);
-
--- Price lookups by product (price history)
 CREATE INDEX idx_prices_product_id ON prices(product_id);
-
--- Price lookups by store (store's price list)
 CREATE INDEX idx_prices_store_id ON prices(store_id);
-
--- Price lookups by date (trend analysis)
 CREATE INDEX idx_prices_date_recorded ON prices(date_recorded);
-
--- Product search by name
 CREATE INDEX idx_products_name ON products(name);
-
--- Store search by location
 CREATE INDEX idx_stores_location ON stores(location);
 ```
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Data Flow
 
-1. **Receipt Upload**: Creates `receipts` record with PENDING status
-2. **OCR Processing**: Creates `receipt_items` records; updates `receipts` status
-3. **Price Extraction**: Creates `products` (if new) and `prices` records from receipt items
-4. **Price Comparison**: Query `prices` joined with `products` and `stores`
+1. **Receipt Upload** — Creates `receipts` record with PENDING status
+2. **OCR Processing** — Creates `receipt_items` records; updates `receipts` status
+3. **Price Extraction** — Creates `products` (if new) and `prices` records
+4. **Price Comparison** — Query `prices` joined with `products` and `stores`
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Migration Files
-
-Database migrations are located in:
 
 ```
 db/migration/
@@ -257,9 +269,13 @@ db/migration/
     └── V6+ changes
 ```
 
-See [Database Migrations](../README.md#%EF%B8%8F-database-migrations) section in README for migration commands.
+See [README](../README.md) for migration commands.
 
-## Related Documentation
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-- [Architecture Overview](ARCHITECTURE_HYBRID.md) - Full system architecture
-- [README](../README.md) - Project setup and usage
+---
+
+[postgres-shield]: https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white
+[postgres-url]: https://www.postgresql.org/
+[flyway-shield]: https://img.shields.io/badge/Flyway-CC0200?style=for-the-badge&logo=flyway&logoColor=white
+[flyway-url]: https://flywaydb.org/
