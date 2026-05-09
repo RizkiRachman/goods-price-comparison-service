@@ -195,4 +195,4 @@ scripts/session-keepalive.sh
 
 # Planning documents (local dev artifacts)
 planning/
-opencode.json
+opencode-backup.json
