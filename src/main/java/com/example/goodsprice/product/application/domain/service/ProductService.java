@@ -96,39 +96,31 @@ public class ProductService implements ProductInPort {
   public PageResponse<ProductDomain> search(ProductSearchCriteria criteria, boolean includePrice) {
     var products = productRepository.findAll();
 
-    // Apply search filter
     if (criteria.hasSearch()) {
       products = filterBySearch(products, criteria.getSearch());
     }
 
-    // Apply category filter
     if (criteria.hasCategory()) {
       products = filterByCategory(products, criteria.getCategory());
     }
 
-    // Apply brand filter
     if (criteria.hasBrand()) {
       products = filterByBrand(products, criteria.getBrand());
     }
 
-    // Apply status filter
     if (criteria.hasStatus()) {
       products = filterByStatus(products, criteria.getStatus());
     }
 
-    // Apply store filter
     if (criteria.hasStoreId()) {
       products = filterByStore(products, criteria);
     }
 
-    // Apply sorting
     Comparator<ProductDomain> comparator = comparators.resolve(criteria.getSortBy());
     products = SortingUtils.sort(products, comparator, criteria.getSortDirection());
 
-    // Apply pagination first to limit data processing
     var paginated = PaginationUtils.paginate(products, criteria.getPage(), criteria.getSize());
 
-    // Include price summaries if requested
     if (includePrice && !paginated.content().isEmpty()) {
       populatePriceSummaries(paginated.content());
     }
@@ -200,10 +192,10 @@ public class ProductService implements ProductInPort {
     List<Long> storeIds;
 
     if (criteria.isStoreIdNumeric()) {
-      // Direct store ID lookup
+
       storeIds = List.of(criteria.getStoreIdAsLong());
     } else {
-      // Look up stores by name/chain
+
       storeIds = storeLookupInPort.findStoreIdsByName(criteria.getStoreId());
       if (storeIds.isEmpty()) {
         return List.of();
