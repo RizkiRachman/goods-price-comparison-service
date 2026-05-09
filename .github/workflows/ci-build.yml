@@ -8,6 +8,7 @@ on:
       - 'docs/**'
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -41,11 +42,13 @@ jobs:
           </settings>
           EOF
 
-      - name: Build with Maven
-        run: mvn clean package -DskipTests -q -U
+      - name: Run full verification gate
+        run: mvn -B -ntp clean verify -U
 
-      - name: Run tests
-        run: mvn test
+      - name: Run project conventions check
+        run: |
+          chmod +x scripts/check-conventions.sh
+          ./scripts/check-conventions.sh
 
       - name: Upload JAR artifact
         uses: actions/upload-artifact@v4

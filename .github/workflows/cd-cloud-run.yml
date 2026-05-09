@@ -1,0 +1,81 @@
+name: CD - Cloud Run
+
+# Automated deploy is DISABLED for now — restore `workflow_run` below when GCP auth/deploy is ready.
+on:
+  # workflow_run:
+  #   workflows: ["Publish - Artifacts & Containers"]
+  #   types: [completed]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Container image tag to deploy from GHCR (default: latest)"
+        required: false
+        default: "latest"
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  IMAGE_TAG: ${{ github.event.inputs.image_tag || 'latest' }}
+
+jobs:
+  deploy:
+    name: Deploy to Cloud Run
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Validate required repo variables
+        run: |
+          if [ -z "${{ vars.GCP_PROJECT_ID }}" ]; then
+            echo "Missing repo variable: GCP_PROJECT_ID"
+            exit 1
+          fi
+          if [ -z "${{ vars.GCP_REGION }}" ]; then
+            echo "Missing repo variable: GCP_REGION"
+            exit 1
+          fi
+          if [ -z "${{ vars.CLOUD_RUN_SERVICE }}" ]; then
+            echo "Missing repo variable: CLOUD_RUN_SERVICE"
+            exit 1
+          fi
+
+      - name: Configure gcloud project
+        run: gcloud config set project "${{ vars.GCP_PROJECT_ID }}"
+
+      - name: Resolve deployment image
+        id: image
+        run: |
+          if [ -n "${{ vars.CLOUD_RUN_IMAGE }}" ]; then
+            echo "image=${{ vars.CLOUD_RUN_IMAGE }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "image=ghcr.io/${{ github.repository }}:${{ env.IMAGE_TAG }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy service
+        run: |
+          gcloud run deploy "${{ vars.CLOUD_RUN_SERVICE }}" \
+            --image "${{ steps.image.outputs.image }}" \
+            --region "${{ vars.GCP_REGION }}" \
+            --platform managed \
+            --allow-unauthenticated \
+            --cpu=1 \
+            --memory=512Mi \
+            --min-instances=0 \
+            --max-instances=2 \
+            --port=8080
+
+      - name: Print deployed URL
+        run: |
+          URL="$(gcloud run services describe "${{ vars.CLOUD_RUN_SERVICE }}" --region "${{ vars.GCP_REGION }}" --format='value(status.url)')"
+          echo "Cloud Run URL: ${URL}"

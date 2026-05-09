@@ -1,0 +1,61 @@
+name: Issue Triage
+
+on:
+  issues:
+    types: [opened, edited, reopened]
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  triage:
+    name: Auto-label issues by content
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply labels from title/body
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = issue.number;
+            const text = `${issue.title}\n${issue.body || ""}`.toLowerCase();
+
+            const rules = [
+              { label: "bug", patterns: ["bug", "error", "fail", "exception", "broken"] },
+              { label: "enhancement", patterns: ["feature", "enhancement", "improve", "request"] },
+              { label: "security", patterns: ["security", "vulnerability", "xss", "csrf", "sql injection", "cve"] },
+              { label: "performance", patterns: ["performance", "slow", "latency", "throughput", "optimiz"] },
+              { label: "documentation", patterns: ["docs", "documentation", "readme", "guide"] }
+            ];
+
+            const labelsToAdd = rules
+              .filter((rule) => rule.patterns.some((p) => text.includes(p)))
+              .map((rule) => rule.label);
+
+            if (labelsToAdd.length > 0) {
+              const repoLabels = await github.paginate(github.rest.issues.listLabelsForRepo, {
+                owner,
+                repo,
+                per_page: 100
+              });
+              const available = new Set(repoLabels.map((l) => l.name));
+              const existingLabelsToAdd = labelsToAdd.filter((l) => available.has(l));
+
+              if (existingLabelsToAdd.length === 0) {
+                core.info("Matched labels are not present in repository settings.");
+                return;
+              }
+
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number,
+                labels: existingLabelsToAdd
+              });
+              core.info(`Added labels: ${existingLabelsToAdd.join(", ")}`);
+            } else {
+              core.info("No matching labels detected.");
+            }

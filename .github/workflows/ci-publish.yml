@@ -24,7 +24,23 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - run: mvn clean package -DskipTests -q -U
+      - name: Configure Maven for GitHub Packages
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml << EOF
+          <settings>
+            <servers>
+              <server>
+                <id>github</id>
+                <username>RizkiRachman</username>
+                <password>${{ secrets.GH_PACKAGES_TOKEN }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+
+      - name: Build JAR for container context
+        run: mvn -B -ntp clean package -DskipTests -U
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -52,5 +68,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            GH_PACKAGES_USERNAME=RizkiRachman
+            GH_PACKAGES_TOKEN=${{ secrets.GH_PACKAGES_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
