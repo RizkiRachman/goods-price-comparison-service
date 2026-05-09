@@ -17,7 +17,7 @@ jobs:
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         with:
-          model: openrouter/google/gemini-2.0-flash
+          model: openrouter/deepseek/deepseek-v4-flash-20260423
           prompt: |
             Review this PR. Fix any code quality issues, bugs, or style problems found.
             Commit fixes directly to the PR branch.
