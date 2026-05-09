@@ -20,14 +20,6 @@ public final class ProductNameUtils {
 
   private ProductNameUtils() {}
 
-  /**
-   * Cleans a product name by stripping weight suffixes when the unit type is KILOGRAM or GRAM. For
-   * PIECE items (and other types), the name is returned as-is.
-   *
-   * @param productName the raw product name (may be null or blank)
-   * @param unitType the unit type (e.g. KILOGRAM, GRAM, PIECE)
-   * @return the cleaned product name, or the original if no cleaning is needed
-   */
   public static String cleanProductName(String productName, String unitType) {
     if (Objects.isNull(productName) || productName.isBlank()) return productName;
     if (Objects.isNull(unitType)) return productName;

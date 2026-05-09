@@ -7,10 +7,6 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-/**
- * Service that implements StoreLookupInPort to provide store lookup functionality to the product
- * service.
- */
 @Service
 @RequiredArgsConstructor
 public class StoreLookupService implements StoreLookupInPort {

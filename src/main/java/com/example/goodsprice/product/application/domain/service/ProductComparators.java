@@ -8,10 +8,6 @@ import java.util.Map;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
-/**
- * Registry for ProductDomain comparators. Provides type-safe, null-safe comparator resolution for
- * product sorting.
- */
 @Component
 public class ProductComparators {
 
@@ -34,12 +30,6 @@ public class ProductComparators {
             SortingUtils.comparingString(ProductDomain::getStatus));
   }
 
-  /**
-   * Resolves a comparator for the given sort field.
-   *
-   * @param sortBy the field name to sort by
-   * @return the comparator, or null if not found
-   */
   public Comparator<ProductDomain> resolve(String sortBy) {
     if (Objects.isNull(sortBy)) {
       return null;
@@ -47,12 +37,6 @@ public class ProductComparators {
     return comparators.get(sortBy.toLowerCase(Locale.ROOT));
   }
 
-  /**
-   * Checks if a comparator exists for the given field.
-   *
-   * @param sortBy the field name to check
-   * @return true if a comparator exists
-   */
   public boolean hasComparator(String sortBy) {
     return Objects.nonNull(sortBy) && comparators.containsKey(sortBy.toLowerCase(Locale.ROOT));
   }

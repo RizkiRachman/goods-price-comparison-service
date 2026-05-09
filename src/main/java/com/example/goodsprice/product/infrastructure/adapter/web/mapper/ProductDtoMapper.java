@@ -31,7 +31,6 @@ public class ProductDtoMapper {
     result.setUnit(domain.getUnit());
     result.setStatus(ObjectUtils.getOrNull(domain.getStatus(), EntityStatus::fromValue));
 
-    // Add price detail if requested and data exists
     if (includePrice && hasPriceData(domain)) {
       var detail = new ProductDetail();
       var price = new ProductDetailPrice();
