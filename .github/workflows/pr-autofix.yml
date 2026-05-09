@@ -15,9 +15,9 @@ jobs:
           persist-credentials: false
       - uses: anomalyco/opencode/github@latest
         env:
-          API_KEY: ${{ secrets.API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         with:
-          model: ${{ vars.MODEL }}
+          model: openrouter/google/gemini-2.0-flash
           prompt: |
             Review this PR. Fix any code quality issues, bugs, or style problems found.
             Commit fixes directly to the PR branch.
