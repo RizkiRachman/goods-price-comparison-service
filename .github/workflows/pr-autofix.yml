@@ -16,8 +16,10 @@ jobs:
       - uses: anomalyco/opencode/github@latest
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           model: openrouter/deepseek/deepseek-v4-flash-20260423
+          use_github_token: true
           prompt: |
             Review this PR. Fix any code quality issues, bugs, or style problems found.
             Commit fixes directly to the PR branch.
