@@ -35,7 +35,7 @@
 
         <!-- Database -->
         <postgresql.version>42.7.5</postgresql.version>
-        <flyway.version>10.20.1</flyway.version>
+        <flyway.version>12.6.0</flyway.version>
     </properties>
 
     <repositories>
