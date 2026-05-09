@@ -1,0 +1,23 @@
+name: pr-autofix
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  opencode:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: anomalyco/opencode/github@latest
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+        with:
+          model: ${{ vars.MODEL }}
+          prompt: |
+            Review this PR. Fix any code quality issues, bugs, or style problems found.
+            Commit fixes directly to the PR branch.

@@ -9,11 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
-/**
- * Jackson configuration for proper serialization of OpenAPI-generated model classes. Registers the
- * JsonNullableModule to handle JsonNullable wrapper types and JavaTimeModule for Java 8 date/time
- * types.
- */
 @Configuration
 public class JacksonConfiguration {
 

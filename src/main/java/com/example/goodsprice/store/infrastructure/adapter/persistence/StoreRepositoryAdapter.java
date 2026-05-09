@@ -81,7 +81,7 @@ public class StoreRepositoryAdapter implements StoreRepositoryPort {
                 ? Sort.Direction.DESC
                 : Sort.Direction.ASC,
             pageRequest.sortBy());
-    // Convert from 1-indexed API to 0-indexed Spring Data
+
     var pageNumber = Math.max(0, pageRequest.page() - 1);
     var pageable =
         org.springframework.data.domain.PageRequest.of(pageNumber, pageRequest.size(), sort);
