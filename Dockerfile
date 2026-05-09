@@ -10,19 +10,10 @@ COPY src ./src
 COPY db ./db
 COPY config ./config
 
-RUN if [ -n "${GH_PACKAGES_TOKEN}" ]; then \
-      mkdir -p /root/.m2 && \
-      cat > /root/.m2/settings.xml << EOF
-<settings>
-  <servers>
-    <server>
-      <id>github</id>
-      <username>${GH_PACKAGES_USERNAME}</username>
-      <password>${GH_PACKAGES_TOKEN}</password>
-    </server>
-  </servers>
-</settings>
-EOF
+RUN mkdir -p /root/.m2 && \
+    if [ -n "${GH_PACKAGES_TOKEN}" ]; then \
+      printf '<settings>\n  <servers>\n    <server>\n      <id>github</id>\n      <username>%s</username>\n      <password>%s</password>\n    </server>\n  </servers>\n</settings>\n' \
+        "${GH_PACKAGES_USERNAME}" "${GH_PACKAGES_TOKEN}" > /root/.m2/settings.xml; \
     fi
 
 RUN mvn -B -ntp clean package -DskipTests -U
