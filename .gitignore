@@ -177,6 +177,11 @@ AGENTS.md
 # IntelliJ run configurations (may contain secrets)
 .run/
 
+# lean-ctx (Context Runtime)
+.lean-ctx/
+lean-ctx.db
+LEAN-CTX.md
+
 # Other AI Agents
 .opencode/
 opencode.json
