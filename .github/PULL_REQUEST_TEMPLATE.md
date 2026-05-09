@@ -1,6 +1,6 @@
 ## Title
 
-<!-- Compelling, under 100 characters. Format: type(scope): action description -->
+<!-- Compelling, under 100 characters. Format: type(scope): brief description -->
 
 ## Summary
 
@@ -19,6 +19,8 @@
 - [ ] test
 - [ ] docs
 - [ ] chore
+- [ ] perf
+- [ ] style
 
 ## Quality Checklist
 

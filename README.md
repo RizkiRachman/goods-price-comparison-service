@@ -1,504 +1,198 @@
-# Goods Price Comparison Service 🛒💰
+<a id="readme-top"></a>
 
-A smart microservice that extracts product prices from receipt images using OCR (Optical Character Recognition), stores them in a centralized database, and helps users find the cheapest goods across multiple stores.
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![MIT License][license-shield]][license-url]
 
-## 🎯 Purpose
+<br />
+<div align="center">
+  <h3 align="center">Goods Price Comparison Service</h3>
 
-**Problem**: Shoppers waste time and money by not knowing which store offers the best price for their groceries and daily necessities.
+  <p align="center">
+    Extract, store, and compare product prices from receipt images — find the best deals across stores.
+    <br />
+    <a href="docs/ARCHITECTURE_HYBRID.md"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/RizkiRachman/goods-price-comparison-service/issues/new?template=bug-report---.md">Report Bug</a>
+    &middot;
+    <a href="https://github.com/RizkiRachman/goods-price-comparison-service/issues/new?template=feature-request---.md">Request Feature</a>
+  </p>
+</div>
 
-**Solution**: This service allows users to:
-- 📸 Scan receipt images from any store
-- 🤖 Automatically extract product names, prices, and quantities using OCR
-- 🗄️ Store price data in a searchable database
-- 🔍 Query "Where can I buy X the cheapest?"
-- 🗺️ Optimize shopping routes: "Buy these 5 items at Store A, these 3 at Store B"
-- 📊 Track price history and trends over time
-- 🔔 Get alerts when prices drop or promotions appear
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#about-the-project">About The Project</a></li>
+    <li><a href="#built-with">Built With</a></li>
+    <li><a href="#getting-started">Getting Started</a></li>
+    <li><a href="#usage">Usage</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#contributing">Contributing</a></li>
+    <li><a href="#license">License</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="#acknowledgments">Acknowledgments</a></li>
+  </ol>
+</details>
 
-**Target Users**:
-- Smart shoppers looking to save money
-- Families managing monthly budgets
-- Students comparing prices
-- Anyone who wants to optimize their grocery shopping
+## About The Project
 
----
+Shoppers waste time and money guessing which store offers the best price for their groceries and daily necessities. This service solves that by letting users scan receipt images, automatically extract product prices using OCR, and query where to buy items cheapest across multiple stores.
 
-## 🏗️ Architecture Flow
+Key capabilities:
+- Upload receipt images and extract product names, prices, and quantities automatically
+- Store price history in a searchable database
+- Find the cheapest store for any item
+- Optimize multi-item shopping routes
+- Track price trends and receive drop alerts
 
-### Async Receipt Processing Architecture
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    CLIENT APPLICATIONS                       │
-│  (Mobile App / Web Dashboard / Admin Portal)                │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       │ POST /receipts (Image)
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│              GOODS-PRICE-COMPARISON-SERVICE                  │
-│                     (Spring Boot)                            │
-│                                                               │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │           Receipt Upload API (Sync)                   │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────────────┐   │  │
-│  │  │ Calculate│  │ Check DB │  │ Create Receipt   │   │  │
-│  │  │  Hash    │──│Duplicate?│──│ (PENDING status) │   │  │
-│  │  └──────────┘  └──────────┘  └──────────────────┘   │  │
-│  │                          │                          │  │
-│  │                          ▼                          │  │
-│  │                   ┌──────────────┐                  │  │
-│  │                   │ Return 202   │                  │  │
-│  │                   │ with Job ID  │                  │  │
-│  │                   └──────────────┘                  │  │
-│  └──────────────────────────────────────────────────────┘  │
-│                          │                                   │
-│                          │ Fire Event (After Tx Commit)      │
-│                          ▼                                   │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │         Async Processor (Background Thread)           │  │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────────────┐   │  │
-│  │  │ PROCESS  │──│   LLM    │──│ Store Results    │   │  │
-│  │  │  STATUS  │  │  (Gemini)│  │ (COMPLETED/FAILED│   │  │
-│  │  └──────────┘  └──────────┘  └──────────────────┘   │  │
-│  └──────────────────────────────────────────────────────┘  │
-│                                                               │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │  Product     │  │   Store      │  │  Shopping    │      │
-│  │   Query      │  │   Lookup     │  │ Optimization │      │
-│  │   Service    │  │   Service    │  │   Engine     │      │
-│  └──────────────┘  └──────────────┘  └──────────────┘      │
-│                                                               │
-└──────────────────────┬──────────────────────────────────────┘
-                        │
-                        │ JDBC
-                        ▼
-┌─────────────────────────────────────────────────────────────┐
-│              PostgreSQL Database                             │
-│  ┌──────────┐  ┌──────────┐  ┌────────────────────────┐   │
-│  │ receipts │  │  stores  │  │    prices              │   │
-│  │(async    │  │  (50-100)│  │    (100K-10M)          │   │
-│  │ tracking)│  └──────────┘  └────────────────────────┘   │
-│  └──────────┘  ┌──────────┐  ┌────────────────────────┐   │
-│                │ products │  │   receipt_items        │   │
-│                │(1K-10K)  │  │   (per-receipt lines) │   │
-│                └──────────┘  └────────────────────────┘   │
-└─────────────────────────────────────────────────────────────┘
-```
+## Built With
 
-### Async Flow Steps:
+[![Spring Boot][Spring Boot]][Spring-url]
+[![Java][Java]][Java-url]
+[![PostgreSQL][PostgreSQL]][PostgreSQL-url]
+[![Maven][Maven]][Maven-url]
+[![Docker][Docker]][Docker-url]
+[![Kubernetes][Kubernetes]][Kubernetes-url]
+[![Google Cloud][Google Cloud]][GoogleCloud-url]
+[![GitHub Actions][GitHub Actions]][GitHubActions-url]
 
-1. **Image Upload** 📤 (Non-blocking)
-   - User takes photo of receipt
-   - Uploads via mobile app or web
-   - System calculates SHA-256 hash for deduplication
-   - If duplicate (COMPLETED/PROCESSING): return existing job ID
-   - If duplicate (FAILED): delete old record and retry
-   - Creates receipt record with PENDING status
-   - Returns immediately with job ID (202 ACCEPTED)
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-2. **Background Processing** ⚙️ (Async)
-   - Spring Event fires after transaction commits
-   - Async processor picks up the job
-   - Updates status to PROCESSING
-   - Google Gemini extracts text and structure
-   - Stores results (store, date, items, prices) as JSON
-   - Updates status to COMPLETED or FAILED
-
-3. **Status Polling** 📊
-   - Client polls `GET /receipts/{id}/status`
-   - Returns: PENDING → PROCESSING → COMPLETED/FAILED
-   - When COMPLETED, fetch results with `GET /receipts/{id}/results`
-
-4. **Retry Support** 🔄
-   - If processing fails, receipt marked as FAILED
-   - User can re-upload same image (new attempt)
-   - Old failed record deleted, new one created
-   - Fresh processing with same or different result
-
----
-
-## 🛠️ Tech Stack
-
-### Backend Service
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Spring Boot** | 3.x | Main framework, REST API |
-| **Java** | 17+ | Programming language |
-| **PostgreSQL** | 14+ | Primary database |
-| **Maven** | 3.9+ | Build tool |
-| **Lombok** | Latest | Reduce boilerplate code |
-
-### OCR & Image Processing
-
-| Technology | Purpose |
-|------------|---------|
-| **Google Vision API** | Primary OCR (high accuracy) |
-| **Tesseract** | Fallback OCR (open source) |
-| **Apache Commons Imaging** | Image preprocessing |
-
-### Shared Libraries (Reusable Components)
-
-| Library | Purpose | Repository |
-|---------|---------|------------|
-| **common-utils-java** | StringUtils, utilities | [Link](https://github.com/RizkiRachman/common-utils-java) |
-| **common-exception-java** | Standardized exceptions | [Link](https://github.com/RizkiRachman/common-exception-java) |
-
-### Database
-
-| Component | Purpose |
-|-----------|---------|
-| **PostgreSQL** | Relational data storage |
-| **Flyway** | Database migrations (via Maven profile) |
-| **Partitioning** | Monthly partitions for price_records |
-| **Indexes** | Optimized queries for product/store lookups |
-
-### API & Integration
-
-| Technology | Purpose |
-|------------|---------|
-| **REST API** | HTTP endpoints for client apps |
-| **OpenAPI/Swagger** | API documentation |
-| **Jackson** | JSON serialization |
-
-### Testing
-
-| Technology | Purpose |
-|------------|---------|
-| **JUnit 5** | Unit testing |
-| **Mockito** | Mocking dependencies |
-| **TestContainers** | Integration testing with PostgreSQL |
-
-### DevOps & Deployment
-
-| Technology | Purpose |
-|------------|---------|
-| **Docker** | Containerization |
-| **Docker Compose** | Local development stack |
-| **GitHub Actions** | CI/CD pipeline |
-| **Kubernetes** | Container orchestration |
-| **Vault** | Secrets management |
-| **Terraform** | Infrastructure as code |
-| **Kind** | Local Kubernetes development |
-
----
-
-## 📚 Documentation
-
-| Document | Description |
-|----------|-------------|
-| [API Documentation](docs/API.md) | REST API endpoints, request/response examples, error codes |
-| [Project Roadmap](docs/ROADMAP.md) | Development phases, milestones, and timeline |
-| [Architecture & Design](docs/ARCHITECTURE.md) | System architecture, diagrams, design decisions |
-| [Database Schema](docs/DATABASE.md) | Schema details, migrations, optimization |
-| [Testing Guide](docs/TESTING.md) | Test strategy, examples, coverage requirements |
-| [Deployment Guide](docs/DEPLOYMENT.md) | Docker, Kubernetes, production setup |
-| [AI Agent Guidelines](.ai/AGENTS.md) | For AI agents: coding standards, PR workflow |
-| [Contributing Guide](CONTRIBUTING.md) | How to contribute, commit messages, PR process |
-| [Changelog](CHANGELOG.md) | Version history and changes |
-
-### 🤖 AI Documentation
-
-> **For AI agents working on this project:**
-> See [.ai/AGENTS.md](.ai/AGENTS.md) for guidelines including:
-> - **PR workflow and strict merge rules** (explicit approval required)
-> - Commit message guidelines (meaningful, simple)
-> - 100% coverage requirements
-> - Code quality standards
->
-> **Important:** AI must ask for explicit merge permission every time. Never assume approval from previous sessions.
-
----
-
-## 📊 Database Schema (5 Tables)
-
-```
-stores (50-100 records)
-├── id (PK, BIGINT)
-├── name (VARCHAR 255)
-├── location (VARCHAR 255)
-├── created_at, updated_at
-
-products (1,000-10,000 records)
-├── id (PK, BIGINT)
-├── name (VARCHAR 255)
-├── category (VARCHAR 255)
-├── unit (VARCHAR 255)
-├── created_at, updated_at
-
-receipts (async tracking)
-├── id (PK, UUID)
-├── image_hash (UNIQUE)
-├── original_filename
-├── status (PENDING/PROCESSING/COMPLETED/FAILED)
-├── error_message
-├── store_name, store_location, receipt_date
-├── total_amount, extracted_data
-├── created_at, updated_at, processed_at
-
-prices (100K-10M records)
-├── id (PK, BIGINT)
-├── product_id (FK → products)
-├── store_id (FK → stores)
-├── price, unit_price
-├── date_recorded
-├── is_promo
-├── created_at, updated_at
-
-receipt_items (per-receipt line items)
-├── id (PK, BIGINT)
-├── receipt_id (FK → receipts)
-├── product_name, category
-├── quantity, unit_price, total_price, unit
-```
-
-**Why 5 Tables?**
-- ✅ Minimal storage (no duplication)
-- ✅ Fast queries (2 JOINs max)
-- ✅ Easy to maintain
-- ✅ Scalable to millions of records
-- ✅ Receipt tracking with async processing
-- ✅ Per-item receipt line extraction
-
-### Database Migrations (Flyway)
-
-Flyway is **disabled on application startup** and run via Maven profile for CI/CD control.
-
-**Migration structure:**
-```
-db/migration/
-├── tables/              ← CREATE TABLE scripts (per-table)
-│   ├── V1__create_stores_table.sql
-│   ├── V2__create_products_table.sql
-│   ├── V3__create_receipts_table.sql
-│   ├── V4__create_prices_table.sql
-│   └── V5__create_receipt_items_table.sql
-├── alter/               ← ALTER TABLE scripts (future)
-└── data/               ← Seed data scripts (future)
-```
-
-**Run migrations:**
-```bash
-# Migrate (apply pending)
-mvn flyway:migrate -Pflyway \
-  -Ddatabase-name=goods-price-service \
-  -Ddatabase-username=your_user \
-  -Ddatabase-password=your_password
-
-# Check status
-mvn flyway:info -Pflyway
-
-# Validate
-mvn flyway:validate -Pflyway
-```
-
-**During tests:** Flyway runs automatically against H2 in-memory database with `ddl-auto=validate`.
-
----
-
-## 🚀 Key Features
-
-### 1. Receipt OCR 📸
-- Upload receipt images (JPG, PNG, PDF)
-- Automatic text extraction
-- Smart parsing of products, prices, quantities
-- Support for multiple receipt formats
-
-### 2. Price Database 💾
-- Historical price tracking
-- Multiple store support
-- Price trend analysis
-- Promotion detection
-
-### 3. Price Comparison 🔍
-- "Where is X cheapest?" queries
-- Price difference calculations
-- Savings estimations
-- Filter by date range
-
-### 4. Shopping Optimization 🎯
-- Input: Shopping list (10 items)
-- Output: Optimized route
-- Strategy: Max items per store + cheapest for remainder
-- GPS navigation integration
-
-### 5. Price Alerts 🔔
-- Watchlist for favorite products
-- Price drop notifications
-- Promotion alerts
-- Historical price charts
-
----
-
-## 🏁 Getting Started
+## Getting Started
 
 ### Prerequisites
 
-```bash
-# Required software
 - Java 17+
 - Maven 3.9+
-- PostgreSQL 14+ (for production only)
-- Docker (optional, for local dev)
+- PostgreSQL 14+ (production only)
+- Docker (optional, local development)
 
-# Shared libraries (must be installed first)
-- common-utils-java
-- common-exception-java
+### Installation
+
+1. Clone the repository
+   ```sh
+   git clone https://github.com/RizkiRachman/goods-price-comparison-service.git
+   cd goods-price-comparison-service
+   ```
+2. Install shared libraries
+   ```sh
+   git clone https://github.com/RizkiRachman/common-utils-java.git
+   cd common-utils-java && mvn clean install && cd ..
+
+   git clone https://github.com/RizkiRachman/common-exception-java.git
+   cd common-exception-java && mvn clean install && cd ..
+   ```
+3. Run database migrations
+   ```sh
+   mvn flyway:migrate -Pflyway \
+     -Ddatabase-name=goods-price-service \
+     -Ddatabase-username=your_user \
+     -Ddatabase-password=your_password
+   ```
+4. Start the application
+   ```sh
+   mvn spring-boot:run
+   ```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Usage
+
+Upload a receipt image, and the system processes it asynchronously:
+
+```sh
+# Upload receipt
+curl -X POST http://localhost:8080/api/v1/receipts \
+  -F "image=@receipt.jpg"
+
+# Poll status
+curl http://localhost:8080/api/v1/receipts/{id}/status
+
+# Find cheapest price
+curl "http://localhost:8080/api/v1/prices/cheapest?product=Milk&limit=5"
 ```
 
-### Quick Start
+For detailed API documentation, see the [Developer Guide](docs/DEVELOPER_GUIDE.md#getting-started).
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/RizkiRachman/goods-price-comparison-service.git
-cd goods-price-comparison-service
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-# 2. Install shared libraries (skip if already installed)
-cd ../common-utils-java && mvn clean install
-cd ../common-exception-java && mvn clean install
+## Roadmap
 
-# 3. Build and test
-cd ../goods-price-comparison-service
-mvn clean verify
+- [x] Receipt OCR with Google Vision / Gemini
+- [x] Price database with historical tracking
+- [x] Multi-store price comparison
+- [ ] Shopping route optimization
+- [ ] Price drop alerts and notifications
+- [ ] Mobile app integration
 
-# 4. Run database migrations (requires PostgreSQL)
-mvn flyway:migrate -Pflyway \
-  -Ddatabase-name=goods-price-service \
-  -Ddatabase-username=your_user \
-  -Ddatabase-password=your_password
+See the [open issues](https://github.com/RizkiRachman/goods-price-comparison-service/issues) for a full list of proposed features.
 
-# 5. Run the application
-mvn spring-boot:run
-```
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-### Configuration
+## Contributing
 
-The application uses PostgreSQL with parameterized credentials. Set these properties via environment variables, Maven `-D` flags, or a properties file:
+Contributions are what make the open source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `database-name` | Database name | - |
-| `database-username` | Database user | - |
-| `database-password` | Database password | - |
-| `DATABASE_HOST` | PostgreSQL host | `localhost` |
-| `DATABASE_PORT` | PostgreSQL port | `5432` |
+1. Fork the project
+2. Create your branch (`ANEH-YYYYMMDD-SHORTDESC1-SHORTDESC2-SHORTDESC3`)
+3. Commit your changes (`feat(scope): brief description`)
+4. Push to the branch
+5. Open a Pull Request
 
-### Build & Test
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
 
-```bash
-# Build and run tests
-mvn clean verify
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-# Run tests only
-mvn clean test
+## License
 
-# Build JAR
-mvn clean package
+Distributed under the MIT License. See `LICENSE` for more information.
 
-# Run JAR with local profile
-java -jar target/goods-price-comparison-service-1.0.0-SNAPSHOT.jar --spring.profiles.active=local
-```
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-### Environment Variables
+## Contact
 
-```properties
-# Database
-database-name=goods-price-service
-database-username=your_user
-database-password=your_password
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
+Rizki Rachman - [@RizkiRachman](https://github.com/RizkiRachman)
 
-# LLM
-GEMINI_API_KEY=your_gemini_api_key
-```
+Project Link: [https://github.com/RizkiRachman/goods-price-comparison-service](https://github.com/RizkiRachman/goods-price-comparison-service)
 
-### Project Structure
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-```
-com.example.goodsprice
-├── Application.java
-├── config/                          ← Application-wide configs
-│   ├── AsyncConfiguration.java
-│   └── CacheConfiguration.java
-├── controller/                      ← REST controllers
-└── module/                          ← Domain modules
-    ├── llm/
-    │   ├── config/LlmProperties.java
-    │   ├── LLMProvider.java
-    │   ├── LLMService.java
-    │   ├── LlmProviderFactory.java
-    │   ├── GeminiLLMProvider.java
-    │   └── LocalLLMProvider.java
-    ├── price/
-    │   ├── entity/Price.java
-    │   └── repository/PriceRepository.java
-    ├── product/
-    │   ├── entity/Product.java
-    │   └── repository/ProductRepository.java
-    ├── receipt/
-    │   ├── entity/ (Receipt, ReceiptItem, ReceiptStatus)
-    │   ├── dto/ (ReceiptResult, ReceiptUploadData, ReceiptUploadResult)
-    │   ├── repository/ (ReceiptRepository, ReceiptItemRepository)
-    │   ├── service/ReceiptService.java
-    │   └── event/ (ReceiptProcessEvent, ReceiptProcessEventListener)
-    └── store/
-        ├── entity/Store.java
-        └── repository/StoreRepository.java
-```
+## Acknowledgments
 
----
+- [Spring Boot](https://spring.io/projects/spring-boot)
+- [Img Shields](https://shields.io) for repository badges
+- [Best-README-Template](https://github.com/othneildrew/Best-README-Template) for the README structure
 
-## 🧪 Testing Strategy
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-- **Unit Tests**: Service layer, OCR parser
-- **Integration Tests**: Database, API endpoints
-- **End-to-End Tests**: Full receipt upload → query flow
-- **Load Tests**: Handle 1000+ receipts/day
-
----
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for:
-- Development setup
-- Code standards
-- Testing requirements
-- **Commit message guidelines** (meaningful and clear)
-
-**Quick start:**
-```bash
-git checkout -b feature/your-feature
-git commit -m "Add clear description of changes"
-git push origin feature/your-feature
-# Then create PR
-```
-
-**Requirements:**
-- All tests pass
-- Meaningful commit messages
-- Code coverage > 90%
-
-**Note:** Coverage check temporarily disabled during initial setup phase.
-
----
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
----
-
-## 🔗 Related Projects
-
-- [dev-infrastructure](https://github.com/RizkiRachman/dev-infrastructure) - Initial setup tools and infrastructure configuration
-- [common-utils-java](https://github.com/RizkiRachman/common-utils-java) - Shared utility library
-- [common-exception-java](https://github.com/RizkiRachman/common-exception-java) - Shared exception library
-- [spring-boot-playground](https://github.com/RizkiRachman/spring-boot-playground) - Proof of concept
-
----
-
-**Built with ❤️ using Spring Boot, Java, and Smart Shopping Principles**
-
-*Helping you save money, one receipt at a time! 💰🛒*
+[contributors-shield]: https://img.shields.io/github/contributors/RizkiRachman/goods-price-comparison-service.svg?style=for-the-badge
+[contributors-url]: https://github.com/RizkiRachman/goods-price-comparison-service/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/RizkiRachman/goods-price-comparison-service.svg?style=for-the-badge
+[forks-url]: https://github.com/RizkiRachman/goods-price-comparison-service/network/members
+[stars-shield]: https://img.shields.io/github/stars/RizkiRachman/goods-price-comparison-service.svg?style=for-the-badge
+[stars-url]: https://github.com/RizkiRachman/goods-price-comparison-service/stargazers
+[issues-shield]: https://img.shields.io/github/issues/RizkiRachman/goods-price-comparison-service.svg?style=for-the-badge
+[issues-url]: https://github.com/RizkiRachman/goods-price-comparison-service/issues
+[license-shield]: https://img.shields.io/github/license/RizkiRachman/goods-price-comparison-service.svg?style=for-the-badge
+[license-url]: https://github.com/RizkiRachman/goods-price-comparison-service/blob/main/LICENSE
+[Spring Boot]: https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white
+[Spring-url]: https://spring.io/projects/spring-boot
+[Java]: https://img.shields.io/badge/Java_17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white
+[Java-url]: https://www.oracle.com/java/
+[PostgreSQL]: https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white
+[PostgreSQL-url]: https://www.postgresql.org/
+[Maven]: https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white
+[Maven-url]: https://maven.apache.org/
+[Docker]: https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white
+[Docker-url]: https://www.docker.com/
+[Kubernetes]: https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white
+[Kubernetes-url]: https://kubernetes.io/
+[Google Cloud]: https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=googlecloud&logoColor=white
+[GoogleCloud-url]: https://cloud.google.com/
+[GitHub Actions]: https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white
+[GitHubActions-url]: https://github.com/features/actions

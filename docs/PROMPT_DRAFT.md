@@ -1,4 +1,23 @@
-# LLM Receipt Extraction Prompt Draft
+<a id="readme-top"></a>
+
+[![Google Gemini][gemini-shield]][gemini-url]
+
+<br />
+
+<div align="center">
+  <h3 align="center">Goods Price Comparison Service — LLM Prompt Draft</h3>
+  <p align="center">
+    Prompt template for receipt data extraction via LLM.
+  </p>
+</div>
+
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#unified-prompt">Unified Prompt</a></li>
+    <li><a href="#decision-table">Decision Table</a></li>
+  </ol>
+</details>
 
 ## Unified Prompt
 
@@ -53,10 +72,12 @@ var prompt =
             """;
 ```
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Decision Table
 
 | Item | unitType | quantity | unitPrice | totalPrice |
-|---|---|---|---|---|
+|------|----------|----------|-----------|------------|
 | BAWANG PUTIH (loose garlic) | KILOGRAM | 0.07 | 41,500 | 2,739 |
 | SHRIMP ROLL 350GR (packaged) | PIECE | 1 | 45,000 | 45,000 |
 | BERAS ROJOLELE 5KG (packaged) | PIECE | 1 | 75,000 | 75,000 |
@@ -65,3 +86,10 @@ var prompt =
 | MINYAK GORENG (loose/curah) | LITER | 0.5 | 30,000 | 15,000 |
 | APEL MALANG (loose fruit) | KILOGRAM | 0.5 | 40,000 | 20,000 |
 | INDOMIE GORENG (packaged) | PIECE | 1 | 3,500 | 3,500 |
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+---
+
+[gemini-shield]: https://img.shields.io/badge/Google_Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white
+[gemini-url]: https://deepmind.google/technologies/gemini/
