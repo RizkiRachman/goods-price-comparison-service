@@ -1,0 +1,30 @@
+name: pr-autofix
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+jobs:
+  opencode:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+      workflows: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Configure git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - uses: anomalyco/opencode/github@latest
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          model: openrouter/deepseek/deepseek-v4-flash
+          use_github_token: true
+          prompt: |
+            Review this PR. Fix any code quality issues, bugs, or style problems found.
+            Commit fixes directly to the PR branch.

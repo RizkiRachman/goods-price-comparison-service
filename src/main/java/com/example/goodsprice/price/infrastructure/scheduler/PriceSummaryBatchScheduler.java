@@ -9,10 +9,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-/**
- * Scheduled task for updating product price summaries. Runs at a fixed interval to pre-compute
- * price statistics for fast product list queries.
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -28,10 +24,6 @@ public class PriceSummaryBatchScheduler {
   @Value("${price.summary.batch.interval:15}")
   private int intervalMinutes;
 
-  /**
-   * Runs the price summary batch update at a fixed delay. Default is every 15 minutes. The task is
-   * skipped if the previous execution is still running.
-   */
   @Scheduled(fixedDelay = 15, timeUnit = TimeUnit.MINUTES)
   public void scheduledSummaryUpdate() {
     log.info("Starting scheduled price summary update (interval: {} minutes)", intervalMinutes);
