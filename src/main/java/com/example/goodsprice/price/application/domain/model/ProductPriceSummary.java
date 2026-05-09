@@ -7,10 +7,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-/**
- * Aggregated price statistics for a product. Updated via batch process to avoid real-time
- * calculation overhead during product list queries.
- */
 @Getter
 @Setter
 @Builder

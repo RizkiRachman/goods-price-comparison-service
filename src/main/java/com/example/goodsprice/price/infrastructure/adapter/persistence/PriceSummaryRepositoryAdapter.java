@@ -8,10 +8,6 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/**
- * Repository adapter for price summaries. Implements the driven port interface and delegates to JPA
- * repository.
- */
 @Component
 @RequiredArgsConstructor
 public class PriceSummaryRepositoryAdapter implements PriceSummaryRepositoryPort {
