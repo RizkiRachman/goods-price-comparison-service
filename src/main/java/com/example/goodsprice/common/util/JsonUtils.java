@@ -37,6 +37,10 @@ public final class JsonUtils {
     }
   }
 
+  public static String hash256(Object value) {
+    return HashUtils.sha256(toJson(value).getBytes(StandardCharsets.UTF_8));
+  }
+
   public static Map<String, Object> parseJson(String json) {
     if (Objects.isNull(json) || json.isBlank()) return Collections.emptyMap();
     try {

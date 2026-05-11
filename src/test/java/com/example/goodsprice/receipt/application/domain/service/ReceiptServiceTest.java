@@ -7,7 +7,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.goodsprice.common.util.HashUtils;
 import com.example.goodsprice.common.util.JsonUtils;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
@@ -86,7 +85,7 @@ class ReceiptServiceTest {
         saved.getExtractedDataJson());
     assertNotNull(saved.getImageHash());
     assertEquals(
-        HashUtils.sha256(JsonUtils.toJson(createRequest.getItems()).getBytes()),
+        JsonUtils.hash256(createRequest.getItems()),
         saved.getImageHash());
 
     var approved = receiptCaptor.getAllValues().get(1);
