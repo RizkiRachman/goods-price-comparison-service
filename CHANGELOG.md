@@ -32,6 +32,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **Convention checker script**: `scripts/check-conventions.sh`
 
 ### Changed
+- **Refactored image hash computation**: Introduced `JsonUtils.hash256()` utility method for computing SHA-256 hash from items JSON, used in `ReceiptService.create()`
 - **Hexagonal architecture restructuring**: Each service follows ports-and-adapters pattern
 - **API spec version**: Updated from `1.2.3` to `1.4.4`, then to `1.5.1`, then to `1.6.0`
 - **Package restructuring**: Moved from flat `module/` to hexagonal `service/application/` + `service/infrastructure/`
