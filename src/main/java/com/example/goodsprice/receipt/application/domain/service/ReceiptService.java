@@ -145,7 +145,7 @@ public class ReceiptService implements ReceiptInPort {
   @Transactional
   public void create(ReceiptCreateDomain request) {
     var itemsJson = JsonUtils.toJson(request.getItems());
-    var imageHash = HashUtils.sha256(itemsJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    var imageHash = JsonUtils.hash256(request.getItems());
     var receipt =
         ReceiptDomain.builder()
             .status(ReceiptStatus.COMPLETED)

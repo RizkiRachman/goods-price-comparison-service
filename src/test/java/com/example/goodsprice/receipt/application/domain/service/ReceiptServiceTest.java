@@ -7,7 +7,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.goodsprice.common.util.HashUtils;
 import com.example.goodsprice.common.util.JsonUtils;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
@@ -84,10 +83,7 @@ class ReceiptServiceTest {
     assertEquals(
         "[{\"productName\":\"Apple\",\"category\":\"Fruit\",\"quantity\":2.0,\"unitPrice\":5.0,\"totalPrice\":10.0,\"unit\":\"KG\"}]",
         saved.getExtractedDataJson());
-    var expectedImageHash =
-        HashUtils.sha256(
-            JsonUtils.toJson(createRequest.getItems())
-                .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    var expectedImageHash = JsonUtils.hash256(createRequest.getItems());
     assertEquals(expectedImageHash, saved.getImageHash());
 
     var approved = receiptCaptor.getAllValues().get(1);
@@ -107,8 +103,7 @@ class ReceiptServiceTest {
     var saved = receiptCaptor.getAllValues().get(0);
     assertEquals("[]", saved.getExtractedDataJson());
     assertEquals("Toko Segar", saved.getStoreName());
-    var expectedImageHash =
-        HashUtils.sha256("[]".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+    var expectedImageHash = JsonUtils.hash256(List.of());
     assertEquals(expectedImageHash, saved.getImageHash());
   }
 
