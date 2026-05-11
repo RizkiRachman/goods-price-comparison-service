@@ -2,6 +2,7 @@ package com.example.goodsprice.receipt.application.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -79,6 +80,8 @@ class ReceiptServiceTest {
     assertEquals("2026-05-08", saved.getReceiptDate());
     assertEquals(0, new BigDecimal("10.00").compareTo(saved.getTotalAmount()));
     assertNotNull(saved.getExtractedDataJson());
+    assertNotNull(saved.getImageHash());
+    assertTrue(saved.getImageHash().length() > 0);
     assertEquals(
         "[{\"productName\":\"Apple\",\"category\":\"Fruit\",\"quantity\":2.0,\"unitPrice\":5.0,\"totalPrice\":10.0,\"unit\":\"KG\"}]",
         saved.getExtractedDataJson());
@@ -133,6 +136,31 @@ class ReceiptServiceTest {
     verify(receiptRepository, times(2)).save(receiptCaptor.capture());
     var saved = receiptCaptor.getAllValues().get(0);
     assertEquals(null, saved.getStoreLocation());
+  }
+
+  @Test
+  void shouldCreateReceiptWithImageHash() {
+    mockSaveWithStore();
+    receiptService.create(createRequest);
+
+    verify(receiptRepository, times(2)).save(receiptCaptor.capture());
+    var saved = receiptCaptor.getAllValues().get(0);
+
+    assertNotNull(saved.getImageHash());
+    assertTrue(saved.getImageHash().length() > 0);
+  }
+
+  @Test
+  void shouldCreateReceiptWithEmptyItemsImageHash() {
+    createRequest.setItems(List.of());
+    mockSaveWithStore();
+    receiptService.create(createRequest);
+
+    verify(receiptRepository, times(2)).save(receiptCaptor.capture());
+    var saved = receiptCaptor.getAllValues().get(0);
+
+    assertNotNull(saved.getImageHash());
+    assertTrue(saved.getImageHash().length() > 0);
   }
 
   @Test
