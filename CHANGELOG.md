@@ -12,6 +12,9 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 
 ## [Unreleased]
 
+### Fixed
+- **Null pointer during create receipt**: `imageHash` now computed from items via `HashUtils.sha256` and stored on creation
+
 ### Added
 - **Create receipt API**: Direct receipt creation via `POST /api/v1/receipts/create` with store details and item list
 - **API spec**: Updated `goods-price-comparison-api` from `1.6.0` to `1.7.0`

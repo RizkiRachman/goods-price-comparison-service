@@ -7,6 +7,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.goodsprice.common.util.HashUtils;
+import com.example.goodsprice.common.util.JsonUtils;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptItemDomain;
@@ -82,6 +84,8 @@ class ReceiptServiceTest {
     assertEquals(
         "[{\"productName\":\"Apple\",\"category\":\"Fruit\",\"quantity\":2.0,\"unitPrice\":5.0,\"totalPrice\":10.0,\"unit\":\"KG\"}]",
         saved.getExtractedDataJson());
+    var expectedImageHash = HashUtils.sha256(JsonUtils.toJson(createRequest.getItems()).getBytes());
+    assertEquals(expectedImageHash, saved.getImageHash());
 
     var approved = receiptCaptor.getAllValues().get(1);
     assertEquals(ReceiptStatus.APPROVED, approved.getStatus());
@@ -100,6 +104,8 @@ class ReceiptServiceTest {
     var saved = receiptCaptor.getAllValues().get(0);
     assertEquals("[]", saved.getExtractedDataJson());
     assertEquals("Toko Segar", saved.getStoreName());
+    var expectedImageHash = HashUtils.sha256("[]".getBytes());
+    assertEquals(expectedImageHash, saved.getImageHash());
   }
 
   @Test
@@ -111,6 +117,7 @@ class ReceiptServiceTest {
     verify(receiptRepository, times(2)).save(receiptCaptor.capture());
     var saved = receiptCaptor.getAllValues().get(0);
     assertEquals("[]", saved.getExtractedDataJson());
+    assertNotNull(saved.getImageHash());
   }
 
   @Test
@@ -133,6 +140,7 @@ class ReceiptServiceTest {
     verify(receiptRepository, times(2)).save(receiptCaptor.capture());
     var saved = receiptCaptor.getAllValues().get(0);
     assertEquals(null, saved.getStoreLocation());
+    assertNotNull(saved.getImageHash());
   }
 
   @Test
@@ -164,6 +172,7 @@ class ReceiptServiceTest {
     var saved = receiptCaptor.getAllValues().get(0);
     assertNotNull(saved.getExtractedDataJson());
     assertEquals("Toko Segar", saved.getStoreName());
+    assertNotNull(saved.getImageHash());
     verify(eventOutPort).publishReceiptApproved(any());
   }
 
