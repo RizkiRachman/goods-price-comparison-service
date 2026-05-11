@@ -14,6 +14,7 @@ import com.example.goodsprice.receipt.application.port.out.ReceiptEventOutPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptRepositoryPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -145,7 +146,7 @@ public class ReceiptService implements ReceiptInPort {
   @Transactional
   public void create(ReceiptCreateDomain request) {
     var itemsJson = JsonUtils.toJson(request.getItems());
-    var imageHash = HashUtils.sha256(itemsJson.getBytes());
+    var imageHash = HashUtils.sha256(itemsJson.getBytes(StandardCharsets.UTF_8));
     var receipt =
         ReceiptDomain.builder()
             .imageHash(imageHash)
