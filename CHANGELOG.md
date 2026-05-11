@@ -14,6 +14,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 
 ### Fixed
 - **Null pointer during create receipt**: `imageHash` now computed from items via `HashUtils.sha256` and stored on creation
+- **JsonUtils.hash256**: Centralized `hash256(List<?>)` method in `JsonUtils` for consistent hash computation from item lists
 
 ### Added
 - **Create receipt API**: Direct receipt creation via `POST /api/v1/receipts/create` with store details and item list
