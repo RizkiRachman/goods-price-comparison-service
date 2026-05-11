@@ -79,6 +79,7 @@ class ReceiptServiceTest {
     assertEquals("2026-05-08", saved.getReceiptDate());
     assertEquals(0, new BigDecimal("10.00").compareTo(saved.getTotalAmount()));
     assertNotNull(saved.getExtractedDataJson());
+    assertNotNull(saved.getImageHash());
     assertEquals(
         "[{\"productName\":\"Apple\",\"category\":\"Fruit\",\"quantity\":2.0,\"unitPrice\":5.0,\"totalPrice\":10.0,\"unit\":\"KG\"}]",
         saved.getExtractedDataJson());
