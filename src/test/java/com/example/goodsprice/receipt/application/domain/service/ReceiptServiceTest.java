@@ -84,7 +84,10 @@ class ReceiptServiceTest {
     assertEquals(
         "[{\"productName\":\"Apple\",\"category\":\"Fruit\",\"quantity\":2.0,\"unitPrice\":5.0,\"totalPrice\":10.0,\"unit\":\"KG\"}]",
         saved.getExtractedDataJson());
-    var expectedImageHash = HashUtils.sha256(JsonUtils.toJson(createRequest.getItems()).getBytes());
+    var expectedImageHash =
+        HashUtils.sha256(
+            JsonUtils.toJson(createRequest.getItems())
+                .getBytes(java.nio.charset.StandardCharsets.UTF_8));
     assertEquals(expectedImageHash, saved.getImageHash());
 
     var approved = receiptCaptor.getAllValues().get(1);
@@ -104,7 +107,8 @@ class ReceiptServiceTest {
     var saved = receiptCaptor.getAllValues().get(0);
     assertEquals("[]", saved.getExtractedDataJson());
     assertEquals("Toko Segar", saved.getStoreName());
-    var expectedImageHash = HashUtils.sha256("[]".getBytes());
+    var expectedImageHash =
+        HashUtils.sha256("[]".getBytes(java.nio.charset.StandardCharsets.UTF_8));
     assertEquals(expectedImageHash, saved.getImageHash());
   }
 
