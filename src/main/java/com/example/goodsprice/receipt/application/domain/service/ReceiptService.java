@@ -144,11 +144,14 @@ public class ReceiptService implements ReceiptInPort {
   @Override
   @Transactional
   public void create(ReceiptCreateDomain request) {
+    var itemsJson = JsonUtils.toJson(request.getItems());
+    var imageHash = HashUtils.sha256(itemsJson.getBytes());
     var receipt =
         ReceiptDomain.builder()
+            .imageHash(imageHash)
             .status(ReceiptStatus.COMPLETED)
             .storeName(request.getStoreName())
-            .extractedDataJson(JsonUtils.toJson(request.getItems()))
+            .extractedDataJson(itemsJson)
             .totalAmount(request.getTotalAmount())
             .storeLocation(request.getStoreLocation())
             .receiptDate(request.getReceiptDate())
