@@ -2,6 +2,7 @@ package com.example.goodsprice.receipt.application.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -84,9 +85,7 @@ class ReceiptServiceTest {
         "[{\"productName\":\"Apple\",\"category\":\"Fruit\",\"quantity\":2.0,\"unitPrice\":5.0,\"totalPrice\":10.0,\"unit\":\"KG\"}]",
         saved.getExtractedDataJson());
     assertNotNull(saved.getImageHash());
-    assertEquals(
-        JsonUtils.hash256(createRequest.getItems()),
-        saved.getImageHash());
+    assertEquals(JsonUtils.hash256(createRequest.getItems()), saved.getImageHash());
 
     var approved = receiptCaptor.getAllValues().get(1);
     assertEquals(ReceiptStatus.APPROVED, approved.getStatus());
@@ -175,6 +174,11 @@ class ReceiptServiceTest {
     assertEquals("Toko Segar", saved.getStoreName());
     assertNotNull(saved.getImageHash());
     verify(eventOutPort).publishReceiptApproved(any());
+  }
+
+  @Test
+  void shouldThrowExceptionWhenRequestIsNull() {
+    assertThrows(IllegalArgumentException.class, () -> receiptService.create(null));
   }
 
   private void mockSaveWithStore() {

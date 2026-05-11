@@ -4,6 +4,7 @@ import static com.example.goodsprice.common.constant.ErrorMessageConstants.ITEMS
 
 import com.example.goodsprice.common.util.HashUtils;
 import com.example.goodsprice.common.util.JsonUtils;
+import com.example.goodsprice.common.util.ValidationUtils;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
@@ -144,6 +145,7 @@ public class ReceiptService implements ReceiptInPort {
   @Override
   @Transactional
   public void create(ReceiptCreateDomain request) {
+    ValidationUtils.requireNonNull(request, "ReceiptCreateDomain");
     var itemsJson = JsonUtils.toJson(request.getItems());
     var imageHash = JsonUtils.hash256(request.getItems());
     var receipt =
