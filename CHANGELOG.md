@@ -17,6 +17,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **JsonUtils.hash256**: Centralized `hash256(List<?>)` method in `JsonUtils` for consistent hash computation from item lists
 
 ### Added
+- **Direct execution test**: `LocalLlmProviderTest` verifying mock receipt data structure, provider name, and availability
 - **Create receipt API**: Direct receipt creation via `POST /api/v1/receipts/create` with store details and item list
 - **API spec**: Updated `goods-price-comparison-api` from `1.6.0` to `1.7.0`
 - **DateUtils**: Utility for formatting `LocalDate`/`LocalDateTime`/`OffsetDateTime`/`Date`

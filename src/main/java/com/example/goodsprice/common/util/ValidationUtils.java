@@ -12,4 +12,11 @@ public final class ValidationUtils {
     }
     return obj;
   }
+
+  public static String requireNonBlank(String str, String fieldName) {
+    if (Objects.isNull(str) || str.isBlank()) {
+      throw new IllegalArgumentException("%s must not be blank".formatted(fieldName));
+    }
+    return str;
+  }
 }

@@ -35,7 +35,7 @@ class ReceiptServiceTest {
   @Mock private ReceiptRepositoryPort receiptRepository;
   @Mock private ReceiptEventOutPort eventOutPort;
   @Mock private com.example.goodsprice.receipt.application.port.out.LlmProviderPort llmProvider;
-  @Mock private ObjectMapper objectMapper;
+  private ObjectMapper objectMapper = new ObjectMapper();
 
   @InjectMocks private ReceiptService receiptService;
 
