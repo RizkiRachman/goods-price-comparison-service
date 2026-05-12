@@ -29,7 +29,7 @@ public final class JsonUtils {
   }
 
   public static String toJson(Object value) {
-    if (Objects.isNull(value)) return "[]";
+    if (Objects.isNull(value)) return "{}";
     try {
       return MAPPER.writeValueAsString(value);
     } catch (Exception e) {
