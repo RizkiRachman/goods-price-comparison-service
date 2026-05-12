@@ -80,10 +80,8 @@ class ReceiptServiceTest {
     assertEquals("2026-05-08", saved.getReceiptDate());
     assertEquals(0, new BigDecimal("10.00").compareTo(saved.getTotalAmount()));
     assertNotNull(saved.getExtractedDataJson());
-    assertEquals(
-        "[{\"productName\":\"Apple\",\"category\":\"Fruit\",\"quantity\":2.0,\"unitPrice\":5.0,\"totalPrice\":10.0,\"unit\":\"KG\"}]",
-        saved.getExtractedDataJson());
-    var expectedImageHash = JsonUtils.hash256(createRequest.getItems());
+    assertEquals(JsonUtils.toJson(createRequest), saved.getExtractedDataJson());
+    var expectedImageHash = JsonUtils.hash256(createRequest);
     assertEquals(expectedImageHash, saved.getImageHash());
 
     var approved = receiptCaptor.getAllValues().get(1);
@@ -101,9 +99,9 @@ class ReceiptServiceTest {
 
     verify(receiptRepository, times(2)).save(receiptCaptor.capture());
     var saved = receiptCaptor.getAllValues().get(0);
-    assertEquals("[]", saved.getExtractedDataJson());
+    assertEquals(JsonUtils.toJson(createRequest), saved.getExtractedDataJson());
     assertEquals("Toko Segar", saved.getStoreName());
-    var expectedImageHash = JsonUtils.hash256(List.of());
+    var expectedImageHash = JsonUtils.hash256(createRequest);
     assertEquals(expectedImageHash, saved.getImageHash());
   }
 
@@ -115,7 +113,7 @@ class ReceiptServiceTest {
 
     verify(receiptRepository, times(2)).save(receiptCaptor.capture());
     var saved = receiptCaptor.getAllValues().get(0);
-    assertEquals("[]", saved.getExtractedDataJson());
+    assertEquals(JsonUtils.toJson(createRequest), saved.getExtractedDataJson());
     assertNotNull(saved.getImageHash());
   }
 

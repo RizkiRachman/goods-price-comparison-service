@@ -37,8 +37,8 @@ public final class JsonUtils {
     }
   }
 
-  public static String hash256(List<?> items) {
-    var json = toJson(items);
+  public static String hash256(Object value) {
+    var json = toJson(value);
     return HashUtils.sha256(json.getBytes(StandardCharsets.UTF_8));
   }
 
