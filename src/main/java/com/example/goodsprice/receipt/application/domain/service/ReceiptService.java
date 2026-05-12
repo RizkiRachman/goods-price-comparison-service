@@ -143,7 +143,7 @@ public class ReceiptService implements ReceiptInPort {
 
   @Override
   @Transactional
-  public void create(ReceiptCreateDomain request) {
+  public ReceiptDomain create(ReceiptCreateDomain request) {
     var extractedDataJson = JsonUtils.toJson(request);
     var imageHash = JsonUtils.hash256(request);
     var receipt =
@@ -158,6 +158,7 @@ public class ReceiptService implements ReceiptInPort {
             .build();
     receipt = receiptRepository.save(receipt);
     this.approve(receipt.getId());
+    return this.findById(receipt.getId());
   }
 
   private BigDecimal extractTotalAmount(Object value) {

@@ -70,7 +70,7 @@ class ReceiptServiceTest {
   @Test
   void shouldCreateReceiptSuccessfully() {
     mockSaveWithStore();
-    receiptService.create(createRequest);
+    var result = receiptService.create(createRequest);
 
     verify(receiptRepository, times(2)).save(receiptCaptor.capture());
     var saved = receiptCaptor.getAllValues().get(0);
@@ -89,13 +89,17 @@ class ReceiptServiceTest {
 
     verify(eventOutPort).publishReceiptApproved(approved);
     assertNotNull(approved.getId());
+
+    assertEquals(ReceiptStatus.APPROVED, result.getStatus());
+    assertEquals("Toko Segar", result.getStoreName());
+    assertEquals(0, new BigDecimal("10.00").compareTo(result.getTotalAmount()));
   }
 
   @Test
   void shouldCreateReceiptWithEmptyItems() {
     createRequest.setItems(List.of());
     mockSaveWithStore();
-    receiptService.create(createRequest);
+    var result = receiptService.create(createRequest);
 
     verify(receiptRepository, times(2)).save(receiptCaptor.capture());
     var saved = receiptCaptor.getAllValues().get(0);
@@ -103,41 +107,53 @@ class ReceiptServiceTest {
     assertEquals("Toko Segar", saved.getStoreName());
     var expectedImageHash = JsonUtils.hash256(createRequest);
     assertEquals(expectedImageHash, saved.getImageHash());
+
+    assertEquals(ReceiptStatus.APPROVED, result.getStatus());
+    assertNotNull(result.getId());
   }
 
   @Test
   void shouldCreateReceiptWithNullItems() {
     createRequest.setItems(null);
     mockSaveWithStore();
-    receiptService.create(createRequest);
+    var result = receiptService.create(createRequest);
 
     verify(receiptRepository, times(2)).save(receiptCaptor.capture());
     var saved = receiptCaptor.getAllValues().get(0);
     assertEquals(JsonUtils.toJson(createRequest), saved.getExtractedDataJson());
     assertNotNull(saved.getImageHash());
+
+    assertEquals(ReceiptStatus.APPROVED, result.getStatus());
+    assertNotNull(result.getId());
   }
 
   @Test
   void shouldCreateReceiptWithNullTotalAmount() {
     createRequest.setTotalAmount(null);
     mockSaveWithStore();
-    receiptService.create(createRequest);
+    var result = receiptService.create(createRequest);
 
     verify(receiptRepository, times(2)).save(receiptCaptor.capture());
     var saved = receiptCaptor.getAllValues().get(0);
     assertEquals(null, saved.getTotalAmount());
+
+    assertEquals(ReceiptStatus.APPROVED, result.getStatus());
+    assertEquals(null, result.getTotalAmount());
   }
 
   @Test
   void shouldCreateReceiptWithoutStoreLocation() {
     createRequest.setStoreLocation(null);
     mockSaveWithStore();
-    receiptService.create(createRequest);
+    var result = receiptService.create(createRequest);
 
     verify(receiptRepository, times(2)).save(receiptCaptor.capture());
     var saved = receiptCaptor.getAllValues().get(0);
     assertEquals(null, saved.getStoreLocation());
     assertNotNull(saved.getImageHash());
+
+    assertEquals(ReceiptStatus.APPROVED, result.getStatus());
+    assertEquals(null, result.getStoreLocation());
   }
 
   @Test
@@ -163,7 +179,7 @@ class ReceiptServiceTest {
     createRequest.setItems(List.of(item1, item2));
 
     mockSaveWithStore();
-    receiptService.create(createRequest);
+    var result = receiptService.create(createRequest);
 
     verify(receiptRepository, times(2)).save(receiptCaptor.capture());
     var saved = receiptCaptor.getAllValues().get(0);
@@ -171,6 +187,10 @@ class ReceiptServiceTest {
     assertEquals("Toko Segar", saved.getStoreName());
     assertNotNull(saved.getImageHash());
     verify(eventOutPort).publishReceiptApproved(any());
+
+    assertEquals(ReceiptStatus.APPROVED, result.getStatus());
+    assertEquals("Toko Segar", result.getStoreName());
+    assertNotNull(result.getId());
   }
 
   private void mockSaveWithStore() {
