@@ -56,8 +56,7 @@ public class ReceiptController implements ReceiptsApi {
   }
 
   @Override
-  public ResponseEntity<Void> createReceipt(@Valid ReceiptCreateRequest receiptCreateRequest) {
-    adapter.create(receiptCreateRequest);
-    return ResponseEntity.status(HttpStatus.CREATED).build();
+  public ResponseEntity<ReceiptResultResponse> createReceipt(@Valid ReceiptCreateRequest receiptCreateRequest) {
+    return ResponseEntity.ok().body(adapter.create(receiptCreateRequest));
   }
 }
