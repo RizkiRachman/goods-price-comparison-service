@@ -22,5 +22,5 @@ public interface ReceiptInPort {
 
   void insertItems(UUID id, List<java.util.Map<String, Object>> items);
 
-  void create(ReceiptCreateDomain receiptCreateDomain);
+  ReceiptDomain create(ReceiptCreateDomain receiptCreateDomain);
 }

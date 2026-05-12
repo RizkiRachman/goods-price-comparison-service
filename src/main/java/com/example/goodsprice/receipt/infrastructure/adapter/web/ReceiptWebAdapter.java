@@ -63,8 +63,9 @@ public class ReceiptWebAdapter {
         .status(mapper.toStatus(receiptInPort.findById(id).getStatus()));
   }
 
-  public void create(ReceiptCreateRequest request) {
+  public ReceiptResultResponse create(ReceiptCreateRequest request) {
     var domain = mapper.toCreateDomain(request);
-    receiptInPort.create(domain);
+    var resultReceipt = receiptInPort.create(domain);
+    return mapper.toResultResponse(resultReceipt);
   }
 }

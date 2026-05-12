@@ -11,7 +11,6 @@ import com.example.goodsprice.api.model.ReceiptUploadResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -56,8 +55,9 @@ public class ReceiptController implements ReceiptsApi {
   }
 
   @Override
-  public ResponseEntity<Void> createReceipt(@Valid ReceiptCreateRequest receiptCreateRequest) {
-    adapter.create(receiptCreateRequest);
-    return ResponseEntity.status(HttpStatus.CREATED).build();
+  public ResponseEntity<ReceiptResultResponse> createReceipt(
+      @Valid ReceiptCreateRequest receiptCreateRequest) {
+    var result = adapter.create(receiptCreateRequest);
+    return ResponseEntity.ok().body(result);
   }
 }
