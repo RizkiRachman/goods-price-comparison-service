@@ -36,6 +36,9 @@
         <!-- Database -->
         <postgresql.version>42.7.5</postgresql.version>
         <flyway.version>10.20.1</flyway.version>
+
+        <!-- Build tools -->
+        <lombok.version>1.18.38</lombok.version>
     </properties>
 
     <repositories>
