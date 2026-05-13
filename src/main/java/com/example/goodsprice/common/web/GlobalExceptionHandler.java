@@ -2,11 +2,9 @@ package com.example.goodsprice.common.web;
 
 import com.example.goodsprice.common.constant.ErrorCodes;
 import com.example.goodsprice.common.constant.HttpHeaderConstants;
+import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.config.ratelimit.RateLimitExceededException;
-import com.example.goodsprice.price.application.exception.PriceNotFoundException;
-import com.example.goodsprice.product.application.exception.ProductNotFoundException;
 import com.example.goodsprice.receipt.application.exception.DuplicateReceiptException;
-import com.example.goodsprice.receipt.application.exception.ReceiptNotFoundException;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -31,19 +29,9 @@ public class GlobalExceptionHandler {
     return new ResponseEntity<>(body, headers, HttpStatus.TOO_MANY_REQUESTS);
   }
 
-  @ExceptionHandler(PriceNotFoundException.class)
-  public ResponseEntity<Map<String, Object>> handlePriceNotFound(PriceNotFoundException e) {
-    return buildResponse(HttpStatus.NOT_FOUND, ErrorCodes.PRICE_NOT_FOUND, e.getMessage());
-  }
-
-  @ExceptionHandler(ProductNotFoundException.class)
-  public ResponseEntity<Map<String, Object>> handleProductNotFound(ProductNotFoundException e) {
-    return buildResponse(HttpStatus.NOT_FOUND, ErrorCodes.PRODUCT_NOT_FOUND, e.getMessage());
-  }
-
-  @ExceptionHandler(ReceiptNotFoundException.class)
-  public ResponseEntity<Map<String, Object>> handleReceiptNotFound(ReceiptNotFoundException e) {
-    return buildResponse(HttpStatus.NOT_FOUND, ErrorCodes.RECEIPT_NOT_FOUND, e.getMessage());
+  @ExceptionHandler(NotFoundException.class)
+  public ResponseEntity<Map<String, Object>> handleNotFound(NotFoundException e) {
+    return buildResponse(HttpStatus.NOT_FOUND, e.getErrorCode(), e.getMessage());
   }
 
   @ExceptionHandler(DuplicateReceiptException.class)

@@ -1,6 +1,8 @@
 package com.example.goodsprice.receipt.infrastructure.adapter.web;
 
 import com.example.goodsprice.api.controller.ReceiptsApi;
+import com.example.goodsprice.api.model.BillSplitRequest;
+import com.example.goodsprice.api.model.BillSplitResponse;
 import com.example.goodsprice.api.model.ReceiptApproveResponse;
 import com.example.goodsprice.api.model.ReceiptCorrectRequest;
 import com.example.goodsprice.api.model.ReceiptCreateRequest;
@@ -59,5 +61,10 @@ public class ReceiptController implements ReceiptsApi {
       @Valid ReceiptCreateRequest receiptCreateRequest) {
     var result = adapter.create(receiptCreateRequest);
     return ResponseEntity.ok().body(result);
+  }
+
+  @Override
+  public ResponseEntity<BillSplitResponse> splitBill(UUID receiptId, BillSplitRequest request) {
+    return ResponseEntity.ok(adapter.splitBill(receiptId, request));
   }
 }

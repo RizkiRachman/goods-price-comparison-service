@@ -1,5 +1,7 @@
 package com.example.goodsprice.receipt.infrastructure.adapter.web;
 
+import com.example.goodsprice.api.model.BillSplitRequest;
+import com.example.goodsprice.api.model.BillSplitResponse;
 import com.example.goodsprice.api.model.ReceiptApproveResponse;
 import com.example.goodsprice.api.model.ReceiptCreateRequest;
 import com.example.goodsprice.api.model.ReceiptRejectResponse;
@@ -8,6 +10,7 @@ import com.example.goodsprice.api.model.ReceiptStatusResponse;
 import com.example.goodsprice.api.model.ReceiptUploadResponse;
 import com.example.goodsprice.api.model.Status;
 import com.example.goodsprice.common.util.ObjectUtils;
+import com.example.goodsprice.receipt.application.port.in.BillSplitInPort;
 import com.example.goodsprice.receipt.application.port.in.ReceiptInPort;
 import com.example.goodsprice.receipt.infrastructure.adapter.web.mapper.ReceiptDtoMapper;
 import java.io.IOException;
@@ -23,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ReceiptWebAdapter {
 
   private final ReceiptInPort receiptInPort;
+  private final BillSplitInPort billSplitInPort;
   private final ReceiptDtoMapper mapper;
 
   public ReceiptUploadResponse upload(MultipartFile image) {
@@ -67,5 +71,9 @@ public class ReceiptWebAdapter {
     var domain = mapper.toCreateDomain(request);
     var resultReceipt = receiptInPort.create(domain);
     return mapper.toResultResponse(resultReceipt);
+  }
+
+  public BillSplitResponse splitBill(UUID receiptId, BillSplitRequest request) {
+    return billSplitInPort.splitBill(receiptId, request);
   }
 }

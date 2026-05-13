@@ -1,17 +1,21 @@
 package com.example.goodsprice.product.application.exception;
 
-import static com.example.goodsprice.common.constant.ErrorMessageConstants.PRODUCT_NOT_FOUND_ID_MSG;
-import static com.example.goodsprice.common.constant.ErrorMessageConstants.PRODUCT_NOT_FOUND_NAME_MSG;
+import com.example.goodsprice.common.constant.ErrorCodes;
+import com.example.goodsprice.common.constant.ErrorMessageConstants;
+import com.example.goodsprice.common.exception.NotFoundException;
 
-public class ProductNotFoundException extends RuntimeException {
+public class ProductNotFoundException extends NotFoundException {
 
   private static final long serialVersionUID = 1L;
 
   public ProductNotFoundException(Long id) {
-    super(PRODUCT_NOT_FOUND_ID_MSG.formatted(id));
+    super(
+        ErrorCodes.PRODUCT_NOT_FOUND, ErrorMessageConstants.PRODUCT_NOT_FOUND_ID_MSG.formatted(id));
   }
 
   public ProductNotFoundException(String name) {
-    super(PRODUCT_NOT_FOUND_NAME_MSG.formatted(name));
+    super(
+        ErrorCodes.PRODUCT_NOT_FOUND,
+        ErrorMessageConstants.PRODUCT_NOT_FOUND_NAME_MSG.formatted(name));
   }
 }
