@@ -12,6 +12,23 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 
 ## [Unreleased]
 
+### Added
+- **Category CRUD**: `GET/POST/PUT /v1/categories` — string ID-based category management (FOOD, DAIRY, SNACK)
+- **Unit CRUD**: `GET/POST/PUT /v1/units` — measurement unit management (KG, L, PCS) with type filter (WEIGHT/VOLUME/QUANTITY)
+- **Bill split**: `POST /v1/receipts/{receiptId}/bill-split` — RATIO (equal split) and SELECTION (item-based) modes, cached 15 min
+- **Generic service layer**: `common/exception/NotFoundException`, `common/repository/GenericRepositoryPort`, `common/service/AbstractGenericService` — shared CRUD boilerplate
+- **DB migrations**: `V10__create_categories_table.sql`, `V11__create_units_table.sql`
+- **Caffeine caches**: `categories`, `units`, `bill-splits` in `CacheConfiguration`
+
+### Changed
+- **Bill split**: Refactored to hexagonal architecture with domain models (`BillSplitRequestDomain`, `BillSplitResponseDomain`, `BillSplitRequestOrderDomain`, `BillSplitOrderDetailDomain`, etc.) — `BillSplitInPort` decoupled from API spec JAR, new `BillSplitDtoMapper` for spec↔domain mapping, `BillSplitService` no longer depends on `ProductInPort`
+- **API spec**: Updated `goods-price-comparison-api` from `1.8.0` to `1.8.1`
+- **Exception handling**: Unified `NotFoundException` replaces per-entity exceptions — single `@ExceptionHandler` in `GlobalExceptionHandler`
+
+### Added
+- **Bill split unit tests**: `BillSplitServiceTest` with 11 tests covering RATIO and SELECTION modes (matching items, unassigned participants, null/empty orders, unmatched details, null quantity)
+- **GlobalExceptionHandler**: 4 individual not-found handlers → 1 generic `NotFoundException` handler
+
 ### Fixed
 - **Null pointer during create receipt**: `imageHash` now computed from items via `HashUtils.sha256` and stored on creation
 - **JsonUtils.hash256**: Centralized `hash256(List<?>)` method in `JsonUtils` for consistent hash computation from item lists
