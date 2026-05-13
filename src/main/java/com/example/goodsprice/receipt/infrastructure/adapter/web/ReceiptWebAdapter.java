@@ -12,6 +12,7 @@ import com.example.goodsprice.api.model.Status;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.receipt.application.port.in.BillSplitInPort;
 import com.example.goodsprice.receipt.application.port.in.ReceiptInPort;
+import com.example.goodsprice.receipt.infrastructure.adapter.web.mapper.BillSplitDtoMapper;
 import com.example.goodsprice.receipt.infrastructure.adapter.web.mapper.ReceiptDtoMapper;
 import java.io.IOException;
 import java.util.UUID;
@@ -27,6 +28,7 @@ public class ReceiptWebAdapter {
 
   private final ReceiptInPort receiptInPort;
   private final BillSplitInPort billSplitInPort;
+  private final BillSplitDtoMapper billSplitDtoMapper;
   private final ReceiptDtoMapper mapper;
 
   public ReceiptUploadResponse upload(MultipartFile image) {
@@ -74,6 +76,8 @@ public class ReceiptWebAdapter {
   }
 
   public BillSplitResponse splitBill(UUID receiptId, BillSplitRequest request) {
-    return billSplitInPort.splitBill(receiptId, request);
+    var domainRequest = billSplitDtoMapper.toRequestDomain(request);
+    var domainResponse = billSplitInPort.splitBill(receiptId, domainRequest);
+    return billSplitDtoMapper.toResponseDto(domainResponse);
   }
 }

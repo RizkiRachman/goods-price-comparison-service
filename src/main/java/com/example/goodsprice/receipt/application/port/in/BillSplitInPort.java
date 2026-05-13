@@ -1,10 +1,10 @@
 package com.example.goodsprice.receipt.application.port.in;
 
-import com.example.goodsprice.api.model.BillSplitRequest;
-import com.example.goodsprice.api.model.BillSplitResponse;
+import com.example.goodsprice.receipt.application.domain.model.BillSplitRequestDomain;
+import com.example.goodsprice.receipt.application.domain.model.BillSplitResponseDomain;
 import java.util.UUID;
 
 public interface BillSplitInPort {
 
-  BillSplitResponse splitBill(UUID receiptId, BillSplitRequest request);
+  BillSplitResponseDomain splitBill(UUID receiptId, BillSplitRequestDomain request);
 }

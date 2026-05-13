@@ -1,13 +1,13 @@
 package com.example.goodsprice.receipt.application.domain.service;
 
-import com.example.goodsprice.api.model.BillSplitItem;
-import com.example.goodsprice.api.model.BillSplitOrder;
-import com.example.goodsprice.api.model.BillSplitParticipant;
-import com.example.goodsprice.api.model.BillSplitRequest;
-import com.example.goodsprice.api.model.BillSplitResponse;
 import com.example.goodsprice.common.constant.ErrorCodes;
 import com.example.goodsprice.common.exception.NotFoundException;
-import com.example.goodsprice.product.application.port.in.ProductInPort;
+import com.example.goodsprice.receipt.application.domain.model.BillSplitItemDomain;
+import com.example.goodsprice.receipt.application.domain.model.BillSplitParticipantDomain;
+import com.example.goodsprice.receipt.application.domain.model.BillSplitRequestDomain;
+import com.example.goodsprice.receipt.application.domain.model.BillSplitRequestOrderDomain;
+import com.example.goodsprice.receipt.application.domain.model.BillSplitResponseDomain;
+import com.example.goodsprice.receipt.application.domain.model.BillSplitType;
 import com.example.goodsprice.receipt.application.port.in.BillSplitInPort;
 import com.example.goodsprice.receipt.application.port.in.ReceiptInPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptItemRepositoryPort;
@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -28,11 +27,10 @@ public class BillSplitService implements BillSplitInPort {
 
   private final ReceiptInPort receiptInPort;
   private final ReceiptItemRepositoryPort receiptItemRepository;
-  private final ProductInPort productInPort;
 
   @Override
   @Cacheable(value = "bill-splits", key = "#receiptId + '-' + #request.hashCode()")
-  public BillSplitResponse splitBill(UUID receiptId, BillSplitRequest request) {
+  public BillSplitResponseDomain splitBill(UUID receiptId, BillSplitRequestDomain request) {
     var receipt = receiptInPort.findById(receiptId);
     if (Objects.isNull(receipt)) {
       throw new NotFoundException(
@@ -42,15 +40,14 @@ public class BillSplitService implements BillSplitInPort {
     var totalAmount =
         Objects.nonNull(receipt.getTotalAmount()) ? receipt.getTotalAmount().doubleValue() : 0.0;
     var response =
-        new BillSplitResponse()
+        BillSplitResponseDomain.builder()
             .receiptId(receiptId)
-            .type(
-                com.example.goodsprice.api.model.BillSplitResponse.TypeEnum.fromValue(
-                    request.getType().getValue()))
+            .type(request.getType())
             .numberOfParticipants(request.getNumberOfParticipants())
-            .totalAmount(totalAmount);
+            .totalAmount(totalAmount)
+            .build();
 
-    if ("RATIO".equals(request.getType().getValue())) {
+    if (BillSplitType.RATIO == request.getType()) {
       handleRatioSplit(response, request);
     } else {
       handleSelectionSplit(response, request);
@@ -59,46 +56,46 @@ public class BillSplitService implements BillSplitInPort {
     return response;
   }
 
-  private void handleRatioSplit(BillSplitResponse response, BillSplitRequest request) {
+  private void handleRatioSplit(BillSplitResponseDomain response, BillSplitRequestDomain request) {
     var totalAmount = response.getTotalAmount();
     var count = request.getNumberOfParticipants();
     var sharePerPerson = count > 0 ? totalAmount / count : 0.0;
 
-    var participants = new ArrayList<BillSplitParticipant>();
+    var participants = new ArrayList<BillSplitParticipantDomain>();
     for (int i = 1; i <= count; i++) {
       participants.add(
-          new BillSplitParticipant()
+          BillSplitParticipantDomain.builder()
               .name("Participant %d".formatted(i))
               .items(List.of())
-              .subtotal(sharePerPerson));
+              .subtotal(sharePerPerson)
+              .build());
     }
     response.setParticipants(participants);
     response.setUnassignedTotal(0.0);
   }
 
-  private void handleSelectionSplit(BillSplitResponse response, BillSplitRequest request) {
+  private void handleSelectionSplit(
+      BillSplitResponseDomain response, BillSplitRequestDomain request) {
     var receiptId = response.getReceiptId();
     var receiptItems = receiptItemRepository.findByReceiptId(receiptId);
 
     var orders =
-        Objects.nonNull(request.getOrders()) ? request.getOrders() : List.<BillSplitOrder>of();
+        Objects.nonNull(request.getOrders())
+            ? request.getOrders()
+            : List.<BillSplitRequestOrderDomain>of();
 
-    var ordersByName = orders.stream().collect(Collectors.groupingBy(BillSplitOrder::getName));
-
-    var participants = new ArrayList<BillSplitParticipant>();
+    var participants = new ArrayList<BillSplitParticipantDomain>();
     double totalAssigned = 0.0;
 
-    for (var entry : ordersByName.entrySet()) {
-      var participantItems = new ArrayList<BillSplitItem>();
+    for (var entry : orders) {
+      var participantItems = new ArrayList<BillSplitItemDomain>();
       double participantSubtotal = 0.0;
 
-      for (var order : entry.getValue()) {
-        var product = productInPort.findById(order.getProductId());
-        if (Objects.isNull(product)) continue;
-
+      for (var order : entry.getOrders()) {
+        var productName = order.getName();
         var matchedItem =
             receiptItems.stream()
-                .filter(i -> Objects.equals(i.getProductName(), product.getName()))
+                .filter(i -> Objects.equals(i.getProductName(), productName))
                 .findFirst()
                 .orElse(null);
         if (Objects.isNull(matchedItem)) continue;
@@ -109,36 +106,39 @@ public class BillSplitService implements BillSplitInPort {
         var subtotal = qty * unitPrice;
 
         participantItems.add(
-            new BillSplitItem()
+            BillSplitItemDomain.builder()
                 .productId(order.getProductId())
-                .productName(product.getName())
+                .productName(productName)
                 .quantity(qty)
                 .unitPrice(unitPrice)
-                .subtotal(subtotal));
+                .subtotal(subtotal)
+                .build());
         participantSubtotal += subtotal;
       }
 
       totalAssigned += participantSubtotal;
       participants.add(
-          new BillSplitParticipant()
-              .name(entry.getKey())
+          BillSplitParticipantDomain.builder()
+              .name(entry.getName())
               .items(participantItems)
-              .subtotal(participantSubtotal));
+              .subtotal(participantSubtotal)
+              .build());
     }
 
-    var namedCount = ordersByName.size();
+    var namedCount = orders.size();
     var participantCount = request.getNumberOfParticipants();
     var unassignedTotal = Math.max(0.0, response.getTotalAmount() - totalAssigned);
     response.setUnassignedTotal(unassignedTotal);
 
     var unassignedParticipants = participantCount - namedCount;
     for (int i = 0; i < unassignedParticipants; i++) {
-      var share = unassignedParticipants > 0 ? unassignedTotal / unassignedParticipants : 0.0;
+      var share = unassignedTotal / unassignedParticipants;
       participants.add(
-          new BillSplitParticipant()
+          BillSplitParticipantDomain.builder()
               .name("Participant %d".formatted(namedCount + i + 1))
               .items(List.of())
-              .subtotal(share));
+              .subtotal(share)
+              .build());
     }
 
     response.setParticipants(participants);
