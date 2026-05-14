@@ -20,6 +20,10 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **DB migrations**: `V10__create_categories_table.sql`, `V11__create_units_table.sql`
 - **Caffeine caches**: `categories`, `units`, `bill-splits` in `CacheConfiguration`
 
+### Security
+- **CORS configuration**: Global CORS via `WebMvcConfigurer` with configurable origins, methods, and credentials (`config/cors.properties`)
+- **Security headers**: `OncePerRequestFilter` adding `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, and `Cache-Control: no-store` on write methods
+
 ### Changed
 - **Bill split**: Refactored to hexagonal architecture with domain models (`BillSplitRequestDomain`, `BillSplitResponseDomain`, `BillSplitRequestOrderDomain`, `BillSplitOrderDetailDomain`, etc.) — `BillSplitInPort` decoupled from API spec JAR, new `BillSplitDtoMapper` for spec↔domain mapping, `BillSplitService` no longer depends on `ProductInPort`
 - **API spec**: Updated `goods-price-comparison-api` from `1.8.0` to `1.8.1`
