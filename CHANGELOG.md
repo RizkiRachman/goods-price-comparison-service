@@ -12,6 +12,9 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 
 ## [Unreleased]
 
+### Fixed
+- **SpotBugs NPE**: Fix FindSecBugs `CorsRegistryCORSDetector` crash by changing `allowedHeaders` from `String` to `List<String>` in `CorsProperties` (matches existing pattern)
+
 ### Added
 - **Category CRUD**: `GET/POST/PUT /v1/categories` — string ID-based category management (FOOD, DAIRY, SNACK)
 - **Unit CRUD**: `GET/POST/PUT /v1/units` — measurement unit management (KG, L, PCS) with type filter (WEIGHT/VOLUME/QUANTITY)
