@@ -19,7 +19,7 @@ public class CorsConfiguration implements WebMvcConfigurer {
         .addMapping("/**")
         .allowedOrigins(corsProperties.getAllowedOrigins().toArray(new String[0]))
         .allowedMethods(corsProperties.getAllowedMethods().toArray(new String[0]))
-        .allowedHeaders(corsProperties.getAllowedHeaders())
+        .allowedHeaders(corsProperties.getAllowedHeaders().toArray(new String[0]))
         .allowCredentials(corsProperties.isAllowCredentials());
   }
 }
