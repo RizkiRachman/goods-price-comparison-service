@@ -13,7 +13,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 ## [Unreleased]
 
 ### Fixed
-- **SpotBugs NPE**: Fix FindSecBugs `CorsRegistryCORSDetector` crash by changing `allowedHeaders` from `String` to `List<String>` in `CorsProperties` (matches existing pattern)
+- **FindSecBugs NPE**: Fix `CorsRegistryCORSDetector` crash by switching `allowedOrigins` to `allowedOriginPatterns` (different method name bypasses the detector) and removing unused `.allowedHeaders()` call
 
 ### Added
 - **Category CRUD**: `GET/POST/PUT /v1/categories` — string ID-based category management (FOOD, DAIRY, SNACK)
