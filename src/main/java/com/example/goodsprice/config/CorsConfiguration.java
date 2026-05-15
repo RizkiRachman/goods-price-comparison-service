@@ -1,24 +1,40 @@
 package com.example.goodsprice.config;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.core.Ordered;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 @Configuration
 @EnableConfigurationProperties(CorsProperties.class)
 @RequiredArgsConstructor
-public class CorsConfiguration implements WebMvcConfigurer {
+public class CorsConfiguration {
 
   private final CorsProperties corsProperties;
 
-  @Override
-  public void addCorsMappings(CorsRegistry registry) {
-    registry
-        .addMapping("/**")
-        .allowedOriginPatterns(corsProperties.getAllowedOriginPatterns().toArray(new String[0]))
-        .allowedMethods(corsProperties.getAllowedMethods().toArray(new String[0]))
-        .allowCredentials(corsProperties.isAllowCredentials());
+  @Value("${cors.allowed-origin-patterns}")
+  private List<String> allowedOriginPatterns;
+
+  @Bean
+  public FilterRegistrationBean<CorsFilter> corsFilter() {
+    var config = new CorsConfiguration();
+    config.setAllowedOriginPatterns(allowedOriginPatterns);
+    config.setAllowedMethods(corsProperties.getAllowedMethods());
+    config.setAllowedHeaders(corsProperties.getAllowedHeaders());
+    config.setAllowCredentials(corsProperties.isAllowCredentials());
+
+    var source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+
+    var bean = new FilterRegistrationBean<>(new CorsFilter(source));
+    bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+    return bean;
   }
 }
