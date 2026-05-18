@@ -16,7 +16,7 @@ public class FeedbackQuestionDtoMapper {
     result.setUserEmail(domain.getUserEmail());
     result.setType(
         Objects.nonNull(domain.getType())
-            ? FeedbackQuestion.TypeEnum.fromValue(domain.getType().name())
+            ? FeedbackQuestion.TypeEnum.fromValue(domain.getType().name().toLowerCase())
             : null);
     result.setMessage(domain.getMessage());
     result.setCreatedAt(domain.getCreatedAt());
