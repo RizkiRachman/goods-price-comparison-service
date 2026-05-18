@@ -1,5 +1,6 @@
 package com.example.goodsprice.config;
 
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -21,7 +22,8 @@ public class JacksonConfiguration {
     Jackson2ObjectMapperBuilder builder = new Jackson2ObjectMapperBuilder();
     builder
         .modules(new JsonNullableModule(), new JavaTimeModule(), offsetDateTimeModule)
-        .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        .featuresToEnable(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS);
     return builder;
   }
 }
