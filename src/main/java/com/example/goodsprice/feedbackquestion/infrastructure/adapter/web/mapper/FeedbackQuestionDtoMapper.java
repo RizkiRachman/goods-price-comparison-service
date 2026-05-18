@@ -2,6 +2,7 @@ package com.example.goodsprice.feedbackquestion.infrastructure.adapter.web.mappe
 
 import com.example.goodsprice.api.model.FeedbackQuestion;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
+import java.util.Locale;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +17,7 @@ public class FeedbackQuestionDtoMapper {
     result.setUserEmail(domain.getUserEmail());
     result.setType(
         Objects.nonNull(domain.getType())
-            ? FeedbackQuestion.TypeEnum.fromValue(domain.getType().name().toLowerCase())
+            ? FeedbackQuestion.TypeEnum.fromValue(domain.getType().name().toLowerCase(Locale.ROOT))
             : null);
     result.setMessage(domain.getMessage());
     result.setCreatedAt(domain.getCreatedAt());
