@@ -16,4 +16,6 @@ public final class ErrorMessageConstants {
       "Store already exists with name: %s and location: %s";
   public static final String CATEGORY_NOT_FOUND_MSG = "Category not found with id: %s";
   public static final String UNIT_NOT_FOUND_MSG = "Unit not found with id: %s";
+  public static final String FEEDBACK_QUESTION_NOT_FOUND_MSG =
+      "Feedback question not found with id: %s";
 }

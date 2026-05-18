@@ -12,6 +12,11 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 
 ## [Unreleased]
 
+### Added
+- **Feedback & Questions**: `POST/GET /v1/feedback-questions` — create feedback or questions, list with pagination/sorting, get by UUID. Uses generic service/repository pattern with `AbstractGenericService` and `GenericRepositoryPort`
+- **DB migrations**: `V12__create_feedback_questions_table.sql`
+- **Caffeine cache**: `feedback-questions` cache for `findById` and `save`
+
 ### Fixed
 - **FindSecBugs NPE**: Fix `CorsRegistryCORSDetector` crash by switching `allowedOrigins` to `allowedOriginPatterns` (different method name bypasses the detector) and removing unused `.allowedHeaders()` call
 
