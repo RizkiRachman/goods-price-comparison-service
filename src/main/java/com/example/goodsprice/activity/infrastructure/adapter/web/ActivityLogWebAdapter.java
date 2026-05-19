@@ -1,11 +1,15 @@
 package com.example.goodsprice.activity.infrastructure.adapter.web;
 
+import com.example.goodsprice.activity.application.domain.model.ActivityLogAction;
+import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
 import com.example.goodsprice.activity.application.port.in.ActivityLogInPort;
 import com.example.goodsprice.activity.infrastructure.adapter.web.mapper.ActivityLogDtoMapper;
 import com.example.goodsprice.api.model.ActivityLogListResponse;
 import com.example.goodsprice.common.constant.AppConstants;
 import com.example.goodsprice.common.util.ObjectUtils;
 import java.time.OffsetDateTime;
+import java.util.Locale;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -35,13 +39,35 @@ public class ActivityLogWebAdapter {
     var pageValue = ObjectUtils.getOrDefault(page, p -> p, 1);
     var sizeValue = ObjectUtils.getOrDefault(pageSize, s -> s, AppConstants.DEFAULT_PAGE_SIZE);
 
+    var typeEnum = parseType(type);
+    var actionEnum = parseAction(action);
     var pageResponse =
         activityLogInPort.findAll(
-            pageValue, sizeValue, sortBy, sortOrder, type, action, startDate, endDate);
+            pageValue, sizeValue, sortBy, sortOrder, typeEnum, actionEnum, startDate, endDate);
 
     var response = new ActivityLogListResponse();
     response.setData(pageResponse.content().stream().map(mapper::toApiModel).toList());
     response.setPagination(pageResponse.toPagination());
     return response;
+  }
+
+  private static ActivityLogType parseType(String type) {
+    if (Objects.isNull(type) || type.isBlank()) return null;
+    try {
+      return ActivityLogType.valueOf(type.toUpperCase(Locale.ROOT));
+    } catch (IllegalArgumentException e) {
+      log.warn("Invalid activity log type filter: {}", type);
+      return null;
+    }
+  }
+
+  private static ActivityLogAction parseAction(String action) {
+    if (Objects.isNull(action) || action.isBlank()) return null;
+    try {
+      return ActivityLogAction.valueOf(action.toUpperCase(Locale.ROOT));
+    } catch (IllegalArgumentException e) {
+      log.warn("Invalid activity log action filter: {}", action);
+      return null;
+    }
   }
 }

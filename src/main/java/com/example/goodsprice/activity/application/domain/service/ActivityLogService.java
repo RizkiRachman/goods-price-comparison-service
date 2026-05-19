@@ -2,7 +2,9 @@ package com.example.goodsprice.activity.application.domain.service;
 
 import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.ENTITY_NAME;
 
+import com.example.goodsprice.activity.application.domain.model.ActivityLogAction;
 import com.example.goodsprice.activity.application.domain.model.ActivityLogDomain;
+import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
 import com.example.goodsprice.activity.application.port.in.ActivityLogInPort;
 import com.example.goodsprice.activity.application.port.out.ActivityLogRepositoryPort;
 import com.example.goodsprice.common.constant.ErrorCodes;
@@ -46,8 +48,8 @@ public class ActivityLogService extends AbstractGenericService<ActivityLogDomain
       int size,
       String sortBy,
       String sortDirection,
-      String type,
-      String action,
+      ActivityLogType type,
+      ActivityLogAction action,
       OffsetDateTime startDate,
       OffsetDateTime endDate) {
     var pageRequest = new PageRequest(page, size, sortBy, sortDirection);

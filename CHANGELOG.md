@@ -24,11 +24,14 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **API spec**: Updated `goods-price-comparison-api` from `1.9.0` to `1.10.0`
 - **PMD ruleset**: Upgraded to PMD 7.7.0, renamed deprecated JUnit rules to `UnitTest*` equivalents, removed non-existent rules (`AtLeastOneConstructor`, `BeanMembersShouldSerialize`, `AvoidCatchingGenericException`, `AvoidRethrowingException`)
 - **Jackson config**: Replaced deprecated `Jackson2ObjectMapperBuilder` with explicit `ObjectMapper` bean for Spring Boot 4.0.5 compatibility; added `spring.http.converters.preferred-json-mapper=jackson2` for `JsonNullableModule` compatibility
-- **Test config**: Changed `spring.jpa.hibernate.ddl-auto` from `validate` to `update` for Flyway compatibility
 - **CI workflows**: Updated `ci-build`, `ci-publish`, `codeql` from JDK 17 to JDK 21
 - **ActivityLogService**: Extends `AbstractGenericService<ActivityLogDomain, UUID>` with `GenericRepositoryPort` for standard CRUD operations
 - **AsyncConfiguration**: Extracted `createExecutor()` factory method eliminating 90% duplication across 3 thread pool beans
 - **ActivityLogAspect**: Extracted hardcoded strings (method prefixes, class suffixes, field names) to `ActivityLogConstants`
+- **DB migration V13**: `type` and `action` columns converted from `VARCHAR` to PostgreSQL native enum types (`activity_log_type`, `activity_log_action`) in `V13__create_activity_logs_table.sql`
+- **Activity logs - enums**: `type` and `action` fields converted from `String` to typed enums (`ActivityLogType`, `ActivityLogAction`) across domain model, entity, ports, service, mapper, and AOP aspect
+- **Database config**: Production uses `ddl-auto=validate` (Flyway via Maven); local dev uses `ddl-auto=update` (H2); tests use `ddl-auto=create-drop` (H2)
+- **Test config**: Changed `spring.jpa.hibernate.ddl-auto` from `validate` to `create-drop` and disabled Flyway (H2 schema managed by Hibernate)
 
 ### Fixed
 - **Activity logs not recording**: AOP interceptor ran before `@Transactional` advisor — `eventOutPort.publishLogged()` was called after transaction already committed, so `@TransactionalEventListener(AFTER_COMMIT)` never fired. Changed to `@EventListener` — interceptor guarantees only successful operations reach the publish code.

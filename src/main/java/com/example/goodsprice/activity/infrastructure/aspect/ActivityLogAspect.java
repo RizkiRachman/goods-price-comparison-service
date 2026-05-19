@@ -12,7 +12,9 @@ import static com.example.goodsprice.activity.infrastructure.config.ActivityLogC
 import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.METHOD_GET_ID;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
+import com.example.goodsprice.activity.application.domain.model.ActivityLogAction;
 import com.example.goodsprice.activity.application.domain.model.ActivityLogDomain;
+import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
 import com.example.goodsprice.activity.application.port.out.ActivityLogEventOutPort;
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
@@ -36,17 +38,17 @@ public class ActivityLogAspect {
 
   private final ActivityLogEventOutPort eventOutPort;
 
-  private static final Map<String, String> ENTITY_TYPE_MAP =
+  private static final Map<String, ActivityLogType> ENTITY_TYPE_MAP =
       Map.of(
-          "Receipt", "RECEIPT",
-          "ReceiptCorrection", "RECEIPT",
-          "Product", "PRODUCT",
-          "Store", "STORE",
-          "Price", "PRICE_RECORD",
-          "Category", "CATEGORY",
-          "Unit", "UNIT",
-          "Alert", "ALERT",
-          "FeedbackQuestion", "FEEDBACK_QUESTION");
+          "Receipt", ActivityLogType.RECEIPT,
+          "ReceiptCorrection", ActivityLogType.RECEIPT,
+          "Product", ActivityLogType.PRODUCT,
+          "Store", ActivityLogType.STORE,
+          "Price", ActivityLogType.PRICE_RECORD,
+          "Category", ActivityLogType.CATEGORY,
+          "Unit", ActivityLogType.UNIT,
+          "Alert", ActivityLogType.ALERT,
+          "FeedbackQuestion", ActivityLogType.FEEDBACK_QUESTION);
 
   private static final String PREFIX_CREATE = "create";
   private static final String PREFIX_SAVE = "save";
@@ -56,9 +58,6 @@ public class ActivityLogAspect {
   private static final String PREFIX_DELETE = "delete";
   private static final String PREFIX_REMOVE = "remove";
   private static final String PREFIX_APPROVE = "approve";
-
-  private static final String ACTION_CREATE = "CREATE";
-  private static final String ACTION_UPDATE = "UPDATE";
 
   @Bean
   public Advisor activityLogAdvisor() {
@@ -102,19 +101,19 @@ public class ActivityLogAspect {
     return result;
   }
 
-  static String resolveAction(String methodName) {
+  static ActivityLogAction resolveAction(String methodName) {
     if (methodName.startsWith(PREFIX_CREATE) || methodName.startsWith(PREFIX_SAVE))
-      return ACTION_CREATE;
+      return ActivityLogAction.CREATE;
     if (methodName.startsWith(PREFIX_UPDATE)
         || methodName.startsWith(PREFIX_EDIT)
-        || methodName.startsWith(PREFIX_CORRECT)) return ACTION_UPDATE;
+        || methodName.startsWith(PREFIX_CORRECT)) return ActivityLogAction.UPDATE;
     if (methodName.startsWith(PREFIX_DELETE)
         || methodName.startsWith(PREFIX_REMOVE)
-        || methodName.startsWith(PREFIX_APPROVE)) return ACTION_UPDATE;
+        || methodName.startsWith(PREFIX_APPROVE)) return ActivityLogAction.UPDATE;
     return null;
   }
 
-  static String resolveEntityType(Class<?> targetClass) {
+  static ActivityLogType resolveEntityType(Class<?> targetClass) {
     var name = targetClass.getSimpleName();
     if (name.contains(CLASS_PROXY_MARKER)) {
       name = name.substring(0, name.indexOf(CLASS_PROXY_MARKER));
@@ -129,11 +128,12 @@ public class ActivityLogAspect {
     if (name.endsWith(CLASS_SUFFIX_JPA)
         || name.endsWith(CLASS_SUFFIX_ADAPTER)
         || name.endsWith(CLASS_SUFFIX_ASPECT)) return null;
-    return ENTITY_TYPE_MAP.getOrDefault(name, name);
+    return ENTITY_TYPE_MAP.get(name);
   }
 
-  private static String buildDescription(String entityType, String action, String entityId) {
-    var desc = DESC_FORMAT.formatted(entityType, action.toLowerCase(Locale.ROOT));
+  private static String buildDescription(
+      ActivityLogType entityType, ActivityLogAction action, String entityId) {
+    var desc = DESC_FORMAT.formatted(entityType, action.name().toLowerCase(Locale.ROOT));
     if (Objects.nonNull(entityId)) desc = DESC_WITH_ID_FORMAT.formatted(desc, entityId);
     return desc;
   }

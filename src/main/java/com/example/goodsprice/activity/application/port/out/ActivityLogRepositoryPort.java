@@ -1,6 +1,8 @@
 package com.example.goodsprice.activity.application.port.out;
 
+import com.example.goodsprice.activity.application.domain.model.ActivityLogAction;
 import com.example.goodsprice.activity.application.domain.model.ActivityLogDomain;
+import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
 import com.example.goodsprice.common.dto.PageRequest;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.repository.GenericRepositoryPort;
@@ -11,8 +13,8 @@ public interface ActivityLogRepositoryPort extends GenericRepositoryPort<Activit
 
   PageResponse<ActivityLogDomain> findAll(
       PageRequest pageRequest,
-      String type,
-      String action,
+      ActivityLogType type,
+      ActivityLogAction action,
       LocalDateTime startDate,
       LocalDateTime endDate);
 }

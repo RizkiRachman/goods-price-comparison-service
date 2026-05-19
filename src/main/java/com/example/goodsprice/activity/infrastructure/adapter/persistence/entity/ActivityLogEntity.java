@@ -2,6 +2,8 @@ package com.example.goodsprice.activity.infrastructure.adapter.persistence.entit
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -25,11 +27,13 @@ public class ActivityLogEntity {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "type", nullable = false, length = 50)
-  private String type;
+  private ActivityLogTypeEntity type;
 
+  @Enumerated(EnumType.STRING)
   @Column(name = "action", nullable = false, length = 20)
-  private String action;
+  private ActivityLogActionEntity action;
 
   @Column(name = "description", columnDefinition = "TEXT")
   private String description;

@@ -12,8 +12,8 @@ import lombok.Setter;
 public class ActivityLogDomain {
 
   private UUID id;
-  private String type;
-  private String action;
+  private ActivityLogType type;
+  private ActivityLogAction action;
   private String description;
   private LocalDateTime createdAt;
   private LocalDateTime updatedAt;

@@ -4,7 +4,9 @@ import static com.example.goodsprice.activity.infrastructure.config.ActivityLogC
 import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.ENTITY_FIELD_ACTION;
 import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.ENTITY_FIELD_TYPE;
 
+import com.example.goodsprice.activity.application.domain.model.ActivityLogAction;
 import com.example.goodsprice.activity.application.domain.model.ActivityLogDomain;
+import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
 import com.example.goodsprice.activity.application.port.out.ActivityLogRepositoryPort;
 import com.example.goodsprice.activity.infrastructure.adapter.persistence.entity.ActivityLogEntity;
 import com.example.goodsprice.common.constant.SortConstants;
@@ -48,14 +50,14 @@ public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
   @Override
   public PageResponse<ActivityLogDomain> findAll(
       PageRequest pageRequest, String search, String status) {
-    return findAll(pageRequest, search, status, null, null);
+    return findAll(pageRequest, null, null, null, null);
   }
 
   @Override
   public PageResponse<ActivityLogDomain> findAll(
       PageRequest pageRequest,
-      String type,
-      String action,
+      ActivityLogType type,
+      ActivityLogAction action,
       LocalDateTime startDate,
       LocalDateTime endDate) {
     var sortBy =
@@ -76,11 +78,11 @@ public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
     Specification<ActivityLogEntity> spec =
         (root, query, cb) -> {
           var predicates = new ArrayList<Predicate>();
-          if (Objects.nonNull(type) && !type.isBlank()) {
-            predicates.add(cb.equal(root.get(ENTITY_FIELD_TYPE), type));
+          if (Objects.nonNull(type)) {
+            predicates.add(cb.equal(root.get(ENTITY_FIELD_TYPE), type.name()));
           }
-          if (Objects.nonNull(action) && !action.isBlank()) {
-            predicates.add(cb.equal(root.get(ENTITY_FIELD_ACTION), action));
+          if (Objects.nonNull(action)) {
+            predicates.add(cb.equal(root.get(ENTITY_FIELD_ACTION), action.name()));
           }
           if (Objects.nonNull(startDate)) {
             predicates.add(cb.greaterThanOrEqualTo(root.get(DEFAULT_SORT_FIELD), startDate));
