@@ -13,12 +13,19 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 ## [Unreleased]
 
 ### Added
+- **Activity Log Service**: New `activity` package under hexagonal architecture — stores CREATE/UPDATE/DELETE operations via `@ActivityLog` annotation with AOP interception, async event-driven persistence via `@TransactionalEventListener(AFTER_COMMIT)`
+- **Activity Logs API**: `GET /v1/activity-logs` — paginated, sortable, filterable by type/action/date range; `GET /v1/activity-logs/{id}` — single record. Implements generated `ActivityLogsApi` interface from API spec v1.10.0
+- **DB migrations**: `V13__create_activity_logs_table.sql`
 - **Feedback & Questions**: `POST/GET /v1/feedback-questions` — create feedback or questions, list with pagination/sorting, get by UUID. Uses generic service/repository pattern with `AbstractGenericService` and `GenericRepositoryPort`
 - **DB migrations**: `V12__create_feedback_questions_table.sql`
 - **Caffeine cache**: `feedback-questions` cache for `findById` and `save`
 
 ### Changed
-- **API spec**: Updated `goods-price-comparison-api` from `1.8.1` to `1.9.0`
+- **API spec**: Updated `goods-price-comparison-api` from `1.9.0` to `1.10.0`
+- **PMD ruleset**: Upgraded to PMD 7.7.0, renamed deprecated JUnit rules to `UnitTest*` equivalents, removed non-existent rules (`AtLeastOneConstructor`, `BeanMembersShouldSerialize`, `AvoidCatchingGenericException`, `AvoidRethrowingException`)
+- **Jackson config**: Replaced deprecated `Jackson2ObjectMapperBuilder` with explicit `ObjectMapper` bean for Spring Boot 4.0.5 compatibility
+- **Test config**: Changed `spring.jpa.hibernate.ddl-auto` from `validate` to `update` for Flyway compatibility
+- **ActivityLogService**: Extends `AbstractGenericService<ActivityLogDomain, UUID>` with `GenericRepositoryPort` for standard CRUD operations
 
 ### Fixed
 - **FindSecBugs NPE**: Fix `CorsRegistryCORSDetector` crash by switching `allowedOrigins` to `allowedOriginPatterns` (different method name bypasses the detector) and removing unused `.allowedHeaders()` call

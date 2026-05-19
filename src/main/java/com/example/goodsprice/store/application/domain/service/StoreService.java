@@ -1,5 +1,6 @@
 package com.example.goodsprice.store.application.domain.service;
 
+import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.dto.PageRequest;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
@@ -21,6 +22,7 @@ public class StoreService implements StoreInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public StoreDomain create(
       String name,
       String location,
@@ -65,6 +67,7 @@ public class StoreService implements StoreInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public StoreDomain update(
       Long id,
       String name,
@@ -90,6 +93,7 @@ public class StoreService implements StoreInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public void deleteById(Long id) {
     var store = storeRepository.findById(id);
     if (Objects.isNull(store)) throw new StoreNotFoundException(id);

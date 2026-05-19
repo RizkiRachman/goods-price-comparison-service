@@ -16,5 +16,6 @@ public final class ErrorCodes {
   public static final String CATEGORY_NOT_FOUND = "CATEGORY_NOT_FOUND";
   public static final String UNIT_NOT_FOUND = "UNIT_NOT_FOUND";
   public static final String INTERNAL_ERROR = "INTERNAL_ERROR";
+  public static final String ACTIVITY_LOG_NOT_FOUND = "ACTIVITY_LOG_NOT_FOUND";
   public static final String FEEDBACK_QUESTION_NOT_FOUND = "FEEDBACK_QUESTION_NOT_FOUND";
 }

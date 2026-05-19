@@ -56,4 +56,25 @@ public class AsyncConfiguration {
         executor.getQueueCapacity());
     return executor;
   }
+
+  @Bean(name = "activityLogExecutor")
+  public Executor activityLogExecutor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(2);
+    executor.setMaxPoolSize(5);
+    executor.setQueueCapacity(100);
+    executor.setThreadNamePrefix("activity-log-");
+    executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+    executor.setAllowCoreThreadTimeOut(true);
+    executor.setKeepAliveSeconds(120);
+    executor.setWaitForTasksToCompleteOnShutdown(true);
+    executor.setAwaitTerminationSeconds(30);
+    executor.initialize();
+    log.info(
+        "Activity log executor initialized: core={}, max={}, queue={}",
+        executor.getCorePoolSize(),
+        executor.getMaxPoolSize(),
+        executor.getQueueCapacity());
+    return executor;
+  }
 }

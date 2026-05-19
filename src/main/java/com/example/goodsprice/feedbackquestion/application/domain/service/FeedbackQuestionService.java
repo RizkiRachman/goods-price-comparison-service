@@ -1,5 +1,6 @@
 package com.example.goodsprice.feedbackquestion.application.domain.service;
 
+import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.constant.ErrorCodes;
 import com.example.goodsprice.common.dto.PageRequest;
 import com.example.goodsprice.common.dto.PageResponse;
@@ -32,6 +33,7 @@ public class FeedbackQuestionService extends AbstractGenericService<FeedbackQues
 
   @Override
   @Transactional
+  @ActivityLog
   public FeedbackQuestionDomain create(
       String userName, String userEmail, FeedbackQuestionType type, String message) {
     var domain =

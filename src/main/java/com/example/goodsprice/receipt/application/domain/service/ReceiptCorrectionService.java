@@ -1,5 +1,6 @@
 package com.example.goodsprice.receipt.application.domain.service;
 
+import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCorrectionDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptItemCorrectionDomain;
@@ -29,6 +30,7 @@ public class ReceiptCorrectionService implements ReceiptCorrectionInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public ReceiptDomain correct(UUID receiptId, ReceiptCorrectionDomain correction) {
     var receipt = receiptRepository.findById(receiptId);
     if (Objects.isNull(receipt)) throw new ReceiptNotFoundException(receiptId);

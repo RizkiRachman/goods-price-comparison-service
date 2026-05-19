@@ -2,6 +2,7 @@ package com.example.goodsprice.receipt.application.domain.service;
 
 import static com.example.goodsprice.common.constant.ErrorMessageConstants.ITEMS_NOT_EMPTY_MSG;
 
+import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.util.HashUtils;
 import com.example.goodsprice.common.util.JsonUtils;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
@@ -36,6 +37,7 @@ public class ReceiptService implements ReceiptInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public ReceiptDomain upload(byte[] imageBytes, String originalFilename) {
     var imageHash = HashUtils.sha256(imageBytes);
     log.info("Uploading receipt: {} (hash: {})", originalFilename, imageHash);
@@ -80,6 +82,7 @@ public class ReceiptService implements ReceiptInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public void approve(UUID id) {
     var receipt = findById(id);
     receipt.markAsApproved();
@@ -143,6 +146,7 @@ public class ReceiptService implements ReceiptInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public ReceiptDomain create(ReceiptCreateDomain request) {
     var extractedDataJson = JsonUtils.toJson(request);
     var imageHash = JsonUtils.hash256(request);
