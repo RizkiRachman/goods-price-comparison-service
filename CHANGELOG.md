@@ -23,9 +23,19 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 ### Changed
 - **API spec**: Updated `goods-price-comparison-api` from `1.9.0` to `1.10.0`
 - **PMD ruleset**: Upgraded to PMD 7.7.0, renamed deprecated JUnit rules to `UnitTest*` equivalents, removed non-existent rules (`AtLeastOneConstructor`, `BeanMembersShouldSerialize`, `AvoidCatchingGenericException`, `AvoidRethrowingException`)
-- **Jackson config**: Replaced deprecated `Jackson2ObjectMapperBuilder` with explicit `ObjectMapper` bean for Spring Boot 4.0.5 compatibility
+- **Jackson config**: Replaced deprecated `Jackson2ObjectMapperBuilder` with explicit `ObjectMapper` bean for Spring Boot 4.0.5 compatibility; added `spring.http.converters.preferred-json-mapper=jackson2` for `JsonNullableModule` compatibility
 - **Test config**: Changed `spring.jpa.hibernate.ddl-auto` from `validate` to `update` for Flyway compatibility
+- **CI workflows**: Updated `ci-build`, `ci-publish`, `codeql` from JDK 17 to JDK 21
 - **ActivityLogService**: Extends `AbstractGenericService<ActivityLogDomain, UUID>` with `GenericRepositoryPort` for standard CRUD operations
+- **AsyncConfiguration**: Extracted `createExecutor()` factory method eliminating 90% duplication across 3 thread pool beans
+- **ActivityLogAspect**: Extracted hardcoded strings (method prefixes, class suffixes, field names) to `ActivityLogConstants`
+
+### Fixed
+- **Activity logs not recording**: AOP interceptor ran before `@Transactional` advisor — `eventOutPort.publishLogged()` was called after transaction already committed, so `@TransactionalEventListener(AFTER_COMMIT)` never fired. Changed to `@EventListener` — interceptor guarantees only successful operations reach the publish code.
+- **StaleObjectStateException in activity logs**: `ActivityLogMapper.toEntity()` pre-set UUID via `UUID.randomUUID()`, causing `merge()` instead of `persist()` in `REQUIRES_NEW` transaction. Removed ID generation — let `@GeneratedValue` handle it.
+- **400 VALIDATION_ERROR "Unexpected value 'ACTIVE'"**: `EntityStatus.fromValue("ACTIVE")` threw `IllegalArgumentException` for domain models using status `"ACTIVE"`. `ObjectUtils.getOrNull` now catches exceptions, returning null gracefully.
+- **Correction activity type wrong**: `ReceiptCorrectionService` resolved to `RECEIPTCORRECTIONSERVICE` instead of `RECEIPT`. Fixed CGLIB proxy name resolution (strip `$$` before `Service` suffix) and added entity type mapping for corrections.
+- **Jackson deserialization of JsonNullable**: Spring Boot 4.x uses Jackson 3.x by default but `jackson-databind-nullable` targets Jackson 2.x. Added `spring.http.converters.preferred-json-mapper=jackson2` to force Jackson 2.x HTTP converters.
 
 ### Fixed
 - **FindSecBugs NPE**: Fix `CorsRegistryCORSDetector` crash by switching `allowedOrigins` to `allowedOriginPatterns` (different method name bypasses the detector) and removing unused `.allowedHeaders()` call
