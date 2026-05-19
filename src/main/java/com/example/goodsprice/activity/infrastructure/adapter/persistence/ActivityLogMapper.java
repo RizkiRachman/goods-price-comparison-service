@@ -4,7 +4,6 @@ import com.example.goodsprice.activity.application.domain.model.ActivityLogDomai
 import com.example.goodsprice.activity.infrastructure.adapter.persistence.entity.ActivityLogEntity;
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -14,7 +13,6 @@ public class ActivityLogMapper {
     if (Objects.isNull(domain)) return null;
     var now = LocalDateTime.now();
     return ActivityLogEntity.builder()
-        .id(Objects.nonNull(domain.getId()) ? domain.getId() : UUID.randomUUID())
         .type(domain.getType())
         .action(domain.getAction())
         .description(domain.getDescription())

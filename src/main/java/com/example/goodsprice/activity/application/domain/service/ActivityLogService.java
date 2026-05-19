@@ -12,7 +12,6 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
@@ -33,7 +32,7 @@ public class ActivityLogService extends AbstractGenericService<ActivityLogDomain
   }
 
   @Override
-  @Transactional(propagation = Propagation.REQUIRES_NEW)
+  @Transactional
   public void log(ActivityLogDomain activity) {
     getRepository().save(activity);
     log.debug("Activity logged: {} {}", activity.getType(), activity.getDescription());
