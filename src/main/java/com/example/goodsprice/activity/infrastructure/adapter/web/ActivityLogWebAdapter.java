@@ -56,7 +56,7 @@ public class ActivityLogWebAdapter {
     try {
       return ActivityLogType.valueOf(type.toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException e) {
-      log.warn("Invalid activity log type filter: {}", type);
+      log.warn("Invalid activity log type filter: {}", sanitizeForLog(type));
       return null;
     }
   }
@@ -66,8 +66,13 @@ public class ActivityLogWebAdapter {
     try {
       return ActivityLogAction.valueOf(action.toUpperCase(Locale.ROOT));
     } catch (IllegalArgumentException e) {
-      log.warn("Invalid activity log action filter: {}", action);
+      log.warn("Invalid activity log action filter: {}", sanitizeForLog(action));
       return null;
     }
+  }
+
+  private static String sanitizeForLog(String value) {
+    if (value == null) return null;
+    return value.replaceAll("[\\r\\n\\t\\f\\u0000-\\u001F\\u007F]", "_");
   }
 }
