@@ -1,5 +1,16 @@
 package com.example.goodsprice.activity.infrastructure.aspect;
 
+import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.ADVISOR_ORDER;
+import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.CLASS_PROXY_MARKER;
+import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.CLASS_SUFFIX_ADAPTER;
+import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.CLASS_SUFFIX_ASPECT;
+import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.CLASS_SUFFIX_JPA;
+import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.CLASS_SUFFIX_SERVICE;
+import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.CLASS_SUFFIX_SERVICE_IMPL;
+import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.DESC_FORMAT;
+import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.DESC_WITH_ID_FORMAT;
+import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.METHOD_GET_ID;
+
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.activity.application.domain.model.ActivityLogDomain;
 import com.example.goodsprice.activity.application.port.out.ActivityLogEventOutPort;
@@ -37,12 +48,24 @@ public class ActivityLogAspect {
           "Alert", "ALERT",
           "FeedbackQuestion", "FEEDBACK_QUESTION");
 
+  private static final String PREFIX_CREATE = "create";
+  private static final String PREFIX_SAVE = "save";
+  private static final String PREFIX_UPDATE = "update";
+  private static final String PREFIX_EDIT = "edit";
+  private static final String PREFIX_CORRECT = "correct";
+  private static final String PREFIX_DELETE = "delete";
+  private static final String PREFIX_REMOVE = "remove";
+  private static final String PREFIX_APPROVE = "approve";
+
+  private static final String ACTION_CREATE = "CREATE";
+  private static final String ACTION_UPDATE = "UPDATE";
+
   @Bean
   public Advisor activityLogAdvisor() {
     var pointcut = AnnotationMatchingPointcut.forMethodAnnotation(ActivityLog.class);
     var interceptor = (MethodInterceptor) this::intercept;
     var advisor = new DefaultPointcutAdvisor(pointcut, interceptor);
-    advisor.setOrder(1);
+    advisor.setOrder(ADVISOR_ORDER);
     return advisor;
   }
 
@@ -80,33 +103,38 @@ public class ActivityLogAspect {
   }
 
   static String resolveAction(String methodName) {
-    if (methodName.startsWith("create") || methodName.startsWith("save")) return "CREATE";
-    if (methodName.startsWith("update")
-        || methodName.startsWith("edit")
-        || methodName.startsWith("correct")) return "UPDATE";
-    if (methodName.startsWith("delete")
-        || methodName.startsWith("remove")
-        || methodName.startsWith("approve")) return "UPDATE";
+    if (methodName.startsWith(PREFIX_CREATE) || methodName.startsWith(PREFIX_SAVE))
+      return ACTION_CREATE;
+    if (methodName.startsWith(PREFIX_UPDATE)
+        || methodName.startsWith(PREFIX_EDIT)
+        || methodName.startsWith(PREFIX_CORRECT)) return ACTION_UPDATE;
+    if (methodName.startsWith(PREFIX_DELETE)
+        || methodName.startsWith(PREFIX_REMOVE)
+        || methodName.startsWith(PREFIX_APPROVE)) return ACTION_UPDATE;
     return null;
   }
 
   static String resolveEntityType(Class<?> targetClass) {
     var name = targetClass.getSimpleName();
-    if (name.contains("$$")) {
-      name = name.substring(0, name.indexOf("$$"));
+    if (name.contains(CLASS_PROXY_MARKER)) {
+      name = name.substring(0, name.indexOf(CLASS_PROXY_MARKER));
     }
     if (name.endsWith("$")) {
       name = name.substring(0, name.length() - 1);
     }
-    if (name.endsWith("ServiceImpl")) name = name.substring(0, name.length() - 5);
-    if (name.endsWith("Service")) name = name.substring(0, name.length() - 7);
-    if (name.endsWith("Jpa") || name.endsWith("Adapter") || name.endsWith("Aspect")) return null;
+    if (name.endsWith(CLASS_SUFFIX_SERVICE_IMPL))
+      name = name.substring(0, name.length() - CLASS_SUFFIX_SERVICE_IMPL.length());
+    if (name.endsWith(CLASS_SUFFIX_SERVICE))
+      name = name.substring(0, name.length() - CLASS_SUFFIX_SERVICE.length());
+    if (name.endsWith(CLASS_SUFFIX_JPA)
+        || name.endsWith(CLASS_SUFFIX_ADAPTER)
+        || name.endsWith(CLASS_SUFFIX_ASPECT)) return null;
     return ENTITY_TYPE_MAP.getOrDefault(name, name);
   }
 
   private static String buildDescription(String entityType, String action, String entityId) {
-    var desc = "%s %sd".formatted(entityType, action.toLowerCase(Locale.ROOT));
-    if (Objects.nonNull(entityId)) desc = "%s (id: %s)".formatted(desc, entityId);
+    var desc = DESC_FORMAT.formatted(entityType, action.toLowerCase(Locale.ROOT));
+    if (Objects.nonNull(entityId)) desc = DESC_WITH_ID_FORMAT.formatted(desc, entityId);
     return desc;
   }
 
@@ -123,7 +151,7 @@ public class ActivityLogAspect {
 
   private static String extractIdViaReflection(Object obj) {
     try {
-      var method = obj.getClass().getMethod("getId");
+      var method = obj.getClass().getMethod(METHOD_GET_ID);
       var id = method.invoke(obj);
       return Objects.nonNull(id) ? id.toString() : null;
     } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {

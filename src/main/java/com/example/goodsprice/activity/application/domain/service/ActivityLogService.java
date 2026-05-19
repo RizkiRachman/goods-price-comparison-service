@@ -1,5 +1,7 @@
 package com.example.goodsprice.activity.application.domain.service;
 
+import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.ENTITY_NAME;
+
 import com.example.goodsprice.activity.application.domain.model.ActivityLogDomain;
 import com.example.goodsprice.activity.application.port.in.ActivityLogInPort;
 import com.example.goodsprice.activity.application.port.out.ActivityLogRepositoryPort;
@@ -22,7 +24,7 @@ public class ActivityLogService extends AbstractGenericService<ActivityLogDomain
   private final ActivityLogRepositoryPort activityLogRepository;
 
   public ActivityLogService(ActivityLogRepositoryPort activityLogRepository) {
-    super("ActivityLog", ErrorCodes.ACTIVITY_LOG_NOT_FOUND);
+    super(ENTITY_NAME, ErrorCodes.ACTIVITY_LOG_NOT_FOUND);
     this.activityLogRepository = activityLogRepository;
   }
 

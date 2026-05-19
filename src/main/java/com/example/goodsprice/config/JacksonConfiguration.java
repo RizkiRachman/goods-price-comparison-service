@@ -16,15 +16,17 @@ public class JacksonConfiguration {
   @Bean
   @Primary
   public ObjectMapper objectMapper() {
-    var offsetDateTimeModule = new SimpleModule();
-    offsetDateTimeModule.addDeserializer(
-        OffsetDateTime.class, new LenientOffsetDateTimeDeserializer());
-
     var mapper = new ObjectMapper();
     mapper.registerModule(new JsonNullableModule());
     mapper.registerModule(new JavaTimeModule());
-    mapper.registerModule(offsetDateTimeModule);
+    mapper.registerModule(offsetDateTimeModule());
     mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     return mapper;
+  }
+
+  private static SimpleModule offsetDateTimeModule() {
+    var module = new SimpleModule();
+    module.addDeserializer(OffsetDateTime.class, new LenientOffsetDateTimeDeserializer());
+    return module;
   }
 }

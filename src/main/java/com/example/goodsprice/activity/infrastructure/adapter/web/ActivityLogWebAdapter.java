@@ -3,6 +3,7 @@ package com.example.goodsprice.activity.infrastructure.adapter.web;
 import com.example.goodsprice.activity.application.port.in.ActivityLogInPort;
 import com.example.goodsprice.activity.infrastructure.adapter.web.mapper.ActivityLogDtoMapper;
 import com.example.goodsprice.api.model.ActivityLogListResponse;
+import com.example.goodsprice.common.constant.AppConstants;
 import com.example.goodsprice.common.util.ObjectUtils;
 import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,7 @@ public class ActivityLogWebAdapter {
       OffsetDateTime startDate,
       OffsetDateTime endDate) {
     var pageValue = ObjectUtils.getOrDefault(page, p -> p, 1);
-    var sizeValue = ObjectUtils.getOrDefault(pageSize, s -> s, 20);
+    var sizeValue = ObjectUtils.getOrDefault(pageSize, s -> s, AppConstants.DEFAULT_PAGE_SIZE);
 
     var pageResponse =
         activityLogInPort.findAll(

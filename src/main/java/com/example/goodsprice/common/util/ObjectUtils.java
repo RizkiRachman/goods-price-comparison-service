@@ -15,7 +15,7 @@ public final class ObjectUtils {
     if (Objects.isNull(obj)) return null;
     try {
       return getter.apply(obj);
-    } catch (Exception e) {
+    } catch (RuntimeException e) {
       return null;
     }
   }
