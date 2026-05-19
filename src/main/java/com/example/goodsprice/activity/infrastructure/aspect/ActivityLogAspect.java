@@ -15,73 +15,15 @@ import org.aopalliance.intercept.MethodInvocation;
 import org.springframework.aop.Advisor;
 import org.springframework.aop.support.DefaultPointcutAdvisor;
 import org.springframework.aop.support.annotation.AnnotationMatchingPointcut;
-import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Role;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
 @Slf4j
-@Component
+@Configuration
+@RequiredArgsConstructor
 public class ActivityLogAspect {
 
-  @Bean
-  @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-  public static Advisor activityLogAdvisor(ActivityLogEventOutPort eventOutPort) {
-    var pointcut = AnnotationMatchingPointcut.forMethodAnnotation(ActivityLog.class);
-    var interceptor = (MethodInterceptor) new ActivityLogInterceptor(eventOutPort);
-    var advisor = new DefaultPointcutAdvisor(pointcut, interceptor);
-    advisor.setOrder(1);
-    return advisor;
-  }
-
-  @RequiredArgsConstructor
-  static class ActivityLogInterceptor implements MethodInterceptor {
-
-    private final ActivityLogEventOutPort eventOutPort;
-
-    @Override
-    public Object invoke(MethodInvocation invocation) throws Throwable {
-      var result = invocation.proceed();
-      try {
-        var methodName = invocation.getMethod().getName();
-        var action = resolveAction(methodName);
-        if (Objects.nonNull(action)) {
-          var targetClass = invocation.getThis().getClass();
-          var entityType = resolveEntityType(targetClass);
-          if (Objects.nonNull(entityType)) {
-            var entityId = resolveEntityId(result, invocation.getArguments());
-            var type = entityType;
-            var description = buildDescription(entityType, action, entityId);
-            log.debug("Activity detected: {} ({})", type, description);
-            var now = LocalDateTime.now();
-            var activity =
-                ActivityLogDomain.builder()
-                    .type(type)
-                    .action(action)
-                    .description(description)
-                    .createdAt(now)
-                    .updatedAt(now)
-                    .build();
-            eventOutPort.publishLogged(activity);
-          }
-        }
-      } catch (Exception e) {
-        log.warn("Failed to log activity: {}", e.getMessage());
-      }
-      return result;
-    }
-  }
-
-  static String resolveAction(String methodName) {
-    if (methodName.startsWith("create") || methodName.startsWith("save")) return "CREATE";
-    if (methodName.startsWith("update")
-        || methodName.startsWith("edit")
-        || methodName.startsWith("correct")) return "UPDATE";
-    if (methodName.startsWith("delete")
-        || methodName.startsWith("remove")
-        || methodName.startsWith("approve")) return "UPDATE";
-    return null;
-  }
+  private final ActivityLogEventOutPort eventOutPort;
 
   private static final Map<String, String> ENTITY_TYPE_MAP =
       Map.of(
@@ -94,6 +36,59 @@ public class ActivityLogAspect {
           "Unit", "UNIT",
           "Alert", "ALERT",
           "FeedbackQuestion", "FEEDBACK_QUESTION");
+
+  @Bean
+  public Advisor activityLogAdvisor() {
+    var pointcut = AnnotationMatchingPointcut.forMethodAnnotation(ActivityLog.class);
+    var interceptor = (MethodInterceptor) this::intercept;
+    var advisor = new DefaultPointcutAdvisor(pointcut, interceptor);
+    advisor.setOrder(1);
+    return advisor;
+  }
+
+  private Object intercept(MethodInvocation invocation) throws Throwable {
+    log.debug(
+        "AOP intercept: {}.{}",
+        invocation.getThis().getClass().getSimpleName(),
+        invocation.getMethod().getName());
+    var result = invocation.proceed();
+    try {
+      var methodName = invocation.getMethod().getName();
+      var action = resolveAction(methodName);
+      if (Objects.nonNull(action)) {
+        var targetClass = invocation.getThis().getClass();
+        var entityType = resolveEntityType(targetClass);
+        if (Objects.nonNull(entityType)) {
+          var entityId = resolveEntityId(result, invocation.getArguments());
+          log.debug("Activity detected: {} ({})", entityType, action);
+          var now = LocalDateTime.now();
+          var activity =
+              ActivityLogDomain.builder()
+                  .type(entityType)
+                  .action(action)
+                  .description(buildDescription(entityType, action, entityId))
+                  .createdAt(now)
+                  .updatedAt(now)
+                  .build();
+          eventOutPort.publishLogged(activity);
+        }
+      }
+    } catch (Exception e) {
+      log.warn("Failed to log activity: {}", e.getMessage());
+    }
+    return result;
+  }
+
+  static String resolveAction(String methodName) {
+    if (methodName.startsWith("create") || methodName.startsWith("save")) return "CREATE";
+    if (methodName.startsWith("update")
+        || methodName.startsWith("edit")
+        || methodName.startsWith("correct")) return "UPDATE";
+    if (methodName.startsWith("delete")
+        || methodName.startsWith("remove")
+        || methodName.startsWith("approve")) return "UPDATE";
+    return null;
+  }
 
   static String resolveEntityType(Class<?> targetClass) {
     var name = targetClass.getSimpleName();
