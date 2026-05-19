@@ -1,5 +1,6 @@
 package com.example.goodsprice.price.application.domain.service;
 
+import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.exception.PriceNotFoundException;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
@@ -27,6 +28,7 @@ public class PriceService implements PriceInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public PriceDomain create(
       Long productId,
       Long storeId,
@@ -85,6 +87,7 @@ public class PriceService implements PriceInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public void deleteById(Long id) {
     var price = priceRepository.findById(id);
     if (Objects.isNull(price)) throw new PriceNotFoundException(id);
@@ -94,6 +97,7 @@ public class PriceService implements PriceInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public PriceDomain update(
       Long id, Double price, Double unitPrice, LocalDate dateRecorded, Boolean isPromo) {
     var existing = priceRepository.findById(id);

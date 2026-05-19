@@ -1,5 +1,6 @@
 package com.example.goodsprice.unit.application.domain.service;
 
+import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.constant.ErrorCodes;
 import com.example.goodsprice.common.dto.PageRequest;
 import com.example.goodsprice.common.dto.PageResponse;
@@ -31,6 +32,7 @@ public class UnitService extends AbstractGenericService<UnitDomain, String> impl
 
   @Override
   @Transactional
+  @ActivityLog
   public UnitDomain create(String id, String name, String symbol, String type, String description) {
     var unit =
         UnitDomain.builder()
@@ -59,6 +61,7 @@ public class UnitService extends AbstractGenericService<UnitDomain, String> impl
 
   @Override
   @Transactional
+  @ActivityLog
   public UnitDomain update(
       String id, String name, String symbol, String type, String description, String status) {
     var existing = findById(id);

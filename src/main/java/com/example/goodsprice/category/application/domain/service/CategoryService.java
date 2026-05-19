@@ -1,5 +1,6 @@
 package com.example.goodsprice.category.application.domain.service;
 
+import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.category.application.domain.model.CategoryDomain;
 import com.example.goodsprice.category.application.port.in.CategoryInPort;
 import com.example.goodsprice.category.application.port.out.CategoryRepositoryPort;
@@ -30,6 +31,7 @@ public class CategoryService extends AbstractGenericService<CategoryDomain, Stri
 
   @Override
   @Transactional
+  @ActivityLog
   public CategoryDomain create(String id, String name, String description) {
     var category =
         CategoryDomain.builder()
@@ -49,6 +51,7 @@ public class CategoryService extends AbstractGenericService<CategoryDomain, Stri
 
   @Override
   @Transactional
+  @ActivityLog
   public CategoryDomain update(String id, String name, String description, String status) {
     var existing = findById(id);
     existing.setName(name);

@@ -1,5 +1,6 @@
 package com.example.goodsprice.product.application.domain.service;
 
+import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.common.util.PaginationUtils;
@@ -40,6 +41,7 @@ public class ProductService implements ProductInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public ProductDomain create(String name, String category, String brand, String unit) {
     var product =
         ProductDomain.builder().name(name).category(category).brand(brand).unit(unit).build();
@@ -50,6 +52,7 @@ public class ProductService implements ProductInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public ProductDomain createIfNotExist(String name, String category, String unit) {
     var existing = productRepository.findByName(name);
     if (Objects.nonNull(existing)) {
@@ -212,6 +215,7 @@ public class ProductService implements ProductInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public ProductDomain update(Long id, String name, String category, String brand, String unit) {
     var existing = productRepository.findById(id);
     if (Objects.isNull(existing)) throw new ProductNotFoundException(id);
@@ -226,6 +230,7 @@ public class ProductService implements ProductInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public void deleteById(Long id) {
     var product = productRepository.findById(id);
     if (Objects.isNull(product)) throw new ProductNotFoundException(id);

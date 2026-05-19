@@ -54,4 +54,5 @@
   <Match>
     <Class name="com.example.goodsprice.config.CorsConfiguration" />
   </Match>
+
 </FindBugsFilter>

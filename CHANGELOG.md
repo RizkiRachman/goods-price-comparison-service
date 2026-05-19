@@ -13,12 +13,32 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 ## [Unreleased]
 
 ### Added
+- **Activity Log Service**: New `activity` package under hexagonal architecture — stores CREATE/UPDATE/DELETE operations via `@ActivityLog` annotation with AOP interception, async event-driven persistence via `@TransactionalEventListener(AFTER_COMMIT)`
+- **Activity Logs API**: `GET /v1/activity-logs` — paginated, sortable, filterable by type/action/date range; `GET /v1/activity-logs/{id}` — single record. Implements generated `ActivityLogsApi` interface from API spec v1.10.0
+- **DB migrations**: `V13__create_activity_logs_table.sql`
 - **Feedback & Questions**: `POST/GET /v1/feedback-questions` — create feedback or questions, list with pagination/sorting, get by UUID. Uses generic service/repository pattern with `AbstractGenericService` and `GenericRepositoryPort`
 - **DB migrations**: `V12__create_feedback_questions_table.sql`
 - **Caffeine cache**: `feedback-questions` cache for `findById` and `save`
 
 ### Changed
-- **API spec**: Updated `goods-price-comparison-api` from `1.8.1` to `1.9.0`
+- **API spec**: Updated `goods-price-comparison-api` from `1.9.0` to `1.10.0`
+- **PMD ruleset**: Upgraded to PMD 7.7.0, renamed deprecated JUnit rules to `UnitTest*` equivalents, removed non-existent rules (`AtLeastOneConstructor`, `BeanMembersShouldSerialize`, `AvoidCatchingGenericException`, `AvoidRethrowingException`)
+- **Jackson config**: Replaced deprecated `Jackson2ObjectMapperBuilder` with explicit `ObjectMapper` bean for Spring Boot 4.0.5 compatibility; added `spring.http.converters.preferred-json-mapper=jackson2` for `JsonNullableModule` compatibility
+- **CI workflows**: Updated `ci-build`, `ci-publish`, `codeql` from JDK 17 to JDK 21
+- **ActivityLogService**: Extends `AbstractGenericService<ActivityLogDomain, UUID>` with `GenericRepositoryPort` for standard CRUD operations
+- **AsyncConfiguration**: Extracted `createExecutor()` factory method eliminating 90% duplication across 3 thread pool beans
+- **ActivityLogAspect**: Extracted hardcoded strings (method prefixes, class suffixes, field names) to `ActivityLogConstants`
+- **DB migration V13**: `type` and `action` columns converted from `VARCHAR` to PostgreSQL native enum types (`activity_log_type`, `activity_log_action`) in `V13__create_activity_logs_table.sql`
+- **Activity logs - enums**: `type` and `action` fields converted from `String` to typed enums (`ActivityLogType`, `ActivityLogAction`) across domain model, entity, ports, service, mapper, and AOP aspect
+- **Database config**: Production uses `ddl-auto=validate` (Flyway via Maven); local dev uses `ddl-auto=update` (H2); tests use `ddl-auto=create-drop` (H2)
+- **Test config**: Changed `spring.jpa.hibernate.ddl-auto` from `validate` to `create-drop` and disabled Flyway (H2 schema managed by Hibernate)
+
+### Fixed
+- **Activity logs not recording**: AOP interceptor ran before `@Transactional` advisor — `eventOutPort.publishLogged()` was called after transaction already committed, so `@TransactionalEventListener(AFTER_COMMIT)` never fired. Changed to `@EventListener` — interceptor guarantees only successful operations reach the publish code.
+- **StaleObjectStateException in activity logs**: `ActivityLogMapper.toEntity()` pre-set UUID via `UUID.randomUUID()`, causing `merge()` instead of `persist()` in `REQUIRES_NEW` transaction. Removed ID generation — let `@GeneratedValue` handle it.
+- **400 VALIDATION_ERROR "Unexpected value 'ACTIVE'"**: `EntityStatus.fromValue("ACTIVE")` threw `IllegalArgumentException` for domain models using status `"ACTIVE"`. `ObjectUtils.getOrNull` now catches exceptions, returning null gracefully.
+- **Correction activity type wrong**: `ReceiptCorrectionService` resolved to `RECEIPTCORRECTIONSERVICE` instead of `RECEIPT`. Fixed CGLIB proxy name resolution (strip `$$` before `Service` suffix) and added entity type mapping for corrections.
+- **Jackson deserialization of JsonNullable**: Spring Boot 4.x uses Jackson 3.x by default but `jackson-databind-nullable` targets Jackson 2.x. Added `spring.http.converters.preferred-json-mapper=jackson2` to force Jackson 2.x HTTP converters.
 
 ### Fixed
 - **FindSecBugs NPE**: Fix `CorsRegistryCORSDetector` crash by switching `allowedOrigins` to `allowedOriginPatterns` (different method name bypasses the detector) and removing unused `.allowedHeaders()` call

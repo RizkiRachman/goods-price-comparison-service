@@ -13,7 +13,11 @@ public final class ObjectUtils {
 
   public static <T, R> R getOrNull(T obj, Function<T, R> getter) {
     if (Objects.isNull(obj)) return null;
-    return getter.apply(obj);
+    try {
+      return getter.apply(obj);
+    } catch (RuntimeException e) {
+      return null;
+    }
   }
 
   public static <T, R> R getOrDefault(T obj, Function<T, R> getter, R defaultValue) {
