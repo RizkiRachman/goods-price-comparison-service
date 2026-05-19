@@ -6,6 +6,7 @@ import com.example.goodsprice.activity.application.port.out.ActivityLogEventOutP
 import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDateTime;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,7 @@ public class ActivityLogAspect {
           var entityType = resolveEntityType(targetClass);
           if (Objects.nonNull(entityType)) {
             var entityId = resolveEntityId(result, invocation.getArguments());
-            var type = entityType.toUpperCase(Locale.ROOT);
+            var type = entityType;
             var description = buildDescription(entityType, action, entityId);
             log.debug("Activity detected: {} ({})", type, description);
             var now = LocalDateTime.now();
@@ -82,18 +83,30 @@ public class ActivityLogAspect {
     return null;
   }
 
+  private static final Map<String, String> ENTITY_TYPE_MAP =
+      Map.of(
+          "Receipt", "RECEIPT",
+          "ReceiptCorrection", "RECEIPT",
+          "Product", "PRODUCT",
+          "Store", "STORE",
+          "Price", "PRICE_RECORD",
+          "Category", "CATEGORY",
+          "Unit", "UNIT",
+          "Alert", "ALERT",
+          "FeedbackQuestion", "FEEDBACK_QUESTION");
+
   static String resolveEntityType(Class<?> targetClass) {
     var name = targetClass.getSimpleName();
+    if (name.contains("$$")) {
+      name = name.substring(0, name.indexOf("$$"));
+    }
     if (name.endsWith("$")) {
       name = name.substring(0, name.length() - 1);
     }
     if (name.endsWith("ServiceImpl")) name = name.substring(0, name.length() - 5);
     if (name.endsWith("Service")) name = name.substring(0, name.length() - 7);
-    if (name.contains("$$")) {
-      name = name.substring(0, name.indexOf("$$"));
-    }
     if (name.endsWith("Jpa") || name.endsWith("Adapter") || name.endsWith("Aspect")) return null;
-    return name;
+    return ENTITY_TYPE_MAP.getOrDefault(name, name);
   }
 
   private static String buildDescription(String entityType, String action, String entityId) {
