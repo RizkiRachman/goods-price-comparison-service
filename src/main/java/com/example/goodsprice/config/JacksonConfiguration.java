@@ -8,11 +8,13 @@ import java.time.OffsetDateTime;
 import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 @Configuration
 public class JacksonConfiguration {
 
   @Bean
+  @Primary
   public ObjectMapper objectMapper() {
     var offsetDateTimeModule = new SimpleModule();
     offsetDateTimeModule.addDeserializer(
