@@ -1,6 +1,8 @@
 package com.example.goodsprice.price.application.domain.service;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
+import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.exception.PriceNotFoundException;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
@@ -66,6 +68,18 @@ public class PriceService implements PriceInPort {
       return priceRepository.findByProductIdAndDateRange(productId, startDate, endDate);
     }
     return priceRepository.findByProductId(productId);
+  }
+
+  @Override
+  public PageResponse<PriceDomain> searchByProduct(
+      Long productId,
+      LocalDate startDate,
+      LocalDate endDate,
+      Long storeId,
+      Boolean isPromo,
+      PageRequest pageRequest) {
+    return priceRepository.findByProductIdWithFilters(
+        productId, startDate, endDate, storeId, isPromo, pageRequest);
   }
 
   @Override

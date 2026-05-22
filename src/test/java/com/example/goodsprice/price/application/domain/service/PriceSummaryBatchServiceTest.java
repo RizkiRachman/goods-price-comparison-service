@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -86,7 +87,8 @@ class PriceSummaryBatchServiceTest {
     assertEquals(new BigDecimal("15.00"), summary.getMaxPrice());
     assertEquals(2, summary.getPriceCount());
 
-    verify(productRepository).updateSummaryLastCalculated(eq(1L), any(LocalDateTime.class));
+    verify(productRepository)
+        .updateSummaryLastCalculated(eq(List.of(1L)), any(LocalDateTime.class));
   }
 
   @Test
@@ -97,7 +99,7 @@ class PriceSummaryBatchServiceTest {
     batchService.updateSummaries();
 
     verify(priceSummaryRepository, never()).saveAll(any());
-    verify(productRepository, never()).updateSummaryLastCalculated(any(), any());
+    verify(productRepository, never()).updateSummaryLastCalculated(anyList(), any());
   }
 
   @Test
@@ -274,7 +276,8 @@ class PriceSummaryBatchServiceTest {
     assertDoesNotThrow(() -> batchService.updateSummaries());
 
     verify(priceSummaryRepository, times(1)).saveAll(any());
-    verify(productRepository).updateSummaryLastCalculated(eq(2L), any(LocalDateTime.class));
+    verify(productRepository)
+        .updateSummaryLastCalculated(eq(List.of(1L, 2L)), any(LocalDateTime.class));
   }
 
   @Test

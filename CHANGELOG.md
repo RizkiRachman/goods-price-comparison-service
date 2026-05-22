@@ -13,6 +13,13 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 ## [Unreleased]
 
 ### Changed
+- **Product search**: Replaced in-memory `findAll()` + 5 stream filters with `Specification` + DB `Pageable` query via `JpaSpecificationExecutor` — DB now handles filtering by name/category/brand/status with pagination. StoreId filter (cross-service) remains as in-memory post-filter.
+- **Price list pagination**: `PriceWebAdapter.listProductPrices()` now uses DB-level pagination via new `findByProductIdWithFilters()` JPQL query with dynamic `IS NULL OR` conditions for date range, storeId, and isPromo filters. Eliminates in-memory full-load-then-filter pattern.
+- **Store queries**: `findByNameAndLocation()` and `existsByNameAndLocation()` now use dedicated Spring Data queries instead of full table scan (`findAll().stream().filter(...)`).
+- **Price summary batch**: Single-pass `DoubleSummaryStatistics` replaces 3 separate stream traversals (min/max/avg). Batch `UPDATE` replaces per-product loop for `summaryLastCalculated`.
+- **Duplicate LlmProviderPort**: Deleted `receipt/.../LlmProviderPort.java` — all imports now reference the canonical `llm/.../LlmProviderPort` interface. `LlmAdapter` now implements `getProviderName()` and `isAvailable()`.
+- **PriceWebAdapter search/searchV2**: Extracted `doSearch()` helper eliminating ~85% code duplication between the two methods.
+- **PriceSummaryBatchService**: Removed redundant `isWeightVolumeUnit()` wrapper — calls `UnitConstants.isWeight()` directly.
 - **Event handlers**: Extracted `AbstractReceiptEventHandler` template method — eliminated 85% code duplication between `ReceiptApprovedEventHandler` and `ReceiptCorrectedEventHandler` (108→84 lines combined). Includes safer null guard for extracted items.
 - **ShoppingOptimizer**: Added `@Cacheable` with Caffeine (200 entries, 5min TTL) to avoid repeated DB pipeline execution for identical shopping lists
 - **ShoppingOptimizer**: Changed `@Component` → `@Service` for ArchUnit compliance with hexagonal conventions

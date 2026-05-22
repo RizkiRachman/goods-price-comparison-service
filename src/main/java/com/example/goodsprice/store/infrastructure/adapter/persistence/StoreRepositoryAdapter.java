@@ -52,18 +52,12 @@ public class StoreRepositoryAdapter implements StoreRepositoryPort {
 
   @Override
   public StoreDomain findByNameAndLocation(String name, String location) {
-    return jpaRepo.findAll().stream()
-        .filter(e -> Objects.equals(e.getName(), name) && Objects.equals(e.getLocation(), location))
-        .findFirst()
-        .map(mapper::toDomain)
-        .orElse(null);
+    return jpaRepo.findByNameAndLocation(name, location).map(mapper::toDomain).orElse(null);
   }
 
   @Override
   public boolean existsByNameAndLocation(String name, String location) {
-    return jpaRepo.findAll().stream()
-        .anyMatch(
-            e -> Objects.equals(e.getName(), name) && Objects.equals(e.getLocation(), location));
+    return jpaRepo.existsByNameAndLocation(name, location);
   }
 
   @Override

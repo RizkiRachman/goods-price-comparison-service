@@ -5,12 +5,12 @@ import static com.example.goodsprice.common.constant.ErrorMessageConstants.ITEMS
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.util.HashUtils;
 import com.example.goodsprice.common.util.JsonUtils;
+import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
 import com.example.goodsprice.receipt.application.exception.ReceiptNotFoundException;
 import com.example.goodsprice.receipt.application.port.in.ReceiptInPort;
-import com.example.goodsprice.receipt.application.port.out.LlmProviderPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptEventOutPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptRepositoryPort;
 import com.fasterxml.jackson.databind.ObjectMapper;

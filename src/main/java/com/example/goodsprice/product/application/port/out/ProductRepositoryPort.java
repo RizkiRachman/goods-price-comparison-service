@@ -1,6 +1,8 @@
 package com.example.goodsprice.product.application.port.out;
 
+import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
+import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -18,11 +20,15 @@ public interface ProductRepositoryPort {
 
   List<ProductDomain> findAll();
 
+  PageResponse<ProductDomain> search(ProductSearchCriteria criteria);
+
   void deleteById(Long id);
 
   List<ProductDomain> findProductsNeedingSummaryUpdate(int limit);
 
   void updateSummaryLastCalculated(Long productId, LocalDateTime timestamp);
+
+  void updateSummaryLastCalculated(List<Long> productIds, LocalDateTime timestamp);
 
   void updateLastPriceUpdate(Long productId, LocalDateTime timestamp);
 }
