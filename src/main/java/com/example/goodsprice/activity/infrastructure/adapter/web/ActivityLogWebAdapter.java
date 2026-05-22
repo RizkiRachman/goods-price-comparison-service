@@ -1,12 +1,14 @@
 package com.example.goodsprice.activity.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.util.PaginationUtils.resolvePage;
+import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
+
 import com.example.goodsprice.activity.application.domain.model.ActivityLogAction;
 import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
 import com.example.goodsprice.activity.application.port.in.ActivityLogInPort;
 import com.example.goodsprice.activity.infrastructure.adapter.web.mapper.ActivityLogDtoMapper;
 import com.example.goodsprice.api.model.ActivityLogListResponse;
 import com.example.goodsprice.common.constant.AppConstants;
-import com.example.goodsprice.common.util.ObjectUtils;
 import java.time.OffsetDateTime;
 import java.util.Locale;
 import java.util.Objects;
@@ -36,8 +38,8 @@ public class ActivityLogWebAdapter {
       String action,
       OffsetDateTime startDate,
       OffsetDateTime endDate) {
-    var pageValue = ObjectUtils.getOrDefault(page, p -> p, 1);
-    var sizeValue = ObjectUtils.getOrDefault(pageSize, s -> s, AppConstants.DEFAULT_PAGE_SIZE);
+    var pageValue = resolvePage(page, 1);
+    var sizeValue = resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE);
 
     var typeEnum = parseType(type);
     var actionEnum = parseAction(action);

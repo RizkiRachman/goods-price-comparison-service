@@ -3,6 +3,12 @@ package com.example.goodsprice.common.util;
 import java.util.Objects;
 import java.util.function.Function;
 
+/**
+ * Stable utility for null-safe object access.
+ *
+ * <p><strong>This class is sealed — do not add new methods here.</strong> New utility methods
+ * belong in their own class under {@code common/util/}.
+ */
 public final class ObjectUtils {
 
   private ObjectUtils() {}
