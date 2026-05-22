@@ -2,7 +2,6 @@ package com.example.goodsprice.product.application.domain.service;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.dto.PageResponse;
-import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.common.util.PaginationUtils;
 import com.example.goodsprice.common.util.SortingUtils;
 import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
@@ -14,14 +13,12 @@ import com.example.goodsprice.product.application.port.in.ProductInPort;
 import com.example.goodsprice.product.application.port.in.ProductPriceQueryInPort;
 import com.example.goodsprice.product.application.port.in.StoreLookupInPort;
 import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -97,32 +94,17 @@ public class ProductService implements ProductInPort {
 
   @Override
   public PageResponse<ProductDomain> search(ProductSearchCriteria criteria, boolean includePrice) {
-    var products = productRepository.findAll();
-
-    if (criteria.hasSearch()) {
-      products = filterBySearch(products, criteria.getSearch());
-    }
-
-    if (criteria.hasCategory()) {
-      products = filterByCategory(products, criteria.getCategory());
-    }
-
-    if (criteria.hasBrand()) {
-      products = filterByBrand(products, criteria.getBrand());
-    }
-
-    if (criteria.hasStatus()) {
-      products = filterByStatus(products, criteria.getStatus());
-    }
+    var paginated = productRepository.search(criteria);
 
     if (criteria.hasStoreId()) {
-      products = filterByStore(products, criteria);
+      var filteredContent = filterByStore(new ArrayList<>(paginated.content()), criteria);
+      var sorted =
+          SortingUtils.sort(
+              filteredContent,
+              comparators.resolve(criteria.getSortBy()),
+              criteria.getSortDirection());
+      paginated = PaginationUtils.paginate(sorted, criteria.getPage(), criteria.getSize());
     }
-
-    Comparator<ProductDomain> comparator = comparators.resolve(criteria.getSortBy());
-    products = SortingUtils.sort(products, comparator, criteria.getSortDirection());
-
-    var paginated = PaginationUtils.paginate(products, criteria.getPage(), criteria.getSize());
 
     if (includePrice && !paginated.content().isEmpty()) {
       populatePriceSummaries(paginated.content());
@@ -159,35 +141,6 @@ public class ProductService implements ProductInPort {
             product.setPriceUpdatedAt(summary.getLastCalculatedAt());
           }
         });
-  }
-
-  private List<ProductDomain> filterBySearch(List<ProductDomain> products, String search) {
-    var pattern = search.toLowerCase(Locale.ROOT);
-    return products.stream().filter(matchesSearchPattern(pattern)).toList();
-  }
-
-  private Predicate<ProductDomain> matchesSearchPattern(String pattern) {
-    return p ->
-        matchesIgnoreCase(p.getName(), pattern)
-            || matchesIgnoreCase(p.getCategory(), pattern)
-            || matchesIgnoreCase(p.getBrand(), pattern);
-  }
-
-  private boolean matchesIgnoreCase(String value, String pattern) {
-    return ObjectUtils.getOrDefault(
-        value, v -> v.toLowerCase(Locale.ROOT).contains(pattern), false);
-  }
-
-  private List<ProductDomain> filterByCategory(List<ProductDomain> products, String category) {
-    return products.stream().filter(p -> Objects.equals(p.getCategory(), category)).toList();
-  }
-
-  private List<ProductDomain> filterByBrand(List<ProductDomain> products, String brand) {
-    return products.stream().filter(p -> Objects.equals(p.getBrand(), brand)).toList();
-  }
-
-  private List<ProductDomain> filterByStatus(List<ProductDomain> products, String status) {
-    return products.stream().filter(p -> Objects.equals(p.getStatus(), status)).toList();
   }
 
   private List<ProductDomain> filterByStore(

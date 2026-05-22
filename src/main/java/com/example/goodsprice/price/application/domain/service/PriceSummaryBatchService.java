@@ -82,9 +82,8 @@ public class PriceSummaryBatchService {
       log.info("Saved {} price summaries", summariesToSave.size());
     }
 
-    for (ProductDomain product : products) {
-      productRepository.updateSummaryLastCalculated(product.getId(), calculationTime);
-    }
+    var productIds = products.stream().map(ProductDomain::getId).filter(Objects::nonNull).toList();
+    productRepository.updateSummaryLastCalculated(productIds, calculationTime);
   }
 
   private ProductPriceSummary calculateSummaryForProduct(
@@ -126,16 +125,12 @@ public class PriceSummaryBatchService {
         .build();
   }
 
-  private boolean isWeightVolumeUnit(String unit) {
-    return UnitConstants.isWeight(unit);
-  }
-
   private PriceStatistics calculateStatistics(List<PriceDomain> prices, String unit) {
     if (prices.isEmpty()) {
       return PriceStatistics.empty();
     }
 
-    boolean useUnitPrice = isWeightVolumeUnit(unit);
+    boolean useUnitPrice = UnitConstants.isWeight(unit);
 
     List<Double> validPrices =
         prices.stream()
@@ -148,9 +143,10 @@ public class PriceSummaryBatchService {
       return PriceStatistics.empty();
     }
 
-    double min = validPrices.stream().mapToDouble(Double::doubleValue).min().orElse(0.0);
-    double max = validPrices.stream().mapToDouble(Double::doubleValue).max().orElse(0.0);
-    double avg = validPrices.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+    var stats = validPrices.stream().mapToDouble(Double::doubleValue).summaryStatistics();
+    double min = stats.getMin();
+    double max = stats.getMax();
+    double avg = stats.getAverage();
 
     long uniqueStores =
         prices.stream().map(PriceDomain::getStoreId).filter(Objects::nonNull).distinct().count();

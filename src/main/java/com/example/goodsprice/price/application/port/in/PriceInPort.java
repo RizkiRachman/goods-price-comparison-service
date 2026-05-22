@@ -1,5 +1,7 @@
 package com.example.goodsprice.price.application.port.in;
 
+import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import java.time.LocalDate;
 import java.util.List;
@@ -18,6 +20,14 @@ public interface PriceInPort {
   PriceDomain findById(Long id);
 
   List<PriceDomain> searchByProduct(Long productId, LocalDate startDate, LocalDate endDate);
+
+  PageResponse<PriceDomain> searchByProduct(
+      Long productId,
+      LocalDate startDate,
+      LocalDate endDate,
+      Long storeId,
+      Boolean isPromo,
+      PageRequest pageRequest);
 
   PriceDomain findCheapestByProduct(Long productId);
 

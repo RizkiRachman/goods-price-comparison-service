@@ -4,7 +4,6 @@ import com.example.goodsprice.api.model.CheapestPrice;
 import com.example.goodsprice.api.model.CreatePriceRecordRequest;
 import com.example.goodsprice.api.model.DateRange;
 import com.example.goodsprice.api.model.EntityStatus;
-import com.example.goodsprice.api.model.Pagination;
 import com.example.goodsprice.api.model.PriceRecord;
 import com.example.goodsprice.api.model.PriceRecordListResponse;
 import com.example.goodsprice.api.model.PriceSearchRequest;
@@ -12,6 +11,7 @@ import com.example.goodsprice.api.model.PriceSearchRequestV2;
 import com.example.goodsprice.api.model.PriceSearchResponse;
 import com.example.goodsprice.api.model.PriceSearchResponseV2;
 import com.example.goodsprice.api.model.UpdatePriceRecordRequest;
+import com.example.goodsprice.common.dto.PageRequest;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
@@ -78,36 +78,24 @@ public class PriceWebAdapter {
       String sortDirection) {
     var fromDate = ObjectUtils.getOrNull(startDate, OffsetDateTime::toLocalDate);
     var toDate = ObjectUtils.getOrNull(endDate, OffsetDateTime::toLocalDate);
-    var prices = priceInPort.searchByProduct(productId, fromDate, toDate);
-
-    var filteredPrices =
-        prices.stream()
-            .filter(p -> Objects.isNull(storeId) || storeId.equals(p.getStoreId()))
-            .filter(p -> Objects.isNull(isPromo) || isPromo.equals(p.getIsPromo()))
-            .toList();
-
     var actualPage = ObjectUtils.getOrDefault(page, p -> p, 0);
     var actualSize = ObjectUtils.getOrDefault(size, s -> s, 20);
-    var totalItems = filteredPrices.size();
+    var actualSortBy = ObjectUtils.getOrDefault(sortBy, s -> s, "dateRecorded");
+    var actualSortDir = ObjectUtils.getOrDefault(sortDirection, s -> s, "desc");
+    var pageRequest = new PageRequest(actualPage, actualSize, actualSortBy, actualSortDir);
 
-    var pagination = new Pagination();
-    pagination.setPage(Math.max(actualPage, 1));
-    pagination.setPageSize(actualSize);
-    pagination.setTotalItems(totalItems);
-    var totalPages = (int) Math.ceil((double) totalItems / actualSize);
-    pagination.setTotalPages(totalPages);
-    pagination.setHasNext(actualPage < totalPages);
-    pagination.setHasPrevious(actualPage > 1);
+    var pageResponse =
+        priceInPort.searchByProduct(productId, fromDate, toDate, storeId, isPromo, pageRequest);
 
-    var storeMap = fetchStoresMap(filteredPrices);
+    var storeMap = fetchStoresMap(pageResponse.content());
     var records =
-        filteredPrices.stream()
+        pageResponse.content().stream()
             .map(p -> mapper.toPriceRecord(p, storeMap.get(p.getStoreId())))
             .toList();
 
     var response = new PriceRecordListResponse();
     response.setData(records);
-    response.setPagination(pagination);
+    response.setPagination(pageResponse.toPagination());
     return response;
   }
 
@@ -122,30 +110,38 @@ public class PriceWebAdapter {
   }
 
   public PriceSearchResponse search(PriceSearchRequest request) {
-    var response = new PriceSearchResponse();
     var ctx = resolveRequest(request.getProductName(), request.getDateRange());
-    if (Objects.isNull(ctx)) return response;
-
-    response.productName(ctx.product.getName());
-    var storeMap = fetchStoresMap(ctx.prices);
-    response.setResults(
-        ctx.prices.stream().map(p -> mapper.toResult(p, storeMap.get(p.getStoreId()))).toList());
-    response.setCheapest(buildCheapest(ctx.product.getId(), ctx.prices, storeMap, true));
-
-    return response;
+    if (Objects.isNull(ctx)) return new PriceSearchResponse();
+    return (PriceSearchResponse) doSearch(ctx, false);
   }
 
   public PriceSearchResponseV2 searchV2(PriceSearchRequestV2 request) {
-    var response = new PriceSearchResponseV2();
     var ctx = resolveRequest(request.getProductName(), request.getDateRange());
-    if (Objects.isNull(ctx)) return response;
+    if (Objects.isNull(ctx)) return new PriceSearchResponseV2();
+    return (PriceSearchResponseV2) doSearch(ctx, true);
+  }
 
-    response.productName(ctx.product.getName());
+  private Object doSearch(SearchContext ctx, boolean isV2) {
     var storeMap = fetchStoresMap(ctx.prices);
-    response.setResults(
-        ctx.prices.stream().map(p -> mapper.toResultV2(p, storeMap.get(p.getStoreId()))).toList());
-    response.setCheapest(buildCheapest(ctx.product.getId(), ctx.prices, storeMap, false));
 
+    if (isV2) {
+      var results =
+          ctx.prices.stream().map(p -> mapper.toResultV2(p, storeMap.get(p.getStoreId()))).toList();
+      var cheapest = buildCheapest(ctx.product.getId(), ctx.prices, storeMap, false);
+      var response = new PriceSearchResponseV2();
+      response.productName(ctx.product.getName());
+      response.setResults(results);
+      response.setCheapest(cheapest);
+      return response;
+    }
+
+    var results =
+        ctx.prices.stream().map(p -> mapper.toResult(p, storeMap.get(p.getStoreId()))).toList();
+    var cheapest = buildCheapest(ctx.product.getId(), ctx.prices, storeMap, true);
+    var response = new PriceSearchResponse();
+    response.productName(ctx.product.getName());
+    response.setResults(results);
+    response.setCheapest(cheapest);
     return response;
   }
 

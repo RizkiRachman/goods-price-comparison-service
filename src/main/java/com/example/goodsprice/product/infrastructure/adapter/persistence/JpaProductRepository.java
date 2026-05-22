@@ -4,13 +4,15 @@ import com.example.goodsprice.product.infrastructure.adapter.persistence.entity.
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface JpaProductRepository extends JpaRepository<ProductEntity, Long> {
+public interface JpaProductRepository
+    extends JpaRepository<ProductEntity, Long>, JpaSpecificationExecutor<ProductEntity> {
 
   Optional<ProductEntity> findByName(String name);
 
@@ -30,6 +32,13 @@ public interface JpaProductRepository extends JpaRepository<ProductEntity, Long>
   @Query("UPDATE ProductEntity p SET p.summaryLastCalculated = :timestamp WHERE p.id = :productId")
   void updateSummaryLastCalculated(
       @Param("productId") Long productId, @Param("timestamp") java.time.LocalDateTime timestamp);
+
+  @Modifying
+  @Query(
+      "UPDATE ProductEntity p SET p.summaryLastCalculated = :timestamp WHERE p.id IN :productIds")
+  int updateSummaryLastCalculated(
+      @Param("productIds") List<Long> productIds,
+      @Param("timestamp") java.time.LocalDateTime timestamp);
 
   @Modifying
   @Query("UPDATE ProductEntity p SET p.lastPriceUpdate = :timestamp WHERE p.id = :productId")
