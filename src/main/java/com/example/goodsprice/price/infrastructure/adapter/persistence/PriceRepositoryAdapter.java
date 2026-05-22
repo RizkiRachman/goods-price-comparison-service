@@ -88,7 +88,7 @@ public class PriceRepositoryAdapter implements PriceRepositoryPort {
             pageRequest.sortBy());
     var pageable =
         org.springframework.data.domain.PageRequest.of(
-            Math.max(0, pageRequest.page()), pageRequest.size(), sort);
+            pageRequest.toZeroBased(), pageRequest.size(), sort);
     var page =
         jpaRepo.findByProductIdWithFilters(
             productId, startDate, endDate, storeId, isPromo, pageable);

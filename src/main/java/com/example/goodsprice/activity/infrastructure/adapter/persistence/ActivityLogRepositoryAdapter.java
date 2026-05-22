@@ -15,6 +15,7 @@ import com.example.goodsprice.common.dto.PageResponse;
 import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -50,6 +51,10 @@ public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
   @Override
   public PageResponse<ActivityLogDomain> findAll(
       PageRequest pageRequest, String search, String status) {
+    if (Objects.nonNull(search) && !search.isBlank()) {
+      var spec = searchSpecification(search);
+      return executeQuery(pageRequest, spec);
+    }
     return findAll(pageRequest, null, null, null, null);
   }
 
@@ -60,6 +65,12 @@ public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
       ActivityLogAction action,
       LocalDateTime startDate,
       LocalDateTime endDate) {
+    var spec = buildSpecification(type, action, startDate, endDate);
+    return executeQuery(pageRequest, spec);
+  }
+
+  private PageResponse<ActivityLogDomain> executeQuery(
+      PageRequest pageRequest, Specification<ActivityLogEntity> spec) {
     var sortBy =
         Objects.nonNull(pageRequest.sortBy()) && !pageRequest.sortBy().isBlank()
             ? pageRequest.sortBy()
@@ -71,31 +82,43 @@ public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
                 : Sort.Direction.ASC,
             sortBy);
 
-    var pageNumber = Math.max(0, pageRequest.page() - 1);
     var pageable =
-        org.springframework.data.domain.PageRequest.of(pageNumber, pageRequest.size(), sort);
-
-    Specification<ActivityLogEntity> spec =
-        (root, query, cb) -> {
-          var predicates = new ArrayList<Predicate>();
-          if (Objects.nonNull(type)) {
-            predicates.add(cb.equal(root.get(ENTITY_FIELD_TYPE), type.name()));
-          }
-          if (Objects.nonNull(action)) {
-            predicates.add(cb.equal(root.get(ENTITY_FIELD_ACTION), action.name()));
-          }
-          if (Objects.nonNull(startDate)) {
-            predicates.add(cb.greaterThanOrEqualTo(root.get(DEFAULT_SORT_FIELD), startDate));
-          }
-          if (Objects.nonNull(endDate)) {
-            predicates.add(cb.lessThanOrEqualTo(root.get(DEFAULT_SORT_FIELD), endDate));
-          }
-          return cb.and(predicates.toArray(new Predicate[0]));
-        };
+        org.springframework.data.domain.PageRequest.of(
+            pageRequest.toZeroBased(), pageRequest.size(), sort);
 
     Page<ActivityLogEntity> page = jpaRepository.findAll(spec, pageable);
     var domains = page.getContent().stream().map(mapper::toDomain).toList();
     return PageResponse.of(
         domains, pageRequest.page(), pageRequest.size(), page.getTotalElements());
+  }
+
+  private Specification<ActivityLogEntity> buildSpecification(
+      ActivityLogType type,
+      ActivityLogAction action,
+      LocalDateTime startDate,
+      LocalDateTime endDate) {
+    return (root, query, cb) -> {
+      var predicates = new ArrayList<Predicate>();
+      if (Objects.nonNull(type)) {
+        predicates.add(cb.equal(root.get(ENTITY_FIELD_TYPE), type.name()));
+      }
+      if (Objects.nonNull(action)) {
+        predicates.add(cb.equal(root.get(ENTITY_FIELD_ACTION), action.name()));
+      }
+      if (Objects.nonNull(startDate)) {
+        predicates.add(cb.greaterThanOrEqualTo(root.get(DEFAULT_SORT_FIELD), startDate));
+      }
+      if (Objects.nonNull(endDate)) {
+        predicates.add(cb.lessThanOrEqualTo(root.get(DEFAULT_SORT_FIELD), endDate));
+      }
+      return cb.and(predicates.toArray(new Predicate[0]));
+    };
+  }
+
+  private Specification<ActivityLogEntity> searchSpecification(String search) {
+    return (root, query, cb) -> {
+      var pattern = "%" + search.toLowerCase(Locale.ROOT) + "%";
+      return cb.like(cb.lower(root.get("description")), pattern);
+    };
   }
 }

@@ -13,6 +13,11 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 ## [Unreleased]
 
 ### Changed
+- **LLM providers**: Extracted `AbstractRestLlmProvider` base class — eliminated ~95% code duplication between `GroqLlmProvider` (193→33 lines) and `SumopodLlmProvider` (204→33 lines). Shared prompt, parsing, availability logic.
+- **Page normalization**: Standardized `pageRequest.toZeroBased()` across all 6 adapters (Price, Store, Category, Unit, ActivityLog, FeedbackQuestion). Fixed latent off-by-one bug in `PriceRepositoryAdapter` (treated page as 0-based while others used 1-based).
+- **NotFoundException**: Consolidated 4 subclasses into static factory methods on `NotFoundException` (`.price()`, `.product()`, `.receipt()`, `.store()`). Deleted `PriceNotFoundException`, `ProductNotFoundException`, `ReceiptNotFoundException`, `StoreNotFoundException`.
+- **SpecificationBuilder**: New `common/util/SpecificationBuilder.java` utility — eliminated inline `buildSpecification` boilerplate in Store, Category, and Unit adapters.
+- **ActivityLogRepositoryAdapter**: Fixed dead `findAll(PageRequest, String, String)` overload that ignored `search` parameter. Now filters by `description LIKE %search%`.
 - **Product search**: Replaced in-memory `findAll()` + 5 stream filters with `Specification` + DB `Pageable` query via `JpaSpecificationExecutor` — DB now handles filtering by name/category/brand/status with pagination. StoreId filter (cross-service) remains as in-memory post-filter.
 - **Price list pagination**: `PriceWebAdapter.listProductPrices()` now uses DB-level pagination via new `findByProductIdWithFilters()` JPQL query with dynamic `IS NULL OR` conditions for date range, storeId, and isPromo filters. Eliminates in-memory full-load-then-filter pattern.
 - **Store queries**: `findByNameAndLocation()` and `existsByNameAndLocation()` now use dedicated Spring Data queries instead of full table scan (`findAll().stream().filter(...)`).
