@@ -1,5 +1,10 @@
 package com.example.goodsprice.category.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.util.PaginationUtils.resolvePage;
+import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
+import static com.example.goodsprice.common.util.PaginationUtils.resolveSortBy;
+import static com.example.goodsprice.common.util.PaginationUtils.resolveSortOrder;
+
 import com.example.goodsprice.api.model.Category;
 import com.example.goodsprice.api.model.CategoryListResponse;
 import com.example.goodsprice.api.model.CreateCategoryRequest;
@@ -7,6 +12,7 @@ import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.UpdateCategoryRequest;
 import com.example.goodsprice.category.application.port.in.CategoryInPort;
 import com.example.goodsprice.category.infrastructure.adapter.web.mapper.CategoryDtoMapper;
+import com.example.goodsprice.common.constant.AppConstants;
 import com.example.goodsprice.common.util.ObjectUtils;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -39,10 +45,10 @@ public class CategoryWebAdapter {
       String sortOrder) {
     var pageResponse =
         categoryInPort.findAll(
-            ObjectUtils.getOrDefault(page, p -> p, 1),
-            ObjectUtils.getOrDefault(pageSize, s -> s, 20),
-            ObjectUtils.getOrDefault(sortBy, s -> s, "name"),
-            ObjectUtils.getOrDefault(sortOrder, s -> s, "asc"),
+            resolvePage(page, 1),
+            resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE),
+            resolveSortBy(sortBy, "name"),
+            resolveSortOrder(sortOrder, "asc"),
             search,
             ObjectUtils.getOrNull(status, EntityStatus::getValue));
 

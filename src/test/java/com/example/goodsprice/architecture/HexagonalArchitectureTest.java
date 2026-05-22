@@ -18,6 +18,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -138,6 +140,21 @@ class HexagonalArchitectureTest {
         .beAnnotatedWith(org.springframework.stereotype.Service.class)
         .because("Domain services must be @Service annotated")
         .check(classes);
+  }
+
+  @Test
+  void objectUtilsMustNotBeExtendedWithNewMethods() {
+    var allowed = Set.of("defaultIfNull", "getOrNull", "getOrDefault");
+    var actual =
+        classes.stream()
+            .filter(c -> c.getName().endsWith(".ObjectUtils"))
+            .flatMap(c -> c.getMethods().stream())
+            .map(m -> m.getName())
+            .filter(n -> !n.equals("<init>"))
+            .collect(Collectors.toSet());
+    org.junit.jupiter.api.Assertions.assertTrue(
+        allowed.containsAll(actual) && actual.containsAll(allowed),
+        "ObjectUtils is sealed — no new methods. Found: " + actual);
   }
 
   @Test

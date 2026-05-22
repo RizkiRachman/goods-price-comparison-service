@@ -201,3 +201,13 @@ scripts/session-keepalive.sh
 # Planning documents (local dev artifacts)
 planning/
 opencode-backup.json
+
+# Graphify (knowledge graph)
+graphify-out/
+.graphify_*
+
+# GitNexus (code intelligence index)
+.gitnexus/
+
+# Release plans (development artifacts — keep in PR body, not in repo)
+docs/release-plans/

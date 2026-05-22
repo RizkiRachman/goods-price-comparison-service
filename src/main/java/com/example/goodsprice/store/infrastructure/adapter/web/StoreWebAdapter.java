@@ -1,5 +1,8 @@
 package com.example.goodsprice.store.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.util.PaginationUtils.resolvePage;
+import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
+
 import com.example.goodsprice.api.model.CreateStoreRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Store;
@@ -48,8 +51,8 @@ public class StoreWebAdapter {
       EntityStatus status,
       String chain,
       String location) {
-    var pageValue = ObjectUtils.getOrDefault(page, p -> p, 0);
-    var sizeValue = ObjectUtils.getOrDefault(pageSize, s -> s, 20);
+    var pageValue = resolvePage(page, 0);
+    var sizeValue = resolveSize(pageSize, 20);
     var sortByValue = ObjectUtils.getOrNull(sortBy, s -> s);
     var sortDirValue = ObjectUtils.getOrNull(sortOrder, s -> s);
     var searchValue = ObjectUtils.getOrNull(search, s -> s);

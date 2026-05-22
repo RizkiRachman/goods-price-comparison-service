@@ -1,10 +1,16 @@
 package com.example.goodsprice.unit.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.util.PaginationUtils.resolvePage;
+import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
+import static com.example.goodsprice.common.util.PaginationUtils.resolveSortBy;
+import static com.example.goodsprice.common.util.PaginationUtils.resolveSortOrder;
+
 import com.example.goodsprice.api.model.CreateUnitRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Unit;
 import com.example.goodsprice.api.model.UnitListResponse;
 import com.example.goodsprice.api.model.UpdateUnitRequest;
+import com.example.goodsprice.common.constant.AppConstants;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.unit.application.port.in.UnitInPort;
 import com.example.goodsprice.unit.infrastructure.adapter.web.mapper.UnitDtoMapper;
@@ -45,10 +51,10 @@ public class UnitWebAdapter {
       String sortOrder) {
     var pageResponse =
         unitInPort.findAll(
-            ObjectUtils.getOrDefault(page, p -> p, 1),
-            ObjectUtils.getOrDefault(pageSize, s -> s, 20),
-            ObjectUtils.getOrDefault(sortBy, s -> s, "name"),
-            ObjectUtils.getOrDefault(sortOrder, s -> s, "asc"),
+            resolvePage(page, 1),
+            resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE),
+            resolveSortBy(sortBy, "name"),
+            resolveSortOrder(sortOrder, "asc"),
             search,
             type,
             ObjectUtils.getOrNull(status, EntityStatus::getValue));
