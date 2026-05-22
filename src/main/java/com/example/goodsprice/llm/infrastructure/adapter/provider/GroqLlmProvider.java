@@ -40,7 +40,7 @@ import org.springframework.web.client.RestTemplate;
 public class GroqLlmProvider implements LlmProviderPort {
 
   private final LlmProperties llmProperties;
-  private final RestTemplate restTemplate = new RestTemplate();
+  private final RestTemplate restTemplate;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private static final String GENERAL_API_URL = "https://api.groq.com/openai/v1/chat/completions";

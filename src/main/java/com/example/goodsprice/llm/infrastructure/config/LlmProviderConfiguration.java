@@ -9,6 +9,7 @@ import com.example.goodsprice.llm.infrastructure.adapter.provider.SumopodLlmProv
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Configuration
@@ -25,13 +26,22 @@ public class LlmProviderConfiguration {
   }
 
   @Bean
-  public GroqLlmProvider groqLlmProvider(LlmProperties llmProperties) {
-    return new GroqLlmProvider(llmProperties);
+  public RestTemplate restTemplate() {
+    var factory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+    factory.setConnectTimeout(10_000);
+    factory.setReadTimeout(30_000);
+    return new RestTemplate(factory);
   }
 
   @Bean
-  public SumopodLlmProvider sumopodLlmProvider(LlmProperties llmProperties) {
-    return new SumopodLlmProvider(llmProperties);
+  public GroqLlmProvider groqLlmProvider(LlmProperties llmProperties, RestTemplate restTemplate) {
+    return new GroqLlmProvider(llmProperties, restTemplate);
+  }
+
+  @Bean
+  public SumopodLlmProvider sumopodLlmProvider(
+      LlmProperties llmProperties, RestTemplate restTemplate) {
+    return new SumopodLlmProvider(llmProperties, restTemplate);
   }
 
   @Bean

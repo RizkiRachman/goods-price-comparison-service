@@ -21,6 +21,7 @@ public class CacheConfiguration {
   public static final String CATEGORIES_CACHE = "categories";
   public static final String UNITS_CACHE = "units";
   public static final String BILL_SPLIT_CACHE = "bill-splits";
+  public static final String SHOPPING_OPTIMIZATION_CACHE = "shopping-optimization";
 
   @Bean
   public CacheManager cacheManager() {
@@ -32,6 +33,7 @@ public class CacheConfiguration {
     cacheManager.registerCustomCache(CATEGORIES_CACHE, categoriesCache());
     cacheManager.registerCustomCache(UNITS_CACHE, unitsCache());
     cacheManager.registerCustomCache(BILL_SPLIT_CACHE, billSplitCache());
+    cacheManager.registerCustomCache(SHOPPING_OPTIMIZATION_CACHE, shoppingOptimizationCache());
     log.info("Cache manager initialized with caches: {}", cacheManager.getCacheNames());
     return cacheManager;
   }
@@ -88,6 +90,14 @@ public class CacheConfiguration {
     return Caffeine.newBuilder()
         .maximumSize(500)
         .expireAfterWrite(15, TimeUnit.MINUTES)
+        .recordStats()
+        .build();
+  }
+
+  private com.github.benmanes.caffeine.cache.Cache<Object, Object> shoppingOptimizationCache() {
+    return Caffeine.newBuilder()
+        .maximumSize(200)
+        .expireAfterWrite(5, TimeUnit.MINUTES)
         .recordStats()
         .build();
   }
