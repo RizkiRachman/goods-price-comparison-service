@@ -208,3 +208,6 @@ graphify-out/
 
 # GitNexus (code intelligence index)
 .gitnexus/
+
+# Release plans (development artifacts — keep in PR body, not in repo)
+docs/release-plans/
