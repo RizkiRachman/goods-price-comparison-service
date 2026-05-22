@@ -12,6 +12,13 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 
 ## [Unreleased]
 
+### Changed
+- **Event handlers**: Extracted `AbstractReceiptEventHandler` template method — eliminated 85% code duplication between `ReceiptApprovedEventHandler` and `ReceiptCorrectedEventHandler` (108→84 lines combined). Includes safer null guard for extracted items.
+- **ShoppingOptimizer**: Added `@Cacheable` with Caffeine (200 entries, 5min TTL) to avoid repeated DB pipeline execution for identical shopping lists
+- **ShoppingOptimizer**: Changed `@Component` → `@Service` for ArchUnit compliance with hexagonal conventions
+- **LLM providers**: Injected shared `RestTemplate` bean with 10s connect / 30s read timeouts (was per-instance `new RestTemplate()` with no timeout)
+- **LlmConstants**: Removed 4 unused mock constants (`MOCK_STORE`, `MOCK_DATE`, etc.) — moved to `LocalLlmProvider` where used
+
 ### Added
 - **Activity Log Service**: New `activity` package under hexagonal architecture — stores CREATE/UPDATE/DELETE operations via `@ActivityLog` annotation with AOP interception, async event-driven persistence via `@TransactionalEventListener(AFTER_COMMIT)`
 - **Activity Logs API**: `GET /v1/activity-logs` — paginated, sortable, filterable by type/action/date range; `GET /v1/activity-logs/{id}` — single record. Implements generated `ActivityLogsApi` interface from API spec v1.10.0

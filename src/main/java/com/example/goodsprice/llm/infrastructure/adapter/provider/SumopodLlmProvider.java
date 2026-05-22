@@ -40,7 +40,7 @@ import org.springframework.web.client.RestTemplate;
 public class SumopodLlmProvider implements LlmProviderPort {
 
   private final LlmProperties llmProperties;
-  private final RestTemplate restTemplate = new RestTemplate();
+  private final RestTemplate restTemplate;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private static final String SUMOPOD_API_URL = "https://ai.sumopod.com/v1/chat/completions";
