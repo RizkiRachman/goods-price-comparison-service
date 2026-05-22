@@ -2,12 +2,12 @@ package com.example.goodsprice.product.application.domain.service;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.util.PaginationUtils;
 import com.example.goodsprice.common.util.SortingUtils;
 import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
-import com.example.goodsprice.product.application.exception.ProductNotFoundException;
 import com.example.goodsprice.product.application.port.in.PriceSummaryInPort;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
 import com.example.goodsprice.product.application.port.in.ProductPriceQueryInPort;
@@ -66,14 +66,14 @@ public class ProductService implements ProductInPort {
   @Override
   public ProductDomain findById(Long id) {
     var product = productRepository.findById(id);
-    if (Objects.isNull(product)) throw new ProductNotFoundException(id);
+    if (Objects.isNull(product)) throw NotFoundException.product(id);
     return product;
   }
 
   @Override
   public ProductDomain findByName(String name) {
     var product = productRepository.findByName(name);
-    if (Objects.isNull(product)) throw new ProductNotFoundException(name);
+    if (Objects.isNull(product)) throw NotFoundException.product(name);
     return product;
   }
 
@@ -171,7 +171,7 @@ public class ProductService implements ProductInPort {
   @ActivityLog
   public ProductDomain update(Long id, String name, String category, String brand, String unit) {
     var existing = productRepository.findById(id);
-    if (Objects.isNull(existing)) throw new ProductNotFoundException(id);
+    if (Objects.isNull(existing)) throw NotFoundException.product(id);
     existing.setName(name);
     existing.setCategory(category);
     existing.setBrand(brand);
@@ -186,7 +186,7 @@ public class ProductService implements ProductInPort {
   @ActivityLog
   public void deleteById(Long id) {
     var product = productRepository.findById(id);
-    if (Objects.isNull(product)) throw new ProductNotFoundException(id);
+    if (Objects.isNull(product)) throw NotFoundException.product(id);
     productRepository.deleteById(id);
     log.info("Product deleted: (id: {})", id);
   }

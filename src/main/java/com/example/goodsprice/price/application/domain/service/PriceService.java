@@ -3,8 +3,8 @@ package com.example.goodsprice.price.application.domain.service;
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.dto.PageRequest;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
-import com.example.goodsprice.price.application.exception.PriceNotFoundException;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
 import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
 import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
@@ -58,7 +58,7 @@ public class PriceService implements PriceInPort {
   @Override
   public PriceDomain findById(Long id) {
     var price = priceRepository.findById(id);
-    if (Objects.isNull(price)) throw new PriceNotFoundException(id);
+    if (Objects.isNull(price)) throw NotFoundException.price(id);
     return price;
   }
 
@@ -104,7 +104,7 @@ public class PriceService implements PriceInPort {
   @ActivityLog
   public void deleteById(Long id) {
     var price = priceRepository.findById(id);
-    if (Objects.isNull(price)) throw new PriceNotFoundException(id);
+    if (Objects.isNull(price)) throw NotFoundException.price(id);
     priceRepository.deleteById(id);
     log.info("Price deleted: id={}", id);
   }
@@ -115,7 +115,7 @@ public class PriceService implements PriceInPort {
   public PriceDomain update(
       Long id, Double price, Double unitPrice, LocalDate dateRecorded, Boolean isPromo) {
     var existing = priceRepository.findById(id);
-    if (Objects.isNull(existing)) throw new PriceNotFoundException(id);
+    if (Objects.isNull(existing)) throw NotFoundException.price(id);
 
     existing.setPrice(price);
     existing.setUnitPrice(unitPrice);

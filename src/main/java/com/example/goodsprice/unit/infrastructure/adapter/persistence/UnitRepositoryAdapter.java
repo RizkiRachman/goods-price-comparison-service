@@ -2,13 +2,12 @@ package com.example.goodsprice.unit.infrastructure.adapter.persistence;
 
 import com.example.goodsprice.common.dto.PageRequest;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.util.SpecificationBuilder;
 import com.example.goodsprice.unit.application.domain.model.UnitDomain;
 import com.example.goodsprice.unit.application.port.out.UnitRepositoryPort;
 import com.example.goodsprice.unit.infrastructure.adapter.persistence.entity.UnitEntity;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
-import java.util.Locale;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -47,9 +46,9 @@ public class UnitRepositoryAdapter implements UnitRepositoryPort {
                 ? Sort.Direction.DESC
                 : Sort.Direction.ASC,
             pageRequest.sortBy());
-    var pageNumber = Math.max(0, pageRequest.page() - 1);
     var pageable =
-        org.springframework.data.domain.PageRequest.of(pageNumber, pageRequest.size(), sort);
+        org.springframework.data.domain.PageRequest.of(
+            pageRequest.toZeroBased(), pageRequest.size(), sort);
     var spec = buildSpecification(search, type, status);
     Page<UnitEntity> page = jpaRepo.findAll(spec, pageable);
     var units = page.getContent().stream().map(mapper::toDomain).toList();
@@ -64,21 +63,10 @@ public class UnitRepositoryAdapter implements UnitRepositoryPort {
   private Specification<UnitEntity> buildSpecification(String search, String type, String status) {
     return (root, query, cb) -> {
       var predicates = new ArrayList<Predicate>();
-      if (Objects.nonNull(search) && !search.isBlank()) {
-        var pattern = "%%%s%%".formatted(search.toLowerCase(Locale.ROOT));
-        predicates.add(
-            cb.or(
-                cb.like(cb.lower(root.get("name")), pattern),
-                cb.like(cb.lower(root.get("symbol")), pattern),
-                cb.like(cb.lower(root.get("id")), pattern)));
-      }
-      if (Objects.nonNull(type) && !type.isBlank()) {
-        predicates.add(cb.equal(cb.lower(root.get("type")), type.toLowerCase(Locale.ROOT)));
-      }
-      if (Objects.nonNull(status) && !status.isBlank()) {
-        predicates.add(cb.equal(root.get("status"), status));
-      }
-      return cb.and(predicates.toArray(new Predicate[0]));
+      SpecificationBuilder.addSearchLike(predicates, root, cb, search, "name", "symbol", "id");
+      SpecificationBuilder.addEqualIgnoreCase(predicates, root, cb, "type", type);
+      SpecificationBuilder.addEqual(predicates, root, cb, "status", status);
+      return cb.and(SpecificationBuilder.toArray(predicates));
     };
   }
 

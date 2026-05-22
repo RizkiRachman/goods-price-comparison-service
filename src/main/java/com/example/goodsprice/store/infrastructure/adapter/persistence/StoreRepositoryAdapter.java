@@ -2,14 +2,13 @@ package com.example.goodsprice.store.infrastructure.adapter.persistence;
 
 import com.example.goodsprice.common.dto.PageRequest;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.util.SpecificationBuilder;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
 import com.example.goodsprice.store.infrastructure.adapter.persistence.entity.StoreEntity;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -76,9 +75,9 @@ public class StoreRepositoryAdapter implements StoreRepositoryPort {
                 : Sort.Direction.ASC,
             pageRequest.sortBy());
 
-    var pageNumber = Math.max(0, pageRequest.page() - 1);
     var pageable =
-        org.springframework.data.domain.PageRequest.of(pageNumber, pageRequest.size(), sort);
+        org.springframework.data.domain.PageRequest.of(
+            pageRequest.toZeroBased(), pageRequest.size(), sort);
     var spec = buildSpecification(search, status, chain, location);
     Page<StoreEntity> page = jpaRepo.findAll(spec, pageable);
     var stores = page.getContent().stream().map(mapper::toDomain).toList();
@@ -89,30 +88,12 @@ public class StoreRepositoryAdapter implements StoreRepositoryPort {
       String search, String status, String chain, String location) {
     return (root, query, cb) -> {
       var predicates = new ArrayList<Predicate>();
-      if (Objects.nonNull(search) && !search.isBlank()) {
-        var pattern = "%%%s%%".formatted(search.toLowerCase(Locale.ROOT));
-        predicates.add(
-            cb.or(
-                cb.like(cb.lower(root.get("name")), pattern),
-                cb.like(cb.lower(root.get("location")), pattern),
-                cb.like(cb.lower(root.get("chain")), pattern),
-                cb.like(cb.lower(root.get("address")), pattern)));
-      }
-      if (Objects.nonNull(status) && !status.isBlank()) {
-        predicates.add(cb.equal(root.get("status"), status));
-      }
-      if (Objects.nonNull(chain) && !chain.isBlank()) {
-        predicates.add(
-            cb.like(
-                cb.lower(root.get("chain")), "%%%s%%".formatted(chain.toLowerCase(Locale.ROOT))));
-      }
-      if (Objects.nonNull(location) && !location.isBlank()) {
-        predicates.add(
-            cb.like(
-                cb.lower(root.get("location")),
-                "%%%s%%".formatted(location.toLowerCase(Locale.ROOT))));
-      }
-      return cb.and(predicates.toArray(new Predicate[0]));
+      SpecificationBuilder.addSearchLike(
+          predicates, root, cb, search, "name", "location", "chain", "address");
+      SpecificationBuilder.addEqual(predicates, root, cb, "status", status);
+      SpecificationBuilder.addSearchLike(predicates, root, cb, chain, "chain");
+      SpecificationBuilder.addSearchLike(predicates, root, cb, location, "location");
+      return cb.and(SpecificationBuilder.toArray(predicates));
     };
   }
 }

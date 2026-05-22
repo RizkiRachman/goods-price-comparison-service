@@ -3,13 +3,13 @@ package com.example.goodsprice.receipt.application.domain.service;
 import static com.example.goodsprice.common.constant.ErrorMessageConstants.ITEMS_NOT_EMPTY_MSG;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
+import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.util.HashUtils;
 import com.example.goodsprice.common.util.JsonUtils;
 import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
-import com.example.goodsprice.receipt.application.exception.ReceiptNotFoundException;
 import com.example.goodsprice.receipt.application.port.in.ReceiptInPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptEventOutPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptRepositoryPort;
@@ -69,7 +69,7 @@ public class ReceiptService implements ReceiptInPort {
   @Override
   public ReceiptDomain findById(UUID id) {
     var receipt = receiptRepository.findById(id);
-    if (Objects.isNull(receipt)) throw new ReceiptNotFoundException(id);
+    if (Objects.isNull(receipt)) throw NotFoundException.receipt(id);
     return receipt;
   }
 

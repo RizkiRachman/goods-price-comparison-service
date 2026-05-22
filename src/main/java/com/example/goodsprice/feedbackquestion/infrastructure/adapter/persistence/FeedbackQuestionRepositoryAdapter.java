@@ -41,9 +41,9 @@ public class FeedbackQuestionRepositoryAdapter implements FeedbackQuestionReposi
                 ? Sort.Direction.DESC
                 : Sort.Direction.ASC,
             pageRequest.sortBy());
-    var pageNumber = Math.max(0, pageRequest.page() - 1);
     var pageable =
-        org.springframework.data.domain.PageRequest.of(pageNumber, pageRequest.size(), sort);
+        org.springframework.data.domain.PageRequest.of(
+            pageRequest.toZeroBased(), pageRequest.size(), sort);
     var page = jpaRepo.findAll(pageable);
     var content = page.getContent().stream().map(mapper::toDomain).toList();
     return PageResponse.of(

@@ -3,8 +3,8 @@ package com.example.goodsprice.store.application.domain.service;
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.dto.PageRequest;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
-import com.example.goodsprice.store.application.exception.StoreNotFoundException;
 import com.example.goodsprice.store.application.port.in.StoreInPort;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
 import java.util.Objects;
@@ -47,7 +47,7 @@ public class StoreService implements StoreInPort {
   @Override
   public StoreDomain findById(Long id) {
     var store = storeRepository.findById(id);
-    if (Objects.isNull(store)) throw new StoreNotFoundException(id);
+    if (Objects.isNull(store)) throw NotFoundException.store(id);
     return store;
   }
 
@@ -78,7 +78,7 @@ public class StoreService implements StoreInPort {
       Double longitude,
       String status) {
     var existing = storeRepository.findById(id);
-    if (Objects.isNull(existing)) throw new StoreNotFoundException(id);
+    if (Objects.isNull(existing)) throw NotFoundException.store(id);
     existing.setName(name);
     existing.setLocation(location);
     existing.setChain(chain);
@@ -96,7 +96,7 @@ public class StoreService implements StoreInPort {
   @ActivityLog
   public void deleteById(Long id) {
     var store = storeRepository.findById(id);
-    if (Objects.isNull(store)) throw new StoreNotFoundException(id);
+    if (Objects.isNull(store)) throw NotFoundException.store(id);
     storeRepository.deleteById(id);
     log.info("Store deleted: (id: {})", id);
   }
