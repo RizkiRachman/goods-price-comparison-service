@@ -34,6 +34,10 @@ public class ProductSpecification {
         predicates.add(cb.equal(root.get("status"), criteria.getStatus()));
       }
 
+      if (criteria.hasProductIds()) {
+        predicates.add(root.get("id").in(criteria.getProductIds()));
+      }
+
       return cb.and(predicates.toArray(new Predicate[0]));
     };
   }

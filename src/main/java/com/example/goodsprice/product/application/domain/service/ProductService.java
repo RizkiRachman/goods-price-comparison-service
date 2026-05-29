@@ -3,8 +3,6 @@ package com.example.goodsprice.product.application.domain.service;
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
-import com.example.goodsprice.common.util.PaginationUtils;
-import com.example.goodsprice.common.util.SortingUtils;
 import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
@@ -13,7 +11,6 @@ import com.example.goodsprice.product.application.port.in.ProductInPort;
 import com.example.goodsprice.product.application.port.in.ProductPriceQueryInPort;
 import com.example.goodsprice.product.application.port.in.StoreLookupInPort;
 import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService implements ProductInPort {
 
   private final ProductRepositoryPort productRepository;
-  private final ProductComparators comparators;
   private final PriceSummaryInPort priceSummaryInPort;
   private final ProductPriceQueryInPort productPriceQueryInPort;
   private final StoreLookupInPort storeLookupInPort;
@@ -94,17 +90,30 @@ public class ProductService implements ProductInPort {
 
   @Override
   public PageResponse<ProductDomain> search(ProductSearchCriteria criteria, boolean includePrice) {
-    var paginated = productRepository.search(criteria);
-
     if (criteria.hasStoreId()) {
-      var filteredContent = filterByStore(new ArrayList<>(paginated.content()), criteria);
-      var sorted =
-          SortingUtils.sort(
-              filteredContent,
-              comparators.resolve(criteria.getSortBy()),
-              criteria.getSortDirection());
-      paginated = PaginationUtils.paginate(sorted, criteria.getPage(), criteria.getSize());
+      List<Long> storeIds;
+
+      if (criteria.isStoreIdNumeric()) {
+        storeIds = List.of(criteria.getStoreIdAsLong());
+      } else {
+        var foundIds = storeLookupInPort.findStoreIdsByName(criteria.getStoreId());
+        storeIds = Objects.nonNull(foundIds) ? foundIds : List.of();
+        if (storeIds.isEmpty()) {
+          return PageResponse.of(List.of(), criteria.getPage(), criteria.getSize(), 0);
+        }
+      }
+
+      var productIdsAtStore = productPriceQueryInPort.findProductIdsByStoreIds(storeIds);
+      var productIds = Objects.nonNull(productIdsAtStore) ? productIdsAtStore : List.<Long>of();
+
+      if (productIds.isEmpty()) {
+        return PageResponse.of(List.of(), criteria.getPage(), criteria.getSize(), 0);
+      }
+
+      criteria.setProductIds(productIds);
     }
+
+    var paginated = productRepository.search(criteria);
 
     if (includePrice && !paginated.content().isEmpty()) {
       populatePriceSummaries(paginated.content());
@@ -141,29 +150,6 @@ public class ProductService implements ProductInPort {
             product.setPriceUpdatedAt(summary.getLastCalculatedAt());
           }
         });
-  }
-
-  private List<ProductDomain> filterByStore(
-      List<ProductDomain> products, ProductSearchCriteria criteria) {
-    List<Long> storeIds;
-
-    if (criteria.isStoreIdNumeric()) {
-
-      storeIds = List.of(criteria.getStoreIdAsLong());
-    } else {
-
-      storeIds = storeLookupInPort.findStoreIdsByName(criteria.getStoreId());
-      if (storeIds.isEmpty()) {
-        return List.of();
-      }
-    }
-
-    List<Long> productIdsAtStore = productPriceQueryInPort.findProductIdsByStoreIds(storeIds);
-    if (productIdsAtStore.isEmpty()) {
-      return List.of();
-    }
-
-    return products.stream().filter(p -> productIdsAtStore.contains(p.getId())).toList();
   }
 
   @Override
