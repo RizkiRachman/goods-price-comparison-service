@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -50,7 +51,8 @@ class ProductServiceTest {
   }
 
   @Test
-  void searchWithoutStoreId_shouldCallRepositoryDirectly() {
+  @DisplayName("Should search without storeId and call repository directly")
+  void searchWithoutStoreIdShouldCallRepositoryDirectly() {
     var criteria = ProductSearchCriteria.builder().search("apple").build();
     var expectedPage =
         PageResponse.of(List.of(product1), criteria.getPage(), criteria.getSize(), 1);
@@ -65,7 +67,8 @@ class ProductServiceTest {
   }
 
   @Test
-  void searchWithNumericStoreIdAndMatchingProducts_shouldPreFetchProductIds() {
+  @DisplayName("Should pre-fetch product IDs for numeric storeId with matching products")
+  void searchWithNumericStoreIdAndMatchingProductsShouldPreFetchProductIds() {
     var criteria = ProductSearchCriteria.builder().storeId("5").search("apple").build();
     when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(5L))).thenReturn(List.of(1L, 2L));
 
@@ -84,7 +87,8 @@ class ProductServiceTest {
   }
 
   @Test
-  void searchWithNumericStoreIdAndNoMatchingProducts_shouldReturnEmptyPage() {
+  @DisplayName("Should return empty page for numeric storeId with no matching products")
+  void searchWithNumericStoreIdAndNoMatchingProductsShouldReturnEmptyPage() {
     var criteria = ProductSearchCriteria.builder().storeId("999").build();
     when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(999L))).thenReturn(List.of());
 
@@ -96,7 +100,8 @@ class ProductServiceTest {
   }
 
   @Test
-  void searchWithStoreNameAndStoresFound_shouldResolveAndPreFetchProductIds() {
+  @DisplayName("Should resolve store name and pre-fetch product IDs when stores found")
+  void searchWithStoreNameAndStoresFoundShouldResolveAndPreFetchProductIds() {
     var criteria = ProductSearchCriteria.builder().storeId("Toko Segar").build();
     when(storeLookupInPort.findStoreIdsByName("Toko Segar")).thenReturn(List.of(1L, 2L));
     when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(1L, 2L))).thenReturn(List.of(1L));
@@ -114,7 +119,8 @@ class ProductServiceTest {
   }
 
   @Test
-  void searchWithStoreNameAndNoStoresFound_shouldReturnEmptyPage() {
+  @DisplayName("Should return empty page when store name not found")
+  void searchWithStoreNameAndNoStoresFoundShouldReturnEmptyPage() {
     var criteria = ProductSearchCriteria.builder().storeId("Unknown Store").build();
     when(storeLookupInPort.findStoreIdsByName("Unknown Store")).thenReturn(List.of());
 
@@ -127,7 +133,8 @@ class ProductServiceTest {
   }
 
   @Test
-  void searchWithStoreIdAndPriceQueryReturnsNull_shouldReturnEmptyPage() {
+  @DisplayName("Should return empty page when price query returns null")
+  void searchWithStoreIdAndPriceQueryReturnsNullShouldReturnEmptyPage() {
     var criteria = ProductSearchCriteria.builder().storeId("5").build();
     when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(5L))).thenReturn(null);
 
@@ -139,7 +146,8 @@ class ProductServiceTest {
   }
 
   @Test
-  void searchWithStoreIdAndIncludePrice_shouldPopulatePriceSummaries() {
+  @DisplayName("Should populate price summaries when includePrice is true with storeId")
+  void searchWithStoreIdAndIncludePriceShouldPopulatePriceSummaries() {
     var criteria = ProductSearchCriteria.builder().storeId("5").build();
     when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(5L))).thenReturn(List.of(1L));
     var productWithPrice = ProductDomain.builder().id(1L).name("Apple").category("Fruit").build();
@@ -168,7 +176,8 @@ class ProductServiceTest {
   }
 
   @Test
-  void searchWithoutStoreIdAndIncludePrice_shouldPopulatePriceSummaries() {
+  @DisplayName("Should populate price summaries without storeId")
+  void searchWithoutStoreIdAndIncludePriceShouldPopulatePriceSummaries() {
     var criteria = ProductSearchCriteria.builder().search("apple").build();
     var productWithPrice = ProductDomain.builder().id(1L).name("Apple").category("Fruit").build();
     var expectedPage =
@@ -186,7 +195,8 @@ class ProductServiceTest {
   }
 
   @Test
-  void searchWithStoreIdByNumericCheck_edgeCase() {
+  @DisplayName("Should handle storeId 0 as valid numeric edge case")
+  void searchWithStoreIdZeroShouldHandleNumericEdgeCase() {
     var criteria = ProductSearchCriteria.builder().storeId("0").build();
     when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(0L))).thenReturn(List.of(1L));
     var expectedPage =
@@ -201,7 +211,8 @@ class ProductServiceTest {
   }
 
   @Test
-  void searchWithBlankStoreId_shouldNotTriggerStoreLookup() {
+  @DisplayName("Should not trigger store lookup for blank storeId")
+  void searchWithBlankStoreIdShouldNotTriggerStoreLookup() {
     var criteria = ProductSearchCriteria.builder().storeId("  ").search("apple").build();
     var expectedPage =
         PageResponse.of(List.of(product1), criteria.getPage(), criteria.getSize(), 1);
