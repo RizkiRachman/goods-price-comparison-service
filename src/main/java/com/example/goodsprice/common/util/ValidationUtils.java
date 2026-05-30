@@ -12,4 +12,16 @@ public final class ValidationUtils {
     }
     return obj;
   }
+
+  public static void requirePositive(Number value, String name) {
+    if (Objects.isNull(value) || value.doubleValue() <= 0) {
+      throw new IllegalArgumentException("%s must be positive".formatted(name));
+    }
+  }
+
+  public static void requireNotBlank(String value, String name) {
+    if (Objects.isNull(value) || value.isBlank()) {
+      throw new IllegalArgumentException("%s must not be blank".formatted(name));
+    }
+  }
 }

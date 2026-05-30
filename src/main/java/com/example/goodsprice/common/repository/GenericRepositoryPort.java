@@ -12,4 +12,6 @@ public interface GenericRepositoryPort<T, ID> {
   PageResponse<T> findAll(PageRequest pageRequest, String search, String status);
 
   boolean existsById(ID id);
+
+  void deleteById(ID id);
 }

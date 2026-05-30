@@ -3,6 +3,7 @@ package com.example.goodsprice.product.application.port.in;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ProductInPort {
@@ -26,4 +27,6 @@ public interface ProductInPort {
   ProductDomain update(Long id, String name, String category, String brand, String unit);
 
   void deleteById(Long id);
+
+  void updateLastPriceUpdate(Long productId, LocalDateTime lastPriceUpdate);
 }

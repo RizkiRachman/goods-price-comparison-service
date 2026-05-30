@@ -1,5 +1,7 @@
 package com.example.goodsprice.product.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.util.JsonNullableUtils.resolveNullable;
+
 import com.example.goodsprice.api.model.CreateProductRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.ListProducts200Response;
@@ -12,10 +14,8 @@ import com.example.goodsprice.product.application.domain.model.ProductSearchCrit
 import com.example.goodsprice.product.application.port.in.ProductInPort;
 import com.example.goodsprice.product.infrastructure.adapter.web.mapper.ProductDtoMapper;
 import java.time.LocalDate;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -97,10 +97,5 @@ public class ProductWebAdapter {
     response.setProductId(domain.getId());
     response.setProductName(domain.getName());
     return response;
-  }
-
-  private <T> T resolveNullable(JsonNullable<T> nullable) {
-    if (Objects.isNull(nullable)) return null;
-    return nullable.orElse(null);
   }
 }

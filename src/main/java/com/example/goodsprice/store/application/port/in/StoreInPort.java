@@ -2,6 +2,7 @@ package com.example.goodsprice.store.application.port.in;
 
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
+import java.util.List;
 
 public interface StoreInPort {
 
@@ -36,4 +37,6 @@ public interface StoreInPort {
       String status);
 
   void deleteById(Long id);
+
+  List<StoreDomain> findAllById(List<Long> ids);
 }

@@ -1,5 +1,6 @@
 package com.example.goodsprice.unit.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.util.JsonNullableUtils.resolveNullable;
 import static com.example.goodsprice.common.util.PaginationUtils.resolvePage;
 import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
 import static com.example.goodsprice.common.util.PaginationUtils.resolveSortBy;
@@ -14,9 +15,7 @@ import com.example.goodsprice.common.constant.AppConstants;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.unit.application.port.in.UnitInPort;
 import com.example.goodsprice.unit.infrastructure.adapter.web.mapper.UnitDtoMapper;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -75,10 +74,5 @@ public class UnitWebAdapter {
             resolveNullable(request.getDescription()),
             ObjectUtils.getOrNull(request.getStatus(), EntityStatus::getValue));
     return mapper.toApiUnit(domain);
-  }
-
-  private <T> T resolveNullable(JsonNullable<T> nullable) {
-    if (Objects.isNull(nullable)) return null;
-    return nullable.orElse(null);
   }
 }

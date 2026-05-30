@@ -6,6 +6,7 @@ import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Unit;
 import com.example.goodsprice.api.model.UnitListResponse;
 import com.example.goodsprice.api.model.UpdateUnitRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class UnitController implements UnitsApi {
   private final UnitWebAdapter adapter;
 
   @Override
-  public ResponseEntity<Unit> createUnit(CreateUnitRequest request) {
+  public ResponseEntity<Unit> createUnit(@Valid CreateUnitRequest request) {
     var unit = adapter.create(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(unit);
   }
@@ -41,7 +42,7 @@ public class UnitController implements UnitsApi {
   }
 
   @Override
-  public ResponseEntity<Unit> updateUnit(String unitId, UpdateUnitRequest request) {
+  public ResponseEntity<Unit> updateUnit(String unitId, @Valid UpdateUnitRequest request) {
     return ResponseEntity.ok(adapter.update(unitId, request));
   }
 }

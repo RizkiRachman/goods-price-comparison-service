@@ -52,7 +52,7 @@ public class ReceiptController implements ReceiptsApi {
 
   @Override
   public ResponseEntity<ReceiptResultResponse> correctReceipt(
-      UUID id, ReceiptCorrectRequest receiptCorrectRequest) {
+      UUID id, @Valid ReceiptCorrectRequest receiptCorrectRequest) {
     return ResponseEntity.ok(correctionAdapter.correct(id, receiptCorrectRequest));
   }
 
@@ -64,7 +64,8 @@ public class ReceiptController implements ReceiptsApi {
   }
 
   @Override
-  public ResponseEntity<BillSplitResponse> splitBill(UUID receiptId, BillSplitRequest request) {
+  public ResponseEntity<BillSplitResponse> splitBill(
+      UUID receiptId, @Valid BillSplitRequest request) {
     return ResponseEntity.ok(adapter.splitBill(receiptId, request));
   }
 }

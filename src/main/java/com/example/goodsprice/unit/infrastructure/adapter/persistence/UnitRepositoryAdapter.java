@@ -60,6 +60,11 @@ public class UnitRepositoryAdapter implements UnitRepositoryPort {
     return jpaRepo.existsById(id);
   }
 
+  @Override
+  public void deleteById(String id) {
+    jpaRepo.deleteById(id);
+  }
+
   private Specification<UnitEntity> buildSpecification(String search, String type, String status) {
     return (root, query, cb) -> {
       var predicates = new ArrayList<Predicate>();

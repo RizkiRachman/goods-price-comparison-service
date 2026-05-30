@@ -7,6 +7,7 @@ import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.in.StoreInPort;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
+import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -89,6 +90,11 @@ public class StoreService implements StoreInPort {
     existing = storeRepository.save(existing);
     log.info("Store updated: {} (id: {})", existing.getName(), id);
     return existing;
+  }
+
+  @Override
+  public List<StoreDomain> findAllById(List<Long> ids) {
+    return storeRepository.findAllById(ids);
   }
 
   @Override

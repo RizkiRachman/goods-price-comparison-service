@@ -11,6 +11,7 @@ import com.example.goodsprice.product.application.port.in.ProductInPort;
 import com.example.goodsprice.product.application.port.in.ProductPriceQueryInPort;
 import com.example.goodsprice.product.application.port.in.StoreLookupInPort;
 import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -165,6 +166,11 @@ public class ProductService implements ProductInPort {
     existing = productRepository.save(existing);
     log.info("Product updated: {} (id: {})", existing.getName(), id);
     return existing;
+  }
+
+  @Override
+  public void updateLastPriceUpdate(Long productId, LocalDateTime lastPriceUpdate) {
+    productRepository.updateLastPriceUpdate(productId, lastPriceUpdate);
   }
 
   @Override

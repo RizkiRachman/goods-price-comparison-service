@@ -5,7 +5,9 @@ import com.example.goodsprice.common.constant.HttpHeaderConstants;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.config.ratelimit.RateLimitExceededException;
 import com.example.goodsprice.receipt.application.exception.DuplicateReceiptException;
+import jakarta.validation.ConstraintViolationException;
 import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -42,6 +44,16 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(IllegalArgumentException.class)
   public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException e) {
     return buildResponse(HttpStatus.BAD_REQUEST, ErrorCodes.VALIDATION_ERROR, e.getMessage());
+  }
+
+  @ExceptionHandler(ConstraintViolationException.class)
+  public ResponseEntity<Map<String, Object>> handleConstraintViolation(
+      ConstraintViolationException e) {
+    var messages =
+        e.getConstraintViolations().stream()
+            .map(v -> "%s %s".formatted(v.getPropertyPath(), v.getMessage()))
+            .collect(Collectors.joining(", "));
+    return buildResponse(HttpStatus.BAD_REQUEST, ErrorCodes.VALIDATION_ERROR, messages);
   }
 
   @ExceptionHandler(MethodArgumentTypeMismatchException.class)
