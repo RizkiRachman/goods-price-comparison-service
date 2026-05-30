@@ -6,6 +6,7 @@ import com.example.goodsprice.api.model.CategoryListResponse;
 import com.example.goodsprice.api.model.CreateCategoryRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.UpdateCategoryRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class CategoryController implements CategoriesApi {
   private final CategoryWebAdapter adapter;
 
   @Override
-  public ResponseEntity<Category> createCategory(CreateCategoryRequest request) {
+  public ResponseEntity<Category> createCategory(@Valid CreateCategoryRequest request) {
     var category = adapter.create(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(category);
   }
@@ -40,7 +41,8 @@ public class CategoryController implements CategoriesApi {
   }
 
   @Override
-  public ResponseEntity<Category> updateCategory(String categoryId, UpdateCategoryRequest request) {
+  public ResponseEntity<Category> updateCategory(
+      String categoryId, @Valid UpdateCategoryRequest request) {
     return ResponseEntity.ok(adapter.update(categoryId, request));
   }
 }

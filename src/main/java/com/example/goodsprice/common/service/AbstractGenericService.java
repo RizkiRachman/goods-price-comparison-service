@@ -37,4 +37,10 @@ public abstract class AbstractGenericService<T, ID> {
   public PageResponse<T> findAll(PageRequest pageRequest, String search, String status) {
     return getRepository().findAll(pageRequest, search, status);
   }
+
+  public void deleteById(ID id) {
+    findById(id); // throws NotFoundException if not found
+    getRepository().deleteById(id);
+    log.info("{} deleted with id: {}", entityName, id);
+  }
 }

@@ -49,6 +49,11 @@ public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
   }
 
   @Override
+  public void deleteById(UUID id) {
+    jpaRepository.deleteById(id);
+  }
+
+  @Override
   public PageResponse<ActivityLogDomain> findAll(
       PageRequest pageRequest, String search, String status) {
     if (Objects.nonNull(search) && !search.isBlank()) {

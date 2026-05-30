@@ -4,6 +4,7 @@ import com.example.goodsprice.api.controller.FeedbackQuestionsApi;
 import com.example.goodsprice.api.model.CreateFeedbackQuestionRequest;
 import com.example.goodsprice.api.model.FeedbackQuestion;
 import com.example.goodsprice.api.model.FeedbackQuestionListResponse;
+import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,7 @@ public class FeedbackQuestionController implements FeedbackQuestionsApi {
 
   @Override
   public ResponseEntity<FeedbackQuestion> createFeedbackQuestion(
-      CreateFeedbackQuestionRequest request) {
+      @Valid CreateFeedbackQuestionRequest request) {
     return ResponseEntity.status(HttpStatus.CREATED).body(adapter.create(request));
   }
 

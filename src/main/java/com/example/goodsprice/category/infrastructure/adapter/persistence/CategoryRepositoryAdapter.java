@@ -61,6 +61,11 @@ public class CategoryRepositoryAdapter implements CategoryRepositoryPort {
     return jpaRepo.existsById(id);
   }
 
+  @Override
+  public void deleteById(String id) {
+    jpaRepo.deleteById(id);
+  }
+
   private Specification<CategoryEntity> buildSpecification(String search, String status) {
     return (root, query, cb) -> {
       var predicates = new ArrayList<Predicate>();

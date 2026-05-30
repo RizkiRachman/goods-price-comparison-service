@@ -1,5 +1,6 @@
 package com.example.goodsprice.category.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.util.JsonNullableUtils.resolveNullable;
 import static com.example.goodsprice.common.util.PaginationUtils.resolvePage;
 import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
 import static com.example.goodsprice.common.util.PaginationUtils.resolveSortBy;
@@ -14,9 +15,7 @@ import com.example.goodsprice.category.application.port.in.CategoryInPort;
 import com.example.goodsprice.category.infrastructure.adapter.web.mapper.CategoryDtoMapper;
 import com.example.goodsprice.common.constant.AppConstants;
 import com.example.goodsprice.common.util.ObjectUtils;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -66,10 +65,5 @@ public class CategoryWebAdapter {
             resolveNullable(request.getDescription()),
             ObjectUtils.getOrNull(request.getStatus(), EntityStatus::getValue));
     return mapper.toApiCategory(domain);
-  }
-
-  private <T> T resolveNullable(JsonNullable<T> nullable) {
-    if (Objects.isNull(nullable)) return null;
-    return nullable.orElse(null);
   }
 }

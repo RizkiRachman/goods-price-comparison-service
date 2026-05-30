@@ -7,7 +7,7 @@ import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
 import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
-import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
+import com.example.goodsprice.product.application.port.in.ProductInPort;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PriceService implements PriceInPort {
 
   private final PriceRepositoryPort priceRepository;
-  private final ProductRepositoryPort productRepository;
+  private final ProductInPort productInPort;
 
   @Override
   @Transactional
@@ -49,7 +49,7 @@ public class PriceService implements PriceInPort {
             .build();
     priceRecord = priceRepository.save(priceRecord);
 
-    productRepository.updateLastPriceUpdate(productId, LocalDateTime.now());
+    productInPort.updateLastPriceUpdate(productId, LocalDateTime.now());
 
     log.info("Price created: product={}, store={}, price={}", productId, storeId, price);
     return priceRecord;
@@ -124,7 +124,7 @@ public class PriceService implements PriceInPort {
 
     existing = priceRepository.save(existing);
 
-    productRepository.updateLastPriceUpdate(existing.getProductId(), LocalDateTime.now());
+    productInPort.updateLastPriceUpdate(existing.getProductId(), LocalDateTime.now());
 
     log.info("Price updated: id={}, price={}", id, existing.getPrice());
     return existing;

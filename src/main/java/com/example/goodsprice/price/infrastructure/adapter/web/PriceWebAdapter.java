@@ -19,7 +19,7 @@ import com.example.goodsprice.price.infrastructure.adapter.web.mapper.PriceDtoMa
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
-import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
+import com.example.goodsprice.store.application.port.in.StoreInPort;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +37,7 @@ public class PriceWebAdapter {
 
   private final PriceInPort priceInPort;
   private final ProductInPort productInPort;
-  private final StoreRepositoryPort storeRepository;
+  private final StoreInPort storeInPort;
   private final PriceDtoMapper mapper;
 
   public PriceRecord createPriceRecord(Long productId, CreatePriceRecordRequest request) {
@@ -51,13 +51,13 @@ public class PriceWebAdapter {
             request.getUnitPrice(),
             dateRecorded,
             request.getIsPromo());
-    var store = storeRepository.findById(price.getStoreId());
+    var store = storeInPort.findById(price.getStoreId());
     return mapper.toPriceRecord(price, store);
   }
 
   public PriceRecord getPriceRecord(Long id) {
     var price = priceInPort.findById(id);
-    var store = storeRepository.findById(price.getStoreId());
+    var store = storeInPort.findById(price.getStoreId());
     return mapper.toPriceRecord(price, store);
   }
 
@@ -105,7 +105,7 @@ public class PriceWebAdapter {
     var unitPrice = ObjectUtils.getOrNull(request.getUnitPrice(), u -> u.orElse(null));
     var price =
         priceInPort.update(id, request.getPrice(), unitPrice, dateRecorded, request.getIsPromo());
-    var store = storeRepository.findById(price.getStoreId());
+    var store = storeInPort.findById(price.getStoreId());
     return mapper.toPriceRecord(price, store);
   }
 
@@ -160,7 +160,7 @@ public class PriceWebAdapter {
     var storeIds =
         prices.stream().map(PriceDomain::getStoreId).filter(Objects::nonNull).distinct().toList();
     if (storeIds.isEmpty()) return Map.of();
-    return storeRepository.findAllById(storeIds).stream()
+    return storeInPort.findAllById(storeIds).stream()
         .collect(Collectors.toMap(StoreDomain::getId, Function.identity()));
   }
 
@@ -174,7 +174,7 @@ public class PriceWebAdapter {
 
     var store = storeMap.get(cheapest.getStoreId());
     if (Objects.isNull(store)) {
-      store = storeRepository.findById(cheapest.getStoreId());
+      store = storeInPort.findById(cheapest.getStoreId());
     }
     var result = mapper.toCheapestPrice(cheapest, store);
 

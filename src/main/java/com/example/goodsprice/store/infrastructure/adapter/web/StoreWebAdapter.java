@@ -1,5 +1,6 @@
 package com.example.goodsprice.store.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.util.JsonNullableUtils.resolveNullable;
 import static com.example.goodsprice.common.util.PaginationUtils.resolvePage;
 import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
 
@@ -12,7 +13,6 @@ import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.in.StoreInPort;
 import com.example.goodsprice.store.infrastructure.adapter.web.mapper.StoreDtoMapper;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -51,7 +51,7 @@ public class StoreWebAdapter {
       EntityStatus status,
       String chain,
       String location) {
-    var pageValue = resolvePage(page, 0);
+    var pageValue = resolvePage(page, 1);
     var sizeValue = resolveSize(pageSize, 20);
     var sortByValue = ObjectUtils.getOrNull(sortBy, s -> s);
     var sortDirValue = ObjectUtils.getOrNull(sortOrder, s -> s);
@@ -93,10 +93,5 @@ public class StoreWebAdapter {
 
   public void delete(Long id) {
     storeInPort.deleteById(id);
-  }
-
-  private <T> T resolveNullable(org.openapitools.jackson.nullable.JsonNullable<T> nullable) {
-    if (Objects.isNull(nullable)) return null;
-    return nullable.orElse(null);
   }
 }

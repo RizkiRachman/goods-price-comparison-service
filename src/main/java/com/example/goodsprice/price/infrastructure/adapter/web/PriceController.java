@@ -10,6 +10,7 @@ import com.example.goodsprice.api.model.PriceSearchRequestV2;
 import com.example.goodsprice.api.model.PriceSearchResponse;
 import com.example.goodsprice.api.model.PriceSearchResponseV2;
 import com.example.goodsprice.api.model.UpdatePriceRecordRequest;
+import jakarta.validation.Valid;
 import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,7 +25,7 @@ public class PriceController implements PricesApi {
 
   @Override
   public ResponseEntity<PriceRecord> createPriceRecord(
-      Long productId, CreatePriceRecordRequest request) {
+      Long productId, @Valid CreatePriceRecordRequest request) {
     var result = adapter.createPriceRecord(productId, request);
     return ResponseEntity.status(HttpStatus.CREATED).body(result);
   }
@@ -69,17 +70,18 @@ public class PriceController implements PricesApi {
   }
 
   @Override
-  public ResponseEntity<PriceSearchResponse> searchPrices(PriceSearchRequest request) {
+  public ResponseEntity<PriceSearchResponse> searchPrices(@Valid PriceSearchRequest request) {
     return ResponseEntity.ok(adapter.search(request));
   }
 
   @Override
-  public ResponseEntity<PriceSearchResponseV2> searchPricesV2(PriceSearchRequestV2 request) {
+  public ResponseEntity<PriceSearchResponseV2> searchPricesV2(@Valid PriceSearchRequestV2 request) {
     return ResponseEntity.ok(adapter.searchV2(request));
   }
 
   @Override
-  public ResponseEntity<PriceRecord> updatePriceRecord(Long id, UpdatePriceRecordRequest request) {
+  public ResponseEntity<PriceRecord> updatePriceRecord(
+      Long id, @Valid UpdatePriceRecordRequest request) {
     var result = adapter.updatePriceRecord(id, request);
     return ResponseEntity.ok(result);
   }

@@ -54,4 +54,9 @@ public class FeedbackQuestionRepositoryAdapter implements FeedbackQuestionReposi
   public boolean existsById(UUID id) {
     return jpaRepo.existsById(id);
   }
+
+  @Override
+  public void deleteById(UUID id) {
+    jpaRepo.deleteById(id);
+  }
 }
