@@ -4,16 +4,16 @@ import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.example.goodsprice.price.infrastructure.adapter.persistence.entity.PriceEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Component
@@ -32,8 +32,7 @@ public class PriceRepositoryAdapter implements PriceRepositoryPort {
 
   @Override
   public List<PriceDomain> saveAll(Iterable<PriceDomain> prices) {
-    var entities =
-        new ArrayList<PriceEntity>();
+    var entities = new ArrayList<PriceEntity>();
     for (var price : prices) {
       entities.add(mapper.toEntity(price));
     }
