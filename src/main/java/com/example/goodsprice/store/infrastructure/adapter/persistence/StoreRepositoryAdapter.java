@@ -2,6 +2,7 @@ package com.example.goodsprice.store.infrastructure.adapter.persistence;
 
 import com.example.goodsprice.common.dto.PageRequest;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.util.SpecificationBuilder;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
@@ -13,8 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -68,20 +67,8 @@ public class StoreRepositoryAdapter implements StoreRepositoryPort {
   @Override
   public PageResponse<StoreDomain> findAll(
       PageRequest pageRequest, String search, String status, String chain, String location) {
-    var sort =
-        Sort.by(
-            "desc".equalsIgnoreCase(pageRequest.sortDirection())
-                ? Sort.Direction.DESC
-                : Sort.Direction.ASC,
-            pageRequest.sortBy());
-
-    var pageable =
-        org.springframework.data.domain.PageRequest.of(
-            pageRequest.toZeroBased(), pageRequest.size(), sort);
     var spec = buildSpecification(search, status, chain, location);
-    Page<StoreEntity> page = jpaRepo.findAll(spec, pageable);
-    var stores = page.getContent().stream().map(mapper::toDomain).toList();
-    return PageResponse.of(stores, pageRequest.page(), pageRequest.size(), page.getTotalElements());
+    return PaginationHelper.findAll(pageRequest, spec, jpaRepo, mapper::toDomain);
   }
 
   private Specification<StoreEntity> buildSpecification(

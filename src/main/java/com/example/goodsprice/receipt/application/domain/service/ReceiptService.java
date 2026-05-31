@@ -62,7 +62,12 @@ public class ReceiptService implements ReceiptInPort {
     receipt = receiptRepository.save(receipt);
     log.info("Receipt created: {}", receipt.getId());
 
-    eventOutPort.publishReceiptUploaded(receipt, imageBytes);
+    // Store image data before firing event to avoid byte[] in memory
+    if (imageBytes != null && imageBytes.length > 0) {
+      receiptRepository.updateImageData(receipt.getId(), imageBytes);
+    }
+
+    eventOutPort.publishReceiptUploaded(receipt);
     return receipt;
   }
 
@@ -107,7 +112,11 @@ public class ReceiptService implements ReceiptInPort {
     log.info("Receipt processing started: {}", id);
 
     try {
-      var base64Image = Base64.getEncoder().encodeToString(imageBytes);
+      byte[] bytesToProcess = imageBytes;
+      if (bytesToProcess == null || bytesToProcess.length == 0) {
+        bytesToProcess = receiptRepository.findById(id).getImageData();
+      }
+      var base64Image = Base64.getEncoder().encodeToString(bytesToProcess);
       var extractedData = llmProvider.extractReceiptData(base64Image);
 
       if (Objects.isNull(extractedData) || extractedData.isEmpty()) {

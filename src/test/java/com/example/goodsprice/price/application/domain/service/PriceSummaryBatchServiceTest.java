@@ -73,7 +73,7 @@ class PriceSummaryBatchServiceTest {
             .price(15.0)
             .dateRecorded(today.minusDays(30))
             .build();
-    when(priceRepository.findByProductId(1L)).thenReturn(List.of(price1, price2));
+    when(priceRepository.findAllByProductIds(List.of(1L))).thenReturn(List.of(price1, price2));
 
     batchService.updateSummaries();
 
@@ -109,7 +109,7 @@ class PriceSummaryBatchServiceTest {
     when(productRepository.findProductsNeedingSummaryUpdate(anyInt()))
         .thenReturn(List.of(product))
         .thenReturn(List.of());
-    when(priceRepository.findByProductId(1L)).thenReturn(List.of());
+    when(priceRepository.findAllByProductIds(List.of(1L))).thenReturn(List.of());
 
     batchService.updateSummaries();
 
@@ -148,7 +148,8 @@ class PriceSummaryBatchServiceTest {
             .dateRecorded(today.minusDays(100))
             .build();
 
-    when(priceRepository.findByProductId(1L)).thenReturn(List.of(recentPrice, oldPrice));
+    when(priceRepository.findAllByProductIds(List.of(1L)))
+        .thenReturn(List.of(recentPrice, oldPrice));
 
     batchService.updateSummaries();
 
@@ -185,7 +186,8 @@ class PriceSummaryBatchServiceTest {
             .dateRecorded(LocalDate.now())
             .build();
 
-    when(priceRepository.findByProductId(1L)).thenReturn(List.of(priceWithNull, validPrice));
+    when(priceRepository.findAllByProductIds(List.of(1L)))
+        .thenReturn(List.of(priceWithNull, validPrice));
 
     batchService.updateSummaries();
 
@@ -231,7 +233,8 @@ class PriceSummaryBatchServiceTest {
             .dateRecorded(today)
             .build();
 
-    when(priceRepository.findByProductId(1L)).thenReturn(List.of(price1, price2, price3));
+    when(priceRepository.findAllByProductIds(List.of(1L)))
+        .thenReturn(List.of(price1, price2, price3));
 
     batchService.updateSummaries();
 
@@ -253,7 +256,7 @@ class PriceSummaryBatchServiceTest {
         .thenReturn(firstBatch)
         .thenReturn(List.of());
 
-    when(priceRepository.findByProductId(any())).thenReturn(List.of());
+    when(priceRepository.findAllByProductIds(anyList())).thenReturn(List.of());
 
     batchService.updateSummaries();
 
@@ -270,8 +273,7 @@ class PriceSummaryBatchServiceTest {
         .thenReturn(List.of(product1, product2))
         .thenReturn(List.of());
 
-    when(priceRepository.findByProductId(1L)).thenThrow(new RuntimeException("Database error"));
-    when(priceRepository.findByProductId(2L)).thenReturn(List.of());
+    when(priceRepository.findAllByProductIds(List.of(1L, 2L))).thenReturn(List.of());
 
     assertDoesNotThrow(() -> batchService.updateSummaries());
 
@@ -314,7 +316,8 @@ class PriceSummaryBatchServiceTest {
             .dateRecorded(today.minusDays(20))
             .build();
 
-    when(priceRepository.findByProductId(1L)).thenReturn(List.of(price1, price2, price3));
+    when(priceRepository.findAllByProductIds(List.of(1L)))
+        .thenReturn(List.of(price1, price2, price3));
 
     batchService.updateSummaries();
 

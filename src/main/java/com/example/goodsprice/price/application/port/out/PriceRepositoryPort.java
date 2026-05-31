@@ -10,6 +10,8 @@ public interface PriceRepositoryPort {
 
   PriceDomain save(PriceDomain price);
 
+  List<PriceDomain> saveAll(Iterable<PriceDomain> prices);
+
   PriceDomain findById(Long id);
 
   List<PriceDomain> findAll();

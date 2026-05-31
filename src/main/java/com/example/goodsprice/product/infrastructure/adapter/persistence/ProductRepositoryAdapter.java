@@ -7,9 +7,11 @@ import com.example.goodsprice.product.application.port.out.ProductRepositoryPort
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ProductRepositoryAdapter implements ProductRepositoryPort {
@@ -45,7 +47,9 @@ public class ProductRepositoryAdapter implements ProductRepositoryPort {
   }
 
   @Override
+  @Deprecated(forRemoval = true)
   public List<ProductDomain> findAll() {
+    log.warn("Unbounded findAll() called - this may cause performance issues for large datasets");
     return jpaRepo.findAll().stream().map(mapper::toDomain).toList();
   }
 

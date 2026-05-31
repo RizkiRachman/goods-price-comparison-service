@@ -26,6 +26,7 @@ public class ReceiptMapper {
     entity.setTotalAmount(getOrNull(domain.getTotalAmount(), BigDecimal::doubleValue));
     entity.setExtractedDataJson(domain.getExtractedDataJson());
     entity.setErrorMessage(domain.getErrorMessage());
+    entity.setImageData(domain.getImageData());
     return entity;
   }
 
@@ -42,6 +43,7 @@ public class ReceiptMapper {
         .totalAmount(getOrNull(entity.getTotalAmount(), BigDecimal::valueOf))
         .extractedDataJson(entity.getExtractedDataJson())
         .errorMessage(entity.getErrorMessage())
+        .imageData(entity.getImageData())
         .build();
   }
 

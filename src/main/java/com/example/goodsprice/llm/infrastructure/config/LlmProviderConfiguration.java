@@ -6,6 +6,7 @@ import com.example.goodsprice.llm.infrastructure.adapter.provider.GeminiLlmProvi
 import com.example.goodsprice.llm.infrastructure.adapter.provider.GroqLlmProvider;
 import com.example.goodsprice.llm.infrastructure.adapter.provider.LocalLlmProvider;
 import com.example.goodsprice.llm.infrastructure.adapter.provider.SumopodLlmProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -27,21 +28,28 @@ public class LlmProviderConfiguration {
 
   @Bean
   public RestTemplate restTemplate() {
-    var factory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
-    factory.setConnectTimeout(10_000);
-    factory.setReadTimeout(30_000);
+    var cm = new org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager();
+    cm.setMaxTotal(20);
+    cm.setDefaultMaxPerRoute(10);
+    var httpClient =
+        org.apache.hc.client5.http.impl.classic.HttpClients.custom()
+            .setConnectionManager(cm)
+            .build();
+    var factory =
+        new org.springframework.http.client.HttpComponentsClientHttpRequestFactory(httpClient);
     return new RestTemplate(factory);
   }
 
   @Bean
-  public GroqLlmProvider groqLlmProvider(LlmProperties llmProperties, RestTemplate restTemplate) {
-    return new GroqLlmProvider(llmProperties, restTemplate);
+  public GroqLlmProvider groqLlmProvider(
+      LlmProperties llmProperties, RestTemplate restTemplate, ObjectMapper objectMapper) {
+    return new GroqLlmProvider(llmProperties, restTemplate, objectMapper);
   }
 
   @Bean
   public SumopodLlmProvider sumopodLlmProvider(
-      LlmProperties llmProperties, RestTemplate restTemplate) {
-    return new SumopodLlmProvider(llmProperties, restTemplate);
+      LlmProperties llmProperties, RestTemplate restTemplate, ObjectMapper objectMapper) {
+    return new SumopodLlmProvider(llmProperties, restTemplate, objectMapper);
   }
 
   @Bean

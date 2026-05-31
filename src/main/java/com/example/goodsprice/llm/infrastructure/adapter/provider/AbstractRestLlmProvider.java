@@ -48,11 +48,13 @@ public abstract class AbstractRestLlmProvider implements LlmProviderPort {
 
   protected final LlmProperties llmProperties;
   protected final RestTemplate restTemplate;
-  protected final ObjectMapper objectMapper = new ObjectMapper();
+  protected final ObjectMapper objectMapper;
 
-  protected AbstractRestLlmProvider(LlmProperties llmProperties, RestTemplate restTemplate) {
+  protected AbstractRestLlmProvider(
+      LlmProperties llmProperties, RestTemplate restTemplate, ObjectMapper objectMapper) {
     this.llmProperties = llmProperties;
     this.restTemplate = restTemplate;
+    this.objectMapper = objectMapper;
   }
 
   /** Provider-specific API URL (e.g., "https://api.groq.com/openai/v1/chat/completions"). */

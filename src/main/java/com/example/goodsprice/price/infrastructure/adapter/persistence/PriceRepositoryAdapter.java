@@ -7,9 +7,11 @@ import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class PriceRepositoryAdapter implements PriceRepositoryPort {
@@ -25,12 +27,26 @@ public class PriceRepositoryAdapter implements PriceRepositoryPort {
   }
 
   @Override
+  public List<PriceDomain> saveAll(Iterable<PriceDomain> prices) {
+    var entities =
+        new java.util.ArrayList<
+            com.example.goodsprice.price.infrastructure.adapter.persistence.entity.PriceEntity>();
+    for (var price : prices) {
+      entities.add(mapper.toEntity(price));
+    }
+    var saved = jpaRepo.saveAll(entities);
+    return saved.stream().map(mapper::toDomain).toList();
+  }
+
+  @Override
   public PriceDomain findById(Long id) {
     return jpaRepo.findById(id).map(mapper::toDomain).orElse(null);
   }
 
   @Override
+  @Deprecated(forRemoval = true)
   public List<PriceDomain> findAll() {
+    log.warn("Unbounded findAll() called - this may cause performance issues for large datasets");
     return jpaRepo.findAll().stream().map(mapper::toDomain).toList();
   }
 

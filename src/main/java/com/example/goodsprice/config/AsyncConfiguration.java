@@ -7,13 +7,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 
 @Slf4j
 @Configuration
 @EnableAsync
 @EnableScheduling
-public class AsyncConfiguration {
+public class AsyncConfiguration implements SchedulingConfigurer {
 
   @Bean(name = "receiptProcessorExecutor")
   public Executor receiptProcessorExecutor() {
@@ -28,6 +31,23 @@ public class AsyncConfiguration {
   @Bean(name = "activityLogExecutor")
   public Executor activityLogExecutor() {
     return createExecutor("activity-log-", 2, 5, 100, 30);
+  }
+
+  @Override
+  public void configureTasks(ScheduledTaskRegistrar taskRegistrar) {
+    taskRegistrar.setScheduler(scheduledTaskExecutor());
+  }
+
+  @Bean(destroyMethod = "shutdown")
+  public ThreadPoolTaskScheduler scheduledTaskExecutor() {
+    var scheduler = new ThreadPoolTaskScheduler();
+    scheduler.setPoolSize(4);
+    scheduler.setThreadNamePrefix("scheduled-task-");
+    scheduler.setWaitForTasksToCompleteOnShutdown(true);
+    scheduler.setAwaitTerminationSeconds(60);
+    scheduler.initialize();
+    log.info("scheduled-task scheduler initialized: pool=4");
+    return scheduler;
   }
 
   private static Executor createExecutor(

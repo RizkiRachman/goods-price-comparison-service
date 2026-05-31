@@ -6,12 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
@@ -248,15 +250,21 @@ class ReceiptEventHandlerHelperTest {
 
     var product1 = ProductDomain.builder().id(100L).name("Apple").build();
     var product2 = ProductDomain.builder().id(200L).name("Milk").build();
-    when(productInPort.createIfNotExist("Apple", "Fruit", "KG")).thenReturn(product1);
-    when(productInPort.createIfNotExist("Milk", "Dairy", "LITER")).thenReturn(product2);
+    var productItems =
+        List.of(
+            new ProductInPort.ProductCreateItem("Apple", "Fruit", "KG"),
+            new ProductInPort.ProductCreateItem("Milk", "Dairy", "LITER"));
+    when(productInPort.createIfNotExistBatch(productItems))
+        .thenReturn(Map.of("Apple", product1, "Milk", product2));
 
     helper.processProductsAndPrices(items, store, date);
 
-    verify(productInPort).createIfNotExist("Apple", "Fruit", "KG");
-    verify(productInPort).createIfNotExist("Milk", "Dairy", "LITER");
-    verify(priceInPort).create(100L, 1L, 10.0, 5.0, date, false);
-    verify(priceInPort).create(200L, 1L, 15.0, 15.0, date, false);
+    verify(productInPort).createIfNotExistBatch(productItems);
+    verify(priceInPort)
+        .createBatch(
+            List.of(
+                new PriceCreateItem(100L, 1L, 10.0, 5.0, date, false),
+                new PriceCreateItem(200L, 1L, 15.0, 15.0, date, false)));
   }
 
   @Test
@@ -272,13 +280,13 @@ class ReceiptEventHandlerHelperTest {
                 "unitPrice", 5.0));
 
     var product = ProductDomain.builder().id(100L).name("Apple").build();
-    when(productInPort.createIfNotExist("Apple", "Fruit", "KG")).thenReturn(product);
+    var productItems = List.of(new ProductInPort.ProductCreateItem("Apple", "Fruit", "KG"));
+    when(productInPort.createIfNotExistBatch(productItems)).thenReturn(Map.of("Apple", product));
 
     helper.processProductsAndPrices(items, null, date);
 
-    verify(productInPort).createIfNotExist("Apple", "Fruit", "KG");
-    verify(priceInPort, never())
-        .create(anyLong(), anyLong(), anyDouble(), anyDouble(), any(), anyBoolean());
+    verify(productInPort).createIfNotExistBatch(productItems);
+    verify(priceInPort, never()).createBatch(anyList());
   }
 
   @Test
@@ -305,11 +313,13 @@ class ReceiptEventHandlerHelperTest {
     var items = List.of(itemMap);
 
     var product = ProductDomain.builder().id(100L).name("Apple").build();
-    when(productInPort.createIfNotExist("Apple", null, null)).thenReturn(product);
+    var productItems = List.of(new ProductInPort.ProductCreateItem("Apple", null, null));
+    when(productInPort.createIfNotExistBatch(productItems)).thenReturn(Map.of("Apple", product));
 
     helper.processProductsAndPrices(items, store, date);
 
-    verify(productInPort).createIfNotExist("Apple", null, null);
-    verify(priceInPort).create(100L, 1L, null, null, date, false);
+    verify(productInPort).createIfNotExistBatch(productItems);
+    verify(priceInPort)
+        .createBatch(List.of(new PriceCreateItem(100L, 1L, null, null, date, false)));
   }
 }
