@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +33,6 @@ public class PriceSummaryBatchService {
   @Value("${price.summary.batch.batch-size:100}")
   private int batchSize;
 
-  @Transactional
   public void updateSummaries() {
     log.info("Starting price summary batch update");
 
@@ -63,13 +63,22 @@ public class PriceSummaryBatchService {
         java.time.Duration.between(startTime, LocalDateTime.now()));
   }
 
-  private void processProductBatch(List<ProductDomain> products) {
+  @Transactional
+  public void processProductBatch(List<ProductDomain> products) {
     List<ProductPriceSummary> summariesToSave = new ArrayList<>();
     LocalDateTime calculationTime = LocalDateTime.now();
 
+    // Batch-load all prices in one query instead of N+1
+    var productIds = products.stream().map(ProductDomain::getId).filter(Objects::nonNull).toList();
+    var allPrices = priceRepository.findAllByProductIds(productIds);
+    var pricesByProductId =
+        allPrices.stream()
+            .collect(java.util.stream.Collectors.groupingBy(PriceDomain::getProductId));
+
     for (ProductDomain product : products) {
       try {
-        ProductPriceSummary summary = calculateSummaryForProduct(product, calculationTime);
+        ProductPriceSummary summary =
+            calculateSummaryForProduct(product, calculationTime, pricesByProductId);
         summariesToSave.add(summary);
       } catch (Exception e) {
         log.error(
@@ -82,16 +91,17 @@ public class PriceSummaryBatchService {
       log.info("Saved {} price summaries", summariesToSave.size());
     }
 
-    var productIds = products.stream().map(ProductDomain::getId).filter(Objects::nonNull).toList();
     productRepository.updateSummaryLastCalculated(productIds, calculationTime);
   }
 
   private ProductPriceSummary calculateSummaryForProduct(
-      ProductDomain product, LocalDateTime calculationTime) {
+      ProductDomain product,
+      LocalDateTime calculationTime,
+      Map<Long, List<PriceDomain>> pricesByProductId) {
 
     Long productId = product.getId();
 
-    List<PriceDomain> allPrices = priceRepository.findByProductId(productId);
+    List<PriceDomain> allPrices = pricesByProductId.getOrDefault(productId, List.of());
 
     if (allPrices.isEmpty()) {
       return buildEmptySummary(productId, calculationTime);

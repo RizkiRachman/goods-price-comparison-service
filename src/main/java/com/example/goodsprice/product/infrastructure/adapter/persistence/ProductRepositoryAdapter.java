@@ -1,15 +1,18 @@
 package com.example.goodsprice.product.infrastructure.adapter.persistence;
 
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
 import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ProductRepositoryAdapter implements ProductRepositoryPort {
@@ -45,26 +48,22 @@ public class ProductRepositoryAdapter implements ProductRepositoryPort {
   }
 
   @Override
+  @Deprecated(forRemoval = true)
   public List<ProductDomain> findAll() {
+    log.warn("Unbounded findAll() called - this may cause performance issues for large datasets");
     return jpaRepo.findAll().stream().map(mapper::toDomain).toList();
   }
 
   @Override
   public PageResponse<ProductDomain> search(ProductSearchCriteria criteria) {
     var spec = ProductSpecification.fromCriteria(criteria);
-    var sort =
-        Sort.by(
-            "desc".equalsIgnoreCase(criteria.getSortDirection())
-                ? Sort.Direction.DESC
-                : Sort.Direction.ASC,
-            criteria.getSortBy());
-    var pageable =
-        org.springframework.data.domain.PageRequest.of(
-            criteria.getPage(), criteria.getSize(), sort);
-    var page = jpaRepo.findAll(spec, pageable);
-    var domains = page.getContent().stream().map(mapper::toDomain).toList();
-    return PageResponse.of(
-        domains, criteria.getPage(), criteria.getSize(), page.getTotalElements());
+    var pr =
+        new PageRequestDto(
+            criteria.getPage(),
+            criteria.getSize(),
+            criteria.getSortBy(),
+            criteria.getSortDirection());
+    return PaginationHelper.findAll(pr, spec, jpaRepo, mapper::toDomain);
   }
 
   @Override

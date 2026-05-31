@@ -178,6 +178,12 @@
             <artifactId>bucket4j-core</artifactId>
             <version>8.10.1</version>
         </dependency>
+
+        <!-- HTTP Client with connection pooling for LLM providers -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>

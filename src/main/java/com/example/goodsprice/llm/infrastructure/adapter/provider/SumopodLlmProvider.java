@@ -4,6 +4,7 @@ import static com.example.goodsprice.llm.infrastructure.config.LlmConstants.PROV
 
 import com.example.goodsprice.llm.infrastructure.config.LlmProperties;
 import com.example.goodsprice.llm.infrastructure.config.LlmProperties.ProviderConfig;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -12,8 +13,9 @@ public class SumopodLlmProvider extends AbstractRestLlmProvider {
 
   private static final String API_URL = "https://ai.sumopod.com/v1/chat/completions";
 
-  public SumopodLlmProvider(LlmProperties llmProperties, RestTemplate restTemplate) {
-    super(llmProperties, restTemplate);
+  public SumopodLlmProvider(
+      LlmProperties llmProperties, RestTemplate restTemplate, ObjectMapper objectMapper) {
+    super(llmProperties, restTemplate, objectMapper);
   }
 
   @Override

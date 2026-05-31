@@ -1,7 +1,8 @@
 package com.example.goodsprice.price.application.port.in;
 
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import java.time.LocalDate;
 import java.util.List;
@@ -27,7 +28,7 @@ public interface PriceInPort {
       LocalDate endDate,
       Long storeId,
       Boolean isPromo,
-      PageRequest pageRequest);
+      PageRequestDto pageRequest);
 
   PriceDomain findCheapestByProduct(Long productId);
 
@@ -39,4 +40,11 @@ public interface PriceInPort {
 
   PriceDomain update(
       Long id, Double price, Double unitPrice, LocalDate dateRecorded, Boolean isPromo);
+
+  /**
+   * Creates prices for multiple product-store combinations in batch.
+   *
+   * @param items list of price creation requests
+   */
+  void createBatch(List<PriceCreateItem> items);
 }

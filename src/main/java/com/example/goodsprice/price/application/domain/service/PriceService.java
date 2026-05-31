@@ -1,9 +1,10 @@
 package com.example.goodsprice.price.application.domain.service;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
 import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
@@ -77,7 +78,7 @@ public class PriceService implements PriceInPort {
       LocalDate endDate,
       Long storeId,
       Boolean isPromo,
-      PageRequest pageRequest) {
+      PageRequestDto pageRequest) {
     return priceRepository.findByProductIdWithFilters(
         productId, startDate, endDate, storeId, isPromo, pageRequest);
   }
@@ -97,6 +98,43 @@ public class PriceService implements PriceInPort {
   @Override
   public List<PriceDomain> findAllByProductIds(List<Long> productIds) {
     return priceRepository.findAllByProductIds(productIds);
+  }
+
+  @Override
+  @Transactional
+  @ActivityLog
+  public void createBatch(List<PriceCreateItem> items) {
+    if (items == null || items.isEmpty()) return;
+
+    var prices =
+        items.stream()
+            .filter(item -> item.productId() != null && item.storeId() != null)
+            .map(
+                item ->
+                    PriceDomain.builder()
+                        .productId(item.productId())
+                        .storeId(item.storeId())
+                        .price(item.totalPrice())
+                        .unitPrice(item.unitPrice())
+                        .dateRecorded(item.dateRecorded())
+                        .isPromo(item.isPromo())
+                        .build())
+            .toList();
+
+    if (prices.isEmpty()) return;
+
+    priceRepository.saveAll(prices);
+
+    // Update last price update timestamp for all affected products
+    var productIds =
+        prices.stream()
+            .map(PriceDomain::getProductId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+    var now = LocalDateTime.now();
+    productIds.forEach(id -> productInPort.updateLastPriceUpdate(id, now));
+
+    log.info("Created {} prices in batch", prices.size());
   }
 
   @Override

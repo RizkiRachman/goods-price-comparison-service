@@ -2,8 +2,10 @@ package com.example.goodsprice.receipt.infrastructure.handler.event;
 
 import com.example.goodsprice.common.util.NumberUtils;
 import com.example.goodsprice.common.util.ProductNameUtils;
+import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
+import com.example.goodsprice.product.application.port.in.ProductInPort.ProductCreateItem;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptItem;
 import com.example.goodsprice.receipt.application.port.out.ReceiptItemRepositoryPort;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
@@ -70,17 +72,45 @@ public class ReceiptEventHandlerHelper {
 
   public void processProductsAndPrices(
       List<Map<String, Object>> items, StoreDomain store, LocalDate date) {
-    for (var item : items) {
-      var productName = (String) item.get("productName");
-      var category = (String) item.get("category");
-      var unit = (String) item.get("unitType");
-      var totalPrice = NumberUtils.toDouble(item.get("totalPrice"));
-      var unitPrice = NumberUtils.toDouble(item.get("unitPrice"));
+    if (items == null || items.isEmpty()) return;
 
-      var cleanedName = ProductNameUtils.cleanProductName(productName, unit);
-      var product = productInPort.createIfNotExist(cleanedName, category, unit);
-      if (Objects.nonNull(store)) {
-        priceInPort.create(product.getId(), store.getId(), totalPrice, unitPrice, date, false);
+    // Batch create/find products
+    var productItems =
+        items.stream()
+            .map(
+                item ->
+                    new ProductCreateItem(
+                        (String) item.get("productName"),
+                        (String) item.get("category"),
+                        (String) item.get("unitType")))
+            .toList();
+
+    var productMap = productInPort.createIfNotExistBatch(productItems);
+
+    // Batch create prices
+    if (store != null && store.getId() != null) {
+      var priceItems =
+          items.stream()
+              .map(
+                  item -> {
+                    var cleanedName =
+                        ProductNameUtils.cleanProductName(
+                            (String) item.get("productName"), (String) item.get("unitType"));
+                    var product = productMap.get(cleanedName);
+                    if (product == null || product.getId() == null) return null;
+                    return new PriceCreateItem(
+                        product.getId(),
+                        store.getId(),
+                        NumberUtils.toDouble(item.get("totalPrice")),
+                        NumberUtils.toDouble(item.get("unitPrice")),
+                        date,
+                        false);
+                  })
+              .filter(Objects::nonNull)
+              .toList();
+
+      if (!priceItems.isEmpty()) {
+        priceInPort.createBatch(priceItems);
       }
     }
   }

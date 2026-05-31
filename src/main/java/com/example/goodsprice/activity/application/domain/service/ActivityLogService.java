@@ -8,7 +8,7 @@ import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
 import com.example.goodsprice.activity.application.port.in.ActivityLogInPort;
 import com.example.goodsprice.activity.application.port.out.ActivityLogRepositoryPort;
 import com.example.goodsprice.common.constant.ErrorCodes;
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.service.AbstractGenericService;
 import java.time.OffsetDateTime;
@@ -52,7 +52,7 @@ public class ActivityLogService extends AbstractGenericService<ActivityLogDomain
       ActivityLogAction action,
       OffsetDateTime startDate,
       OffsetDateTime endDate) {
-    var pageRequest = new PageRequest(page, size, sortBy, sortDirection);
+    var pageRequest = new PageRequestDto(page, size, sortBy, sortDirection);
     var start = Objects.nonNull(startDate) ? startDate.toLocalDateTime() : null;
     var end = Objects.nonNull(endDate) ? endDate.toLocalDateTime() : null;
     return activityLogRepository.findAll(pageRequest, type, action, start, end);

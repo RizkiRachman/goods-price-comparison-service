@@ -3,16 +3,15 @@ package com.example.goodsprice.category.infrastructure.adapter.persistence;
 import com.example.goodsprice.category.application.domain.model.CategoryDomain;
 import com.example.goodsprice.category.application.port.out.CategoryRepositoryPort;
 import com.example.goodsprice.category.infrastructure.adapter.persistence.entity.CategoryEntity;
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.util.SpecificationBuilder;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -39,21 +38,9 @@ public class CategoryRepositoryAdapter implements CategoryRepositoryPort {
 
   @Override
   public PageResponse<CategoryDomain> findAll(
-      PageRequest pageRequest, String search, String status) {
-    var sort =
-        Sort.by(
-            "desc".equalsIgnoreCase(pageRequest.sortDirection())
-                ? Sort.Direction.DESC
-                : Sort.Direction.ASC,
-            pageRequest.sortBy());
-    var pageable =
-        org.springframework.data.domain.PageRequest.of(
-            pageRequest.toZeroBased(), pageRequest.size(), sort);
+      PageRequestDto pageRequest, String search, String status) {
     var spec = buildSpecification(search, status);
-    Page<CategoryEntity> page = jpaRepo.findAll(spec, pageable);
-    var categories = page.getContent().stream().map(mapper::toDomain).toList();
-    return PageResponse.of(
-        categories, pageRequest.page(), pageRequest.size(), page.getTotalElements());
+    return PaginationHelper.findAll(pageRequest, spec, jpaRepo, mapper::toDomain);
   }
 
   @Override

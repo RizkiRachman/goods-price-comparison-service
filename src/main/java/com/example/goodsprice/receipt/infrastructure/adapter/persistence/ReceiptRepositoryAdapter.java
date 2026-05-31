@@ -49,4 +49,9 @@ public class ReceiptRepositoryAdapter implements ReceiptRepositoryPort {
   public void deleteById(UUID id) {
     jpaRepo.deleteById(id);
   }
+
+  @Override
+  public void updateImageData(UUID id, byte[] imageData) {
+    jpaRepo.updateImageData(id, imageData);
+  }
 }

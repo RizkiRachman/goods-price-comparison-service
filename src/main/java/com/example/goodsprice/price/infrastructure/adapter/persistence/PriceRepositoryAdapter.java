@@ -1,15 +1,20 @@
 package com.example.goodsprice.price.infrastructure.adapter.persistence;
 
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
+import com.example.goodsprice.price.infrastructure.adapter.persistence.entity.PriceEntity;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class PriceRepositoryAdapter implements PriceRepositoryPort {
@@ -25,12 +30,24 @@ public class PriceRepositoryAdapter implements PriceRepositoryPort {
   }
 
   @Override
+  public List<PriceDomain> saveAll(Iterable<PriceDomain> prices) {
+    var entities = new ArrayList<PriceEntity>();
+    for (var price : prices) {
+      entities.add(mapper.toEntity(price));
+    }
+    var saved = jpaRepo.saveAll(entities);
+    return saved.stream().map(mapper::toDomain).toList();
+  }
+
+  @Override
   public PriceDomain findById(Long id) {
     return jpaRepo.findById(id).map(mapper::toDomain).orElse(null);
   }
 
   @Override
+  @Deprecated(forRemoval = true)
   public List<PriceDomain> findAll() {
+    log.warn("Unbounded findAll() called - this may cause performance issues for large datasets");
     return jpaRepo.findAll().stream().map(mapper::toDomain).toList();
   }
 
@@ -79,16 +96,14 @@ public class PriceRepositoryAdapter implements PriceRepositoryPort {
       LocalDate endDate,
       Long storeId,
       Boolean isPromo,
-      PageRequest pageRequest) {
+      PageRequestDto pageRequest) {
     var sort =
         Sort.by(
             "desc".equalsIgnoreCase(pageRequest.sortDirection())
                 ? Sort.Direction.DESC
                 : Sort.Direction.ASC,
             pageRequest.sortBy());
-    var pageable =
-        org.springframework.data.domain.PageRequest.of(
-            pageRequest.toZeroBased(), pageRequest.size(), sort);
+    var pageable = PageRequest.of(pageRequest.toZeroBased(), pageRequest.size(), sort);
     var page =
         jpaRepo.findByProductIdWithFilters(
             productId, startDate, endDate, storeId, isPromo, pageable);

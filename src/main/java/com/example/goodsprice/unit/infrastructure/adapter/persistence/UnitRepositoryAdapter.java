@@ -1,7 +1,8 @@
 package com.example.goodsprice.unit.infrastructure.adapter.persistence;
 
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.util.SpecificationBuilder;
 import com.example.goodsprice.unit.application.domain.model.UnitDomain;
 import com.example.goodsprice.unit.application.port.out.UnitRepositoryPort;
@@ -11,8 +12,6 @@ import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -39,20 +38,9 @@ public class UnitRepositoryAdapter implements UnitRepositoryPort {
 
   @Override
   public PageResponse<UnitDomain> findAll(
-      PageRequest pageRequest, String search, String type, String status) {
-    var sort =
-        Sort.by(
-            "desc".equalsIgnoreCase(pageRequest.sortDirection())
-                ? Sort.Direction.DESC
-                : Sort.Direction.ASC,
-            pageRequest.sortBy());
-    var pageable =
-        org.springframework.data.domain.PageRequest.of(
-            pageRequest.toZeroBased(), pageRequest.size(), sort);
+      PageRequestDto pageRequest, String search, String type, String status) {
     var spec = buildSpecification(search, type, status);
-    Page<UnitEntity> page = jpaRepo.findAll(spec, pageable);
-    var units = page.getContent().stream().map(mapper::toDomain).toList();
-    return PageResponse.of(units, pageRequest.page(), pageRequest.size(), page.getTotalElements());
+    return PaginationHelper.findAll(pageRequest, spec, jpaRepo, mapper::toDomain);
   }
 
   @Override
@@ -76,7 +64,8 @@ public class UnitRepositoryAdapter implements UnitRepositoryPort {
   }
 
   @Override
-  public PageResponse<UnitDomain> findAll(PageRequest pageRequest, String search, String status) {
+  public PageResponse<UnitDomain> findAll(
+      PageRequestDto pageRequest, String search, String status) {
     return findAll(pageRequest, search, null, status);
   }
 }

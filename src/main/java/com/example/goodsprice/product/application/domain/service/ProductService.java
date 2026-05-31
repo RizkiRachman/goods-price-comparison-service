@@ -3,15 +3,20 @@ package com.example.goodsprice.product.application.domain.service;
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.util.ProductNameUtils;
 import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
 import com.example.goodsprice.product.application.port.in.PriceSummaryInPort;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
+import com.example.goodsprice.product.application.port.in.ProductInPort.ProductCreateItem;
 import com.example.goodsprice.product.application.port.in.ProductPriceQueryInPort;
 import com.example.goodsprice.product.application.port.in.StoreLookupInPort;
 import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -58,6 +63,51 @@ public class ProductService implements ProductInPort {
     product = productRepository.save(product);
     log.info("Product created: {} (id: {})", name, product.getId());
     return product;
+  }
+
+  @Override
+  @Transactional
+  @ActivityLog
+  public Map<String, ProductDomain> createIfNotExistBatch(List<ProductCreateItem> items) {
+    if (items == null || items.isEmpty()) return Map.of();
+
+    // Collect unique cleaned names with their category/unit info
+    var nameToInfo = new LinkedHashMap<String, ProductCreateItem>();
+    for (var item : items) {
+      var cleanedName = ProductNameUtils.cleanProductName(item.name(), item.unit());
+      if (!nameToInfo.containsKey(cleanedName)) {
+        nameToInfo.put(cleanedName, item);
+      }
+    }
+
+    // Find existing products
+    var uniqueNames = new ArrayList<>(nameToInfo.keySet());
+    var existing = productRepository.findAllByNames(uniqueNames);
+    var result = new HashMap<String, ProductDomain>();
+    for (var product : existing) {
+      result.put(product.getName(), product);
+    }
+
+    // Create missing products
+    var productsToSave = new ArrayList<ProductDomain>();
+    for (var entry : nameToInfo.entrySet()) {
+      var name = entry.getKey();
+      if (!result.containsKey(name)) {
+        var info = entry.getValue();
+        productsToSave.add(
+            ProductDomain.builder().name(name).category(info.category()).unit(info.unit()).build());
+      }
+    }
+
+    if (!productsToSave.isEmpty()) {
+      for (var product : productsToSave) {
+        var saved = productRepository.save(product);
+        result.put(saved.getName(), saved);
+      }
+      log.info("Created {} new products in batch", productsToSave.size());
+    }
+
+    return result;
   }
 
   @Override

@@ -9,9 +9,10 @@ import com.example.goodsprice.activity.application.domain.model.ActivityLogDomai
 import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
 import com.example.goodsprice.activity.application.port.out.ActivityLogRepositoryPort;
 import com.example.goodsprice.activity.infrastructure.adapter.persistence.entity.ActivityLogEntity;
-import com.example.goodsprice.common.constant.SortConstants;
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.persistence.PaginationHelper;
+import com.example.goodsprice.common.util.ObjectUtils;
 import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,8 +20,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
@@ -55,7 +54,7 @@ public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
 
   @Override
   public PageResponse<ActivityLogDomain> findAll(
-      PageRequest pageRequest, String search, String status) {
+      PageRequestDto pageRequest, String search, String status) {
     if (Objects.nonNull(search) && !search.isBlank()) {
       var spec = searchSpecification(search);
       return executeQuery(pageRequest, spec);
@@ -65,7 +64,7 @@ public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
 
   @Override
   public PageResponse<ActivityLogDomain> findAll(
-      PageRequest pageRequest,
+      PageRequestDto pageRequest,
       ActivityLogType type,
       ActivityLogAction action,
       LocalDateTime startDate,
@@ -75,26 +74,12 @@ public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
   }
 
   private PageResponse<ActivityLogDomain> executeQuery(
-      PageRequest pageRequest, Specification<ActivityLogEntity> spec) {
-    var sortBy =
-        Objects.nonNull(pageRequest.sortBy()) && !pageRequest.sortBy().isBlank()
-            ? pageRequest.sortBy()
-            : DEFAULT_SORT_FIELD;
-    var sort =
-        Sort.by(
-            SortConstants.DESC.equalsIgnoreCase(pageRequest.sortDirection())
-                ? Sort.Direction.DESC
-                : Sort.Direction.ASC,
-            sortBy);
-
-    var pageable =
-        org.springframework.data.domain.PageRequest.of(
-            pageRequest.toZeroBased(), pageRequest.size(), sort);
-
-    Page<ActivityLogEntity> page = jpaRepository.findAll(spec, pageable);
-    var domains = page.getContent().stream().map(mapper::toDomain).toList();
-    return PageResponse.of(
-        domains, pageRequest.page(), pageRequest.size(), page.getTotalElements());
+      PageRequestDto pageRequest, Specification<ActivityLogEntity> spec) {
+    var actualSortBy = ObjectUtils.defaultIfNull(pageRequest.sortBy(), DEFAULT_SORT_FIELD);
+    var pr =
+        new PageRequestDto(
+            pageRequest.page(), pageRequest.size(), actualSortBy, pageRequest.sortDirection());
+    return PaginationHelper.findAll(pr, spec, jpaRepository, mapper::toDomain);
   }
 
   private Specification<ActivityLogEntity> buildSpecification(

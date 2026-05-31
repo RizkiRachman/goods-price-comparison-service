@@ -11,7 +11,7 @@ import com.example.goodsprice.api.model.PriceSearchRequestV2;
 import com.example.goodsprice.api.model.PriceSearchResponse;
 import com.example.goodsprice.api.model.PriceSearchResponseV2;
 import com.example.goodsprice.api.model.UpdatePriceRecordRequest;
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
@@ -82,7 +82,7 @@ public class PriceWebAdapter {
     var actualSize = ObjectUtils.getOrDefault(size, s -> s, 20);
     var actualSortBy = ObjectUtils.getOrDefault(sortBy, s -> s, "dateRecorded");
     var actualSortDir = ObjectUtils.getOrDefault(sortDirection, s -> s, "desc");
-    var pageRequest = new PageRequest(actualPage, actualSize, actualSortBy, actualSortDir);
+    var pageRequest = new PageRequestDto(actualPage, actualSize, actualSortBy, actualSortDir);
 
     var pageResponse =
         priceInPort.searchByProduct(productId, fromDate, toDate, storeId, isPromo, pageRequest);
