@@ -5,9 +5,13 @@ import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+
+import com.example.goodsprice.price.infrastructure.adapter.persistence.entity.PriceEntity;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
@@ -29,8 +33,7 @@ public class PriceRepositoryAdapter implements PriceRepositoryPort {
   @Override
   public List<PriceDomain> saveAll(Iterable<PriceDomain> prices) {
     var entities =
-        new java.util.ArrayList<
-            com.example.goodsprice.price.infrastructure.adapter.persistence.entity.PriceEntity>();
+        new ArrayList<PriceEntity>();
     for (var price : prices) {
       entities.add(mapper.toEntity(price));
     }
@@ -102,9 +105,7 @@ public class PriceRepositoryAdapter implements PriceRepositoryPort {
                 ? Sort.Direction.DESC
                 : Sort.Direction.ASC,
             pageRequest.sortBy());
-    var pageable =
-        org.springframework.data.domain.PageRequest.of(
-            pageRequest.toZeroBased(), pageRequest.size(), sort);
+    var pageable = PageRequest.of(pageRequest.toZeroBased(), pageRequest.size(), sort);
     var page =
         jpaRepo.findByProductIdWithFilters(
             productId, startDate, endDate, storeId, isPromo, pageable);

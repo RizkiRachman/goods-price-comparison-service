@@ -5,6 +5,7 @@ import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.util.PaginationUtils;
 import java.util.function.Function;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -34,9 +35,7 @@ public final class PaginationHelper {
       JpaSpecificationExecutor<E> executor,
       Function<E, T> toDomain) {
     var sort = resolveSort(pageRequest.sortBy(), pageRequest.sortDirection());
-    var pageable =
-        org.springframework.data.domain.PageRequest.of(
-            pageRequest.toZeroBased(), pageRequest.size(), sort);
+    var pageable = PageRequest.of(pageRequest.toZeroBased(), pageRequest.size(), sort);
     Page<E> page = executor.findAll(spec, pageable);
     var domains = page.getContent().stream().map(toDomain).toList();
     return PageResponse.of(

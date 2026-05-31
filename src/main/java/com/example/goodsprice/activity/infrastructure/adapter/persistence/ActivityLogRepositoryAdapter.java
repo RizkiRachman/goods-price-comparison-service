@@ -20,6 +20,7 @@ import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -87,9 +88,7 @@ public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
                 : Sort.Direction.ASC,
             sortBy);
 
-    var pageable =
-        org.springframework.data.domain.PageRequest.of(
-            pageRequest.toZeroBased(), pageRequest.size(), sort);
+    var pageable = PageRequest.of(pageRequest.toZeroBased(), pageRequest.size(), sort);
 
     Page<ActivityLogEntity> page = jpaRepository.findAll(spec, pageable);
     var domains = page.getContent().stream().map(mapper::toDomain).toList();

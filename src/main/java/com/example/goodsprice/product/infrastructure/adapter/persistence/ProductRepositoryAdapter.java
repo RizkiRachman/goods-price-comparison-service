@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
@@ -62,9 +63,7 @@ public class ProductRepositoryAdapter implements ProductRepositoryPort {
                 ? Sort.Direction.DESC
                 : Sort.Direction.ASC,
             criteria.getSortBy());
-    var pageable =
-        org.springframework.data.domain.PageRequest.of(
-            criteria.getPage(), criteria.getSize(), sort);
+    var pageable = PageRequest.of(criteria.getPage(), criteria.getSize(), sort);
     var page = jpaRepo.findAll(spec, pageable);
     var domains = page.getContent().stream().map(mapper::toDomain).toList();
     return PageResponse.of(

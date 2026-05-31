@@ -8,6 +8,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
@@ -41,9 +42,7 @@ public class FeedbackQuestionRepositoryAdapter implements FeedbackQuestionReposi
                 ? Sort.Direction.DESC
                 : Sort.Direction.ASC,
             pageRequest.sortBy());
-    var pageable =
-        org.springframework.data.domain.PageRequest.of(
-            pageRequest.toZeroBased(), pageRequest.size(), sort);
+    var pageable = PageRequest.of(pageRequest.toZeroBased(), pageRequest.size(), sort);
     var page = jpaRepo.findAll(pageable);
     var content = page.getContent().stream().map(mapper::toDomain).toList();
     return PageResponse.of(
