@@ -2,14 +2,13 @@ package com.example.goodsprice.feedbackquestion.infrastructure.adapter.persisten
 
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
 import com.example.goodsprice.feedbackquestion.application.port.out.FeedbackQuestionRepositoryPort;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -36,17 +35,8 @@ public class FeedbackQuestionRepositoryAdapter implements FeedbackQuestionReposi
   @Override
   public PageResponse<FeedbackQuestionDomain> findAll(
       PageRequestDto pageRequest, String search, String status) {
-    var sort =
-        Sort.by(
-            "desc".equalsIgnoreCase(pageRequest.sortDirection())
-                ? Sort.Direction.DESC
-                : Sort.Direction.ASC,
-            pageRequest.sortBy());
-    var pageable = PageRequest.of(pageRequest.toZeroBased(), pageRequest.size(), sort);
-    var page = jpaRepo.findAll(pageable);
-    var content = page.getContent().stream().map(mapper::toDomain).toList();
-    return PageResponse.of(
-        content, pageRequest.page(), pageRequest.size(), page.getTotalElements());
+    return PaginationHelper.findAll(
+        pageRequest, (root, query, cb) -> cb.isTrue(cb.literal(true)), jpaRepo, mapper::toDomain);
   }
 
   @Override
