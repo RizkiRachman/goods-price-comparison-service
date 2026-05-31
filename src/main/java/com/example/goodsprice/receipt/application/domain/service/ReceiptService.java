@@ -63,7 +63,7 @@ public class ReceiptService implements ReceiptInPort {
     log.info("Receipt created: {}", receipt.getId());
 
     // Store image data before firing event to avoid byte[] in memory
-    if (imageBytes != null && imageBytes.length > 0) {
+    if (imageBytes.length > 0) {
       receiptRepository.updateImageData(receipt.getId(), imageBytes);
     }
 

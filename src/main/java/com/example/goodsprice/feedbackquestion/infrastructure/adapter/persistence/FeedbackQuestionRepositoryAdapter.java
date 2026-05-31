@@ -1,6 +1,6 @@
 package com.example.goodsprice.feedbackquestion.infrastructure.adapter.persistence;
 
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
 import com.example.goodsprice.feedbackquestion.application.port.out.FeedbackQuestionRepositoryPort;
@@ -34,7 +34,7 @@ public class FeedbackQuestionRepositoryAdapter implements FeedbackQuestionReposi
 
   @Override
   public PageResponse<FeedbackQuestionDomain> findAll(
-      PageRequest pageRequest, String search, String status) {
+      PageRequestDto pageRequest, String search, String status) {
     var sort =
         Sort.by(
             "desc".equalsIgnoreCase(pageRequest.sortDirection())

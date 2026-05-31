@@ -1,6 +1,6 @@
 package com.example.goodsprice.store.infrastructure.adapter.persistence;
 
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.util.SpecificationBuilder;
@@ -66,7 +66,7 @@ public class StoreRepositoryAdapter implements StoreRepositoryPort {
 
   @Override
   public PageResponse<StoreDomain> findAll(
-      PageRequest pageRequest, String search, String status, String chain, String location) {
+      PageRequestDto pageRequest, String search, String status, String chain, String location) {
     var spec = buildSpecification(search, status, chain, location);
     return PaginationHelper.findAll(pageRequest, spec, jpaRepo, mapper::toDomain);
   }

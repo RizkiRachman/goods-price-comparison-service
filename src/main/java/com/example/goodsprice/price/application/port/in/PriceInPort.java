@@ -1,6 +1,6 @@
 package com.example.goodsprice.price.application.port.in;
 
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
@@ -28,7 +28,7 @@ public interface PriceInPort {
       LocalDate endDate,
       Long storeId,
       Boolean isPromo,
-      PageRequest pageRequest);
+      PageRequestDto pageRequest);
 
   PriceDomain findCheapestByProduct(Long productId);
 

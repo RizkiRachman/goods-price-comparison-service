@@ -1,7 +1,7 @@
 package com.example.goodsprice.store.application.domain.service;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
@@ -62,7 +62,7 @@ public class StoreService implements StoreInPort {
       String status,
       String chain,
       String location) {
-    var pageRequest = new PageRequest(page, size, sortBy, sortDirection);
+    var pageRequest = new PageRequestDto(page, size, sortBy, sortDirection);
     return storeRepository.findAll(pageRequest, search, status, chain, location);
   }
 

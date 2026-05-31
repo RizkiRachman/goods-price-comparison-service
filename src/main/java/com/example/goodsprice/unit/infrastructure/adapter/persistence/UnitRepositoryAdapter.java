@@ -1,6 +1,6 @@
 package com.example.goodsprice.unit.infrastructure.adapter.persistence;
 
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.util.SpecificationBuilder;
@@ -38,7 +38,7 @@ public class UnitRepositoryAdapter implements UnitRepositoryPort {
 
   @Override
   public PageResponse<UnitDomain> findAll(
-      PageRequest pageRequest, String search, String type, String status) {
+      PageRequestDto pageRequest, String search, String type, String status) {
     var spec = buildSpecification(search, type, status);
     return PaginationHelper.findAll(pageRequest, spec, jpaRepo, mapper::toDomain);
   }
@@ -64,7 +64,8 @@ public class UnitRepositoryAdapter implements UnitRepositoryPort {
   }
 
   @Override
-  public PageResponse<UnitDomain> findAll(PageRequest pageRequest, String search, String status) {
+  public PageResponse<UnitDomain> findAll(
+      PageRequestDto pageRequest, String search, String status) {
     return findAll(pageRequest, search, null, status);
   }
 }

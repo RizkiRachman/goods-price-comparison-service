@@ -1,7 +1,7 @@
 package com.example.goodsprice.price.application.domain.service;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
@@ -78,7 +78,7 @@ public class PriceService implements PriceInPort {
       LocalDate endDate,
       Long storeId,
       Boolean isPromo,
-      PageRequest pageRequest) {
+      PageRequestDto pageRequest) {
     return priceRepository.findByProductIdWithFilters(
         productId, startDate, endDate, storeId, isPromo, pageRequest);
   }

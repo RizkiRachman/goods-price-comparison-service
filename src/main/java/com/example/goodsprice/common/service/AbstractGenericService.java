@@ -1,6 +1,6 @@
 package com.example.goodsprice.common.service;
 
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.repository.GenericRepositoryPort;
@@ -34,7 +34,7 @@ public abstract class AbstractGenericService<T, ID> {
     return saved;
   }
 
-  public PageResponse<T> findAll(PageRequest pageRequest, String search, String status) {
+  public PageResponse<T> findAll(PageRequestDto pageRequest, String search, String status) {
     return getRepository().findAll(pageRequest, search, status);
   }
 

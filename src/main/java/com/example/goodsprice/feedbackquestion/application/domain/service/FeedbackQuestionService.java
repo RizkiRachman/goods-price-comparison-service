@@ -2,7 +2,7 @@ package com.example.goodsprice.feedbackquestion.application.domain.service;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.constant.ErrorCodes;
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
@@ -49,6 +49,6 @@ public class FeedbackQuestionService extends AbstractGenericService<FeedbackQues
   @Override
   public PageResponse<FeedbackQuestionDomain> findAll(
       int page, int size, String sortBy, String sortDirection) {
-    return findAll(new PageRequest(page, size, sortBy, sortDirection), null, null);
+    return findAll(new PageRequestDto(page, size, sortBy, sortDirection), null, null);
   }
 }

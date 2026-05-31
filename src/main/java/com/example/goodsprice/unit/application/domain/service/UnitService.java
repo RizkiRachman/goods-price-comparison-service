@@ -2,7 +2,7 @@ package com.example.goodsprice.unit.application.domain.service;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.constant.ErrorCodes;
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.unit.application.domain.model.UnitDomain;
@@ -56,7 +56,7 @@ public class UnitService extends AbstractGenericService<UnitDomain, String> impl
       String type,
       String status) {
     return unitRepository.findAll(
-        new PageRequest(page, size, sortBy, sortDirection), search, type, status);
+        new PageRequestDto(page, size, sortBy, sortDirection), search, type, status);
   }
 
   @Override

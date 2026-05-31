@@ -10,7 +10,7 @@ import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
 import com.example.goodsprice.activity.application.port.out.ActivityLogRepositoryPort;
 import com.example.goodsprice.activity.infrastructure.adapter.persistence.entity.ActivityLogEntity;
 import com.example.goodsprice.common.constant.SortConstants;
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
@@ -55,7 +55,7 @@ public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
 
   @Override
   public PageResponse<ActivityLogDomain> findAll(
-      PageRequest pageRequest, String search, String status) {
+      PageRequestDto pageRequest, String search, String status) {
     if (Objects.nonNull(search) && !search.isBlank()) {
       var spec = searchSpecification(search);
       return executeQuery(pageRequest, spec);
@@ -65,7 +65,7 @@ public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
 
   @Override
   public PageResponse<ActivityLogDomain> findAll(
-      PageRequest pageRequest,
+      PageRequestDto pageRequest,
       ActivityLogType type,
       ActivityLogAction action,
       LocalDateTime startDate,
@@ -75,7 +75,7 @@ public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
   }
 
   private PageResponse<ActivityLogDomain> executeQuery(
-      PageRequest pageRequest, Specification<ActivityLogEntity> spec) {
+      PageRequestDto pageRequest, Specification<ActivityLogEntity> spec) {
     var sortBy =
         Objects.nonNull(pageRequest.sortBy()) && !pageRequest.sortBy().isBlank()
             ? pageRequest.sortBy()

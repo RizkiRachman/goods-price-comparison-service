@@ -1,6 +1,6 @@
 package com.example.goodsprice.common.persistence;
 
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.util.PaginationUtils;
 import java.util.function.Function;
@@ -29,7 +29,7 @@ public final class PaginationHelper {
    * @return paginated domain response
    */
   public static <T, E> PageResponse<T> findAll(
-      PageRequest pageRequest,
+      PageRequestDto pageRequest,
       Specification<E> spec,
       JpaSpecificationExecutor<E> executor,
       Function<E, T> toDomain) {

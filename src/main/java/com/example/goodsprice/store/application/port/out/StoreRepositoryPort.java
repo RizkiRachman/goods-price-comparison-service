@@ -1,6 +1,6 @@
 package com.example.goodsprice.store.application.port.out;
 
-import com.example.goodsprice.common.dto.PageRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import java.util.List;
@@ -20,7 +20,7 @@ public interface StoreRepositoryPort {
   List<StoreDomain> findAllById(List<Long> ids);
 
   PageResponse<StoreDomain> findAll(
-      PageRequest pageRequest, String search, String status, String chain, String location);
+      PageRequestDto pageRequest, String search, String status, String chain, String location);
 
   void deleteById(Long id);
 }

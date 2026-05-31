@@ -6,9 +6,9 @@ package com.example.goodsprice.common.dto;
  * <p>The {@code page} field stores the 1-based page number as received from API callers. Use {@link
  * #toZeroBased()} to convert to 0-based for Spring Data {@code PageRequest}.
  */
-public record PageRequest(int page, int size, String sortBy, String sortDirection) {
+public record PageRequestDto(int page, int size, String sortBy, String sortDirection) {
 
-  public PageRequest {
+  public PageRequestDto {
     if (page < 0) page = 0;
     if (size <= 0) size = 20;
   }

@@ -8,8 +8,11 @@ import com.example.goodsprice.llm.infrastructure.adapter.provider.LocalLlmProvid
 import com.example.goodsprice.llm.infrastructure.adapter.provider.SumopodLlmProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
 @Slf4j
@@ -28,15 +31,11 @@ public class LlmProviderConfiguration {
 
   @Bean
   public RestTemplate restTemplate() {
-    var cm = new org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager();
+    var cm = new PoolingHttpClientConnectionManager();
     cm.setMaxTotal(20);
     cm.setDefaultMaxPerRoute(10);
-    var httpClient =
-        org.apache.hc.client5.http.impl.classic.HttpClients.custom()
-            .setConnectionManager(cm)
-            .build();
-    var factory =
-        new org.springframework.http.client.HttpComponentsClientHttpRequestFactory(httpClient);
+    var httpClient = HttpClients.custom().setConnectionManager(cm).build();
+    var factory = new HttpComponentsClientHttpRequestFactory(httpClient);
     return new RestTemplate(factory);
   }
 
