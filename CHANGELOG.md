@@ -39,6 +39,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **Cross-service coupling**: Receipt handler no longer directly imports price domain service
 - **ProductDomain data loss risk**: MapStruct no longer silently drops price fields
 - **Inconsistent timestamps**: All entities now use consistent Hibernate annotation pattern
+- **Null isPromo on price update**: `PriceService.update()` now defaults `isPromo` to `false` via `ObjectUtils.defaultIfNull()` when null is passed — prevents `DataIntegrityViolationException` on `NOT NULL` column
 
 ### Removed
 - `ReceiptStatusEntity.java` — unified with domain `ReceiptStatus`
@@ -49,7 +50,6 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - `SystemController.java` — moved to `infrastructure/adapter/web/`
 
 ### Changed
-- **Agent configuration**: Consolidated 6 agents → 4 agents. `development.md` merged into `orchestrator.md` (adds Discuss phase with 5-lens check), `security-performance.md` merged into `code-reviewer.md` (adds DevOps lens). Added `PROJECT.md`/`STATE.md` for persistent session memory. Orchestrator now follows: Context Load → Discuss → Plan → Build → Review → Verify (loop) → Ship. Verify loop includes max 3 iterations with auto-fix-plan.
 - **LLM providers**: Extracted `AbstractRestLlmProvider` base class — eliminated ~95% code duplication between `GroqLlmProvider` (193→33 lines) and `SumopodLlmProvider` (204→33 lines). Shared prompt, parsing, availability logic.
 - **Page normalization**: Standardized `pageRequest.toZeroBased()` across all 6 adapters (Price, Store, Category, Unit, ActivityLog, FeedbackQuestion). Fixed latent off-by-one bug in `PriceRepositoryAdapter` (treated page as 0-based while others used 1-based).
 - **NotFoundException**: Consolidated 4 subclasses into static factory methods on `NotFoundException` (`.price()`, `.product()`, `.receipt()`, `.store()`). Deleted `PriceNotFoundException`, `ProductNotFoundException`, `ReceiptNotFoundException`, `StoreNotFoundException`.
@@ -137,7 +137,6 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **SAST security scan**: OWASP Dependency-Check profile for CVE detection (fails on CVSS >= 7)
 - **Pipeline utility**: `common/util/Pipeline.java` for functional pipeline pattern
 - **Documentation**: Architecture docs, developer guide, ERD, user guide, prompt drafts
-- **Knowledge skills**: `.opencode/skills/` with 9 domain skills and custom agents
 - **ArchUnit tests**: 7 rules enforcing hexagonal layer boundaries
 - **Convention checker script**: `scripts/check-conventions.sh`
 

@@ -360,9 +360,8 @@ Update documentation when you:
 If you have questions:
 
 1. Check existing [documentation](docs/)
-2. Check [AI guidelines](.ai/AGENTS.md)
-3. Open an issue for discussion
-4. Contact maintainer: rizkifaizalr@gmail.com
+2. Open an issue for discussion
+3. Contact maintainer: rizkifaizalr@gmail.com
 
 ## License
 
