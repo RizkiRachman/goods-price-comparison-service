@@ -4,6 +4,7 @@ import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
@@ -158,7 +159,7 @@ public class PriceService implements PriceInPort {
     existing.setPrice(price);
     existing.setUnitPrice(unitPrice);
     existing.setDateRecorded(dateRecorded);
-    existing.setIsPromo(isPromo);
+    existing.setIsPromo(ObjectUtils.defaultIfNull(isPromo, Boolean.FALSE));
 
     existing = priceRepository.save(existing);
 

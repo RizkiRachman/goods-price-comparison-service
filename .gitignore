@@ -185,6 +185,8 @@ LEAN-CTX.md
 # Other AI Agents
 .opencode/
 opencode.json
+PROJECT.md
+STATE.md
 .cursor/
 .copilot/
 .aider/
