@@ -1,5 +1,6 @@
 package com.example.goodsprice.receipt.infrastructure.adapter.persistence.entity;
 
+import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -37,7 +38,7 @@ public class ReceiptEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
-  private ReceiptStatusEntity status;
+  private ReceiptStatus status;
 
   @Column(name = "error_message")
   private String errorMessage;
@@ -75,6 +76,6 @@ public class ReceiptEntity {
   public ReceiptEntity(String imageHash, String originalFilename) {
     this.imageHash = imageHash;
     this.originalFilename = originalFilename;
-    this.status = ReceiptStatusEntity.PENDING;
+    this.status = ReceiptStatus.PENDING;
   }
 }

@@ -12,6 +12,7 @@ import com.example.goodsprice.activity.infrastructure.adapter.persistence.entity
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
+import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.common.util.ObjectUtils;
 import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDateTime;
@@ -19,37 +20,37 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
-public class ActivityLogRepositoryAdapter implements ActivityLogRepositoryPort {
+public class ActivityLogRepositoryAdapter
+    extends AbstractRepositoryAdapter<ActivityLogDomain, UUID, ActivityLogEntity>
+    implements ActivityLogRepositoryPort {
 
   private final JpaActivityLogRepository jpaRepository;
   private final ActivityLogMapper mapper;
 
-  @Override
-  public ActivityLogDomain save(ActivityLogDomain domain) {
-    var entity = mapper.toEntity(domain);
-    var saved = jpaRepository.save(entity);
-    return mapper.toDomain(saved);
+  public ActivityLogRepositoryAdapter(
+      JpaActivityLogRepository jpaRepository, ActivityLogMapper mapper) {
+    this.jpaRepository = jpaRepository;
+    this.mapper = mapper;
   }
 
   @Override
-  public ActivityLogDomain findById(UUID id) {
-    return jpaRepository.findById(id).map(mapper::toDomain).orElse(null);
+  protected JpaRepository<ActivityLogEntity, UUID> getJpaRepository() {
+    return jpaRepository;
   }
 
   @Override
-  public boolean existsById(UUID id) {
-    return jpaRepository.existsById(id);
+  protected ActivityLogEntity toEntity(ActivityLogDomain domain) {
+    return mapper.toEntity(domain);
   }
 
   @Override
-  public void deleteById(UUID id) {
-    jpaRepository.deleteById(id);
+  protected ActivityLogDomain toDomain(ActivityLogEntity entity) {
+    return mapper.toDomain(entity);
   }
 
   @Override

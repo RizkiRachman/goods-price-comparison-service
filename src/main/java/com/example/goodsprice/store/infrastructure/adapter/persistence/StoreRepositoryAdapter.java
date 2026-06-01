@@ -3,6 +3,7 @@ package com.example.goodsprice.store.infrastructure.adapter.persistence;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
+import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.common.util.SpecificationBuilder;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
@@ -10,32 +11,51 @@ import com.example.goodsprice.store.infrastructure.adapter.persistence.entity.St
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
-public class StoreRepositoryAdapter implements StoreRepositoryPort {
+public class StoreRepositoryAdapter
+    extends AbstractRepositoryAdapter<StoreDomain, Long, StoreEntity>
+    implements StoreRepositoryPort {
 
   private final JpaStoreRepository jpaRepo;
   private final StoreMapper mapper;
 
+  public StoreRepositoryAdapter(JpaStoreRepository jpaRepo, StoreMapper mapper) {
+    this.jpaRepo = jpaRepo;
+    this.mapper = mapper;
+  }
+
+  @Override
+  protected JpaRepository<StoreEntity, Long> getJpaRepository() {
+    return jpaRepo;
+  }
+
+  @Override
+  protected StoreEntity toEntity(StoreDomain domain) {
+    return mapper.toEntity(domain);
+  }
+
+  @Override
+  protected StoreDomain toDomain(StoreEntity entity) {
+    return mapper.toDomain(entity);
+  }
+
   @Override
   @CachePut(value = "stores", key = "#result.id")
   public StoreDomain save(StoreDomain store) {
-    var entity = mapper.toEntity(store);
-    var saved = jpaRepo.save(entity);
-    return mapper.toDomain(saved);
+    return super.save(store);
   }
 
   @Override
   @Cacheable("stores")
   public StoreDomain findById(Long id) {
-    return jpaRepo.findById(id).map(mapper::toDomain).orElse(null);
+    return super.findById(id);
   }
 
   @Override
@@ -61,7 +81,7 @@ public class StoreRepositoryAdapter implements StoreRepositoryPort {
   @Override
   @CacheEvict(value = "stores", key = "#id")
   public void deleteById(Long id) {
-    jpaRepo.deleteById(id);
+    super.deleteById(id);
   }
 
   @Override

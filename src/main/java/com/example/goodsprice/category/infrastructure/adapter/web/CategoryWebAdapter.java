@@ -15,12 +15,13 @@ import com.example.goodsprice.category.application.port.in.CategoryInPort;
 import com.example.goodsprice.category.infrastructure.adapter.web.mapper.CategoryDtoMapper;
 import com.example.goodsprice.common.constant.AppConstants;
 import com.example.goodsprice.common.util.ObjectUtils;
+import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class CategoryWebAdapter {
+public class CategoryWebAdapter extends AbstractCrudWebAdapter {
 
   private final CategoryInPort categoryInPort;
   private final CategoryDtoMapper mapper;

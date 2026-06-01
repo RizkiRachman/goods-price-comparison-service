@@ -1,4 +1,4 @@
-package com.example.goodsprice.admin;
+package com.example.goodsprice.admin.infrastructure.adapter.web;
 
 import com.example.goodsprice.api.controller.AdminApi;
 import com.example.goodsprice.api.model.AdminJobTriggerResponse;

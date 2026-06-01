@@ -4,10 +4,8 @@ import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.util.ProductNameUtils;
-import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
-import com.example.goodsprice.product.application.port.in.PriceSummaryInPort;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
 import com.example.goodsprice.product.application.port.in.ProductInPort.ProductCreateItem;
 import com.example.goodsprice.product.application.port.in.ProductPriceQueryInPort;
@@ -20,9 +18,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductService implements ProductInPort {
 
   private final ProductRepositoryPort productRepository;
-  private final PriceSummaryInPort priceSummaryInPort;
   private final ProductPriceQueryInPort productPriceQueryInPort;
   private final StoreLookupInPort storeLookupInPort;
 
@@ -136,11 +130,6 @@ public class ProductService implements ProductInPort {
 
   @Override
   public PageResponse<ProductDomain> search(ProductSearchCriteria criteria) {
-    return search(criteria, false);
-  }
-
-  @Override
-  public PageResponse<ProductDomain> search(ProductSearchCriteria criteria, boolean includePrice) {
     if (criteria.hasStoreId()) {
       List<Long> storeIds;
 
@@ -164,43 +153,7 @@ public class ProductService implements ProductInPort {
       criteria.setProductIds(productIds);
     }
 
-    var paginated = productRepository.search(criteria);
-
-    if (includePrice && !paginated.content().isEmpty()) {
-      populatePriceSummaries(paginated.content());
-    }
-
-    return paginated;
-  }
-
-  private void populatePriceSummaries(List<ProductDomain> products) {
-    Set<Long> productIds =
-        products.stream()
-            .map(ProductDomain::getId)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
-
-    if (productIds.isEmpty()) {
-      return;
-    }
-
-    List<ProductPriceSummary> summaries = priceSummaryInPort.findByProductIds(productIds);
-
-    Map<Long, ProductPriceSummary> summaryMap =
-        summaries.stream()
-            .filter(s -> s.getProductId() != null)
-            .collect(Collectors.toMap(ProductPriceSummary::getProductId, Function.identity()));
-
-    products.forEach(
-        product -> {
-          ProductPriceSummary summary = summaryMap.get(product.getId());
-          if (summary != null) {
-            product.setAvgPrice(summary.getAvgPrice());
-            product.setMinPrice(summary.getMinPrice());
-            product.setMaxPrice(summary.getMaxPrice());
-            product.setPriceUpdatedAt(summary.getLastCalculatedAt());
-          }
-        });
+    return productRepository.search(criteria);
   }
 
   @Override

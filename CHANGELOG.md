@@ -12,7 +12,44 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 
 ## [Unreleased]
 
+### Added
+- **ReceiptProcessedEventHandler**: New handler completing the event pipeline after LLM extraction
+- **Event-driven price summary updates**: `PriceSummaryEventOutPort` + adapter + handler decouples receipt↔price services
+- **DB indexes (V15)**: Missing indexes on `products.category`, `stores.name`, `receipts.status`, `receipts.receipt_date`
+- **Alert subscriptions table (V16)**: Persistent storage for price alert subscriptions
+- **Admin hexagonal refactor**: `AdminInPort` + `AdminService` — admin now follows hexagonal architecture
+- **System hexagonal refactor**: `SystemInPort` + `SystemService` — system now follows hexagonal architecture
+- **Alert persistence layer**: `AlertRepositoryPort` + entity + mapper + adapter for database-backed subscriptions
+- **AbstractRepositoryAdapter**: Generic CRUD base saving ~67 lines across 8 repository adapters
+- **AbstractCrudWebAdapter**: Utility base with shared pagination helpers for web adapters
+- **Unit tests (30 tests)**: 6 new test suites for CategoryService, UnitService, FeedbackQuestionService, ActivityLogService, StoreService, AlertService
+
 ### Changed
+- **ReceiptCorrectedPriceCalcHandler**: Now publishes event instead of directly importing `PriceSummaryBatchService`
+- **Admin/System controllers**: Moved to `infrastructure/adapter/web/` for hexagonal compliance
+- **ProductDomain**: Removed 4 phantom price summary fields — pricing data now handled via `ProductPriceSummary` in web adapter
+- **ActivityLogEntity**: Standardized timestamps to `@CreationTimestamp`/`@UpdateTimestamp` (like all other entities)
+- **ActivityLogMapper**: No longer manually sets timestamps — delegated to Hibernate
+- **Entity enums**: ReceiptStatus, ActivityLogType, ActivityLogAction unified — entity-specific duplicates removed
+- **ERD.md**: Updated with all 10 tables, new indexes, corrected migration listing
+- **JaCoCo gate**: Re-enabled at 30% INSTRUCTION / 20% BRANCH thresholds
+
+### Fixed
+- **Orphan ReceiptProcessedEvent**: Now has a handler (was published but unhandled)
+- **Cross-service coupling**: Receipt handler no longer directly imports price domain service
+- **ProductDomain data loss risk**: MapStruct no longer silently drops price fields
+- **Inconsistent timestamps**: All entities now use consistent Hibernate annotation pattern
+
+### Removed
+- `ReceiptStatusEntity.java` — unified with domain `ReceiptStatus`
+- `ActivityLogTypeEntity.java` — unified with domain `ActivityLogType`
+- `ActivityLogActionEntity.java` — unified with domain `ActivityLogAction`
+- `AdminController.java` — moved to `infrastructure/adapter/web/`
+- `AdminWebAdapter.java` — moved to `infrastructure/adapter/web/`
+- `SystemController.java` — moved to `infrastructure/adapter/web/`
+
+### Changed
+- **Agent configuration**: Consolidated 6 agents → 4 agents. `development.md` merged into `orchestrator.md` (adds Discuss phase with 5-lens check), `security-performance.md` merged into `code-reviewer.md` (adds DevOps lens). Added `PROJECT.md`/`STATE.md` for persistent session memory. Orchestrator now follows: Context Load → Discuss → Plan → Build → Review → Verify (loop) → Ship. Verify loop includes max 3 iterations with auto-fix-plan.
 - **LLM providers**: Extracted `AbstractRestLlmProvider` base class — eliminated ~95% code duplication between `GroqLlmProvider` (193→33 lines) and `SumopodLlmProvider` (204→33 lines). Shared prompt, parsing, availability logic.
 - **Page normalization**: Standardized `pageRequest.toZeroBased()` across all 6 adapters (Price, Store, Category, Unit, ActivityLog, FeedbackQuestion). Fixed latent off-by-one bug in `PriceRepositoryAdapter` (treated page as 0-based while others used 1-based).
 - **NotFoundException**: Consolidated 4 subclasses into static factory methods on `NotFoundException` (`.price()`, `.product()`, `.receipt()`, `.store()`). Deleted `PriceNotFoundException`, `ProductNotFoundException`, `ReceiptNotFoundException`, `StoreNotFoundException`.
