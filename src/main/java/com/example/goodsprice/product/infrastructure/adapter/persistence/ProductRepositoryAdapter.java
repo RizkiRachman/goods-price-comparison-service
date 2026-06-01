@@ -3,33 +3,44 @@ package com.example.goodsprice.product.infrastructure.adapter.persistence;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
+import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
 import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
+import com.example.goodsprice.product.infrastructure.adapter.persistence.entity.ProductEntity;
 import java.time.LocalDateTime;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
-public class ProductRepositoryAdapter implements ProductRepositoryPort {
+public class ProductRepositoryAdapter
+    extends AbstractRepositoryAdapter<ProductDomain, Long, ProductEntity>
+    implements ProductRepositoryPort {
 
   private final JpaProductRepository jpaRepo;
   private final ProductMapper mapper;
 
-  @Override
-  public ProductDomain save(ProductDomain product) {
-    var entity = mapper.toEntity(product);
-    var saved = jpaRepo.save(entity);
-    return mapper.toDomain(saved);
+  public ProductRepositoryAdapter(JpaProductRepository jpaRepo, ProductMapper mapper) {
+    this.jpaRepo = jpaRepo;
+    this.mapper = mapper;
   }
 
   @Override
-  public ProductDomain findById(Long id) {
-    return jpaRepo.findById(id).map(mapper::toDomain).orElse(null);
+  protected JpaRepository<ProductEntity, Long> getJpaRepository() {
+    return jpaRepo;
+  }
+
+  @Override
+  protected ProductEntity toEntity(ProductDomain domain) {
+    return mapper.toEntity(domain);
+  }
+
+  @Override
+  protected ProductDomain toDomain(ProductEntity entity) {
+    return mapper.toDomain(entity);
   }
 
   @Override
@@ -64,11 +75,6 @@ public class ProductRepositoryAdapter implements ProductRepositoryPort {
             criteria.getSortBy(),
             criteria.getSortDirection());
     return PaginationHelper.findAll(pr, spec, jpaRepo, mapper::toDomain);
-  }
-
-  @Override
-  public void deleteById(Long id) {
-    jpaRepo.deleteById(id);
   }
 
   @Override

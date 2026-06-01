@@ -23,8 +23,6 @@ public interface ProductInPort {
 
   PageResponse<ProductDomain> search(ProductSearchCriteria criteria);
 
-  PageResponse<ProductDomain> search(ProductSearchCriteria criteria, boolean includePrice);
-
   ProductDomain update(Long id, String name, String category, String brand, String unit);
 
   void deleteById(Long id);

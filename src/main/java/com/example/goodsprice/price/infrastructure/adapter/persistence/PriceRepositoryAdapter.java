@@ -2,31 +2,46 @@ package com.example.goodsprice.price.infrastructure.adapter.persistence;
 
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
 import com.example.goodsprice.price.infrastructure.adapter.persistence.entity.PriceEntity;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
-public class PriceRepositoryAdapter implements PriceRepositoryPort {
+public class PriceRepositoryAdapter
+    extends AbstractRepositoryAdapter<PriceDomain, Long, PriceEntity>
+    implements PriceRepositoryPort {
 
   private final JpaPriceRepository jpaRepo;
   private final PriceMapper mapper;
 
+  public PriceRepositoryAdapter(JpaPriceRepository jpaRepo, PriceMapper mapper) {
+    this.jpaRepo = jpaRepo;
+    this.mapper = mapper;
+  }
+
   @Override
-  public PriceDomain save(PriceDomain price) {
-    var entity = mapper.toEntity(price);
-    var saved = jpaRepo.save(entity);
-    return mapper.toDomain(saved);
+  protected JpaRepository<PriceEntity, Long> getJpaRepository() {
+    return jpaRepo;
+  }
+
+  @Override
+  protected PriceEntity toEntity(PriceDomain domain) {
+    return mapper.toEntity(domain);
+  }
+
+  @Override
+  protected PriceDomain toDomain(PriceEntity entity) {
+    return mapper.toDomain(entity);
   }
 
   @Override
@@ -37,11 +52,6 @@ public class PriceRepositoryAdapter implements PriceRepositoryPort {
     }
     var saved = jpaRepo.saveAll(entities);
     return saved.stream().map(mapper::toDomain).toList();
-  }
-
-  @Override
-  public PriceDomain findById(Long id) {
-    return jpaRepo.findById(id).map(mapper::toDomain).orElse(null);
   }
 
   @Override
@@ -77,11 +87,6 @@ public class PriceRepositoryAdapter implements PriceRepositoryPort {
   @Override
   public List<PriceDomain> findAllByProductIds(List<Long> productIds) {
     return jpaRepo.findAllByProductIds(productIds).stream().map(mapper::toDomain).toList();
-  }
-
-  @Override
-  public void deleteById(Long id) {
-    jpaRepo.deleteById(id);
   }
 
   @Override

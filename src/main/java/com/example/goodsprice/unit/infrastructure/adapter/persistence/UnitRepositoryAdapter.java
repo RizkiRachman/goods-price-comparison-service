@@ -3,37 +3,56 @@ package com.example.goodsprice.unit.infrastructure.adapter.persistence;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
+import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.common.util.SpecificationBuilder;
 import com.example.goodsprice.unit.application.domain.model.UnitDomain;
 import com.example.goodsprice.unit.application.port.out.UnitRepositoryPort;
 import com.example.goodsprice.unit.infrastructure.adapter.persistence.entity.UnitEntity;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
-import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
-public class UnitRepositoryAdapter implements UnitRepositoryPort {
+public class UnitRepositoryAdapter extends AbstractRepositoryAdapter<UnitDomain, String, UnitEntity>
+    implements UnitRepositoryPort {
 
   private final JpaUnitRepository jpaRepo;
   private final UnitMapper mapper;
 
+  public UnitRepositoryAdapter(JpaUnitRepository jpaRepo, UnitMapper mapper) {
+    this.jpaRepo = jpaRepo;
+    this.mapper = mapper;
+  }
+
+  @Override
+  protected JpaRepository<UnitEntity, String> getJpaRepository() {
+    return jpaRepo;
+  }
+
+  @Override
+  protected UnitEntity toEntity(UnitDomain domain) {
+    return mapper.toEntity(domain);
+  }
+
+  @Override
+  protected UnitDomain toDomain(UnitEntity entity) {
+    return mapper.toDomain(entity);
+  }
+
   @Override
   @CachePut(value = "units", key = "#result.id")
   public UnitDomain save(UnitDomain domain) {
-    var entity = mapper.toEntity(domain);
-    var saved = jpaRepo.save(entity);
-    return mapper.toDomain(saved);
+    return super.save(domain);
   }
 
   @Override
   @Cacheable("units")
   public UnitDomain findById(String id) {
-    return jpaRepo.findById(id).map(mapper::toDomain).orElse(null);
+    return super.findById(id);
   }
 
   @Override
@@ -44,13 +63,9 @@ public class UnitRepositoryAdapter implements UnitRepositoryPort {
   }
 
   @Override
-  public boolean existsById(String id) {
-    return jpaRepo.existsById(id);
-  }
-
-  @Override
-  public void deleteById(String id) {
-    jpaRepo.deleteById(id);
+  public PageResponse<UnitDomain> findAll(
+      PageRequestDto pageRequest, String search, String status) {
+    return findAll(pageRequest, search, null, status);
   }
 
   private Specification<UnitEntity> buildSpecification(String search, String type, String status) {
@@ -61,11 +76,5 @@ public class UnitRepositoryAdapter implements UnitRepositoryPort {
       SpecificationBuilder.addEqual(predicates, root, cb, "status", status);
       return cb.and(SpecificationBuilder.toArray(predicates));
     };
-  }
-
-  @Override
-  public PageResponse<UnitDomain> findAll(
-      PageRequestDto pageRequest, String search, String status) {
-    return findAll(pageRequest, search, null, status);
   }
 }

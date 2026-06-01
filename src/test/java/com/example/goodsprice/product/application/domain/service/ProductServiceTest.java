@@ -8,17 +8,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.common.dto.PageResponse;
-import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
-import com.example.goodsprice.product.application.port.in.PriceSummaryInPort;
 import com.example.goodsprice.product.application.port.in.ProductPriceQueryInPort;
 import com.example.goodsprice.product.application.port.in.StoreLookupInPort;
 import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,7 +28,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ProductServiceTest {
 
   @Mock private ProductRepositoryPort productRepository;
-  @Mock private PriceSummaryInPort priceSummaryInPort;
   @Mock private ProductPriceQueryInPort productPriceQueryInPort;
   @Mock private StoreLookupInPort storeLookupInPort;
 
@@ -143,55 +137,6 @@ class ProductServiceTest {
     assertTrue(result.content().isEmpty());
     assertEquals(0, result.totalElements());
     verify(productRepository, never()).search(any());
-  }
-
-  @Test
-  @DisplayName("Should populate price summaries when includePrice is true with storeId")
-  void searchWithStoreIdAndIncludePriceShouldPopulatePriceSummaries() {
-    var criteria = ProductSearchCriteria.builder().storeId("5").build();
-    when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(5L))).thenReturn(List.of(1L));
-    var productWithPrice = ProductDomain.builder().id(1L).name("Apple").category("Fruit").build();
-    var expectedPage =
-        PageResponse.of(List.of(productWithPrice), criteria.getPage(), criteria.getSize(), 1);
-    when(productRepository.search(any())).thenReturn(expectedPage);
-
-    var summary =
-        ProductPriceSummary.builder()
-            .productId(1L)
-            .avgPrice(new BigDecimal("10.00"))
-            .minPrice(new BigDecimal("8.00"))
-            .maxPrice(new BigDecimal("12.00"))
-            .lastCalculatedAt(LocalDateTime.of(2026, 5, 29, 10, 0))
-            .build();
-    when(priceSummaryInPort.findByProductIds(Set.of(1L))).thenReturn(List.of(summary));
-
-    var result = productService.search(criteria, true);
-
-    assertEquals(1, result.totalElements());
-    var resultProduct = result.content().get(0);
-    assertEquals(0, new BigDecimal("10.00").compareTo(resultProduct.getAvgPrice()));
-    assertEquals(0, new BigDecimal("8.00").compareTo(resultProduct.getMinPrice()));
-    assertEquals(0, new BigDecimal("12.00").compareTo(resultProduct.getMaxPrice()));
-    assertEquals(LocalDateTime.of(2026, 5, 29, 10, 0), resultProduct.getPriceUpdatedAt());
-  }
-
-  @Test
-  @DisplayName("Should populate price summaries without storeId")
-  void searchWithoutStoreIdAndIncludePriceShouldPopulatePriceSummaries() {
-    var criteria = ProductSearchCriteria.builder().search("apple").build();
-    var productWithPrice = ProductDomain.builder().id(1L).name("Apple").category("Fruit").build();
-    var expectedPage =
-        PageResponse.of(List.of(productWithPrice), criteria.getPage(), criteria.getSize(), 1);
-    when(productRepository.search(criteria)).thenReturn(expectedPage);
-
-    var summary =
-        ProductPriceSummary.builder().productId(1L).avgPrice(new BigDecimal("15.00")).build();
-    when(priceSummaryInPort.findByProductIds(Set.of(1L))).thenReturn(List.of(summary));
-
-    var result = productService.search(criteria, true);
-
-    assertEquals(1, result.totalElements());
-    assertEquals(0, new BigDecimal("15.00").compareTo(result.content().get(0).getAvgPrice()));
   }
 
   @Test

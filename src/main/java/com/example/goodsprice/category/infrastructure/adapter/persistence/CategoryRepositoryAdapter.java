@@ -6,34 +6,54 @@ import com.example.goodsprice.category.infrastructure.adapter.persistence.entity
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
+import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.common.util.SpecificationBuilder;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
-import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
-public class CategoryRepositoryAdapter implements CategoryRepositoryPort {
+public class CategoryRepositoryAdapter
+    extends AbstractRepositoryAdapter<CategoryDomain, String, CategoryEntity>
+    implements CategoryRepositoryPort {
 
   private final JpaCategoryRepository jpaRepo;
   private final CategoryMapper mapper;
 
+  public CategoryRepositoryAdapter(JpaCategoryRepository jpaRepo, CategoryMapper mapper) {
+    this.jpaRepo = jpaRepo;
+    this.mapper = mapper;
+  }
+
+  @Override
+  protected JpaRepository<CategoryEntity, String> getJpaRepository() {
+    return jpaRepo;
+  }
+
+  @Override
+  protected CategoryEntity toEntity(CategoryDomain domain) {
+    return mapper.toEntity(domain);
+  }
+
+  @Override
+  protected CategoryDomain toDomain(CategoryEntity entity) {
+    return mapper.toDomain(entity);
+  }
+
   @Override
   @CachePut(value = "categories", key = "#result.id")
   public CategoryDomain save(CategoryDomain domain) {
-    var entity = mapper.toEntity(domain);
-    var saved = jpaRepo.save(entity);
-    return mapper.toDomain(saved);
+    return super.save(domain);
   }
 
   @Override
   @Cacheable("categories")
   public CategoryDomain findById(String id) {
-    return jpaRepo.findById(id).map(mapper::toDomain).orElse(null);
+    return super.findById(id);
   }
 
   @Override
@@ -41,16 +61,6 @@ public class CategoryRepositoryAdapter implements CategoryRepositoryPort {
       PageRequestDto pageRequest, String search, String status) {
     var spec = buildSpecification(search, status);
     return PaginationHelper.findAll(pageRequest, spec, jpaRepo, mapper::toDomain);
-  }
-
-  @Override
-  public boolean existsById(String id) {
-    return jpaRepo.existsById(id);
-  }
-
-  @Override
-  public void deleteById(String id) {
-    jpaRepo.deleteById(id);
   }
 
   private Specification<CategoryEntity> buildSpecification(String search, String status) {

@@ -1,5 +1,7 @@
 package com.example.goodsprice.activity.infrastructure.adapter.persistence.entity;
 
+import com.example.goodsprice.activity.application.domain.model.ActivityLogAction;
+import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,14 +13,14 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "activity_logs")
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ActivityLogEntity {
@@ -29,18 +31,20 @@ public class ActivityLogEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "type", nullable = false, length = 50)
-  private ActivityLogTypeEntity type;
+  private ActivityLogType type;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "action", nullable = false, length = 20)
-  private ActivityLogActionEntity action;
+  private ActivityLogAction action;
 
   @Column(name = "description", columnDefinition = "TEXT")
   private String description;
 
-  @Column(name = "created_at", nullable = false)
+  @CreationTimestamp
+  @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
 
+  @UpdateTimestamp
   @Column(name = "updated_at", nullable = false)
   private LocalDateTime updatedAt;
 }
