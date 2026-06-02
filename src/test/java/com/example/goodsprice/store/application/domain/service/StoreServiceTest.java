@@ -11,7 +11,9 @@ import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
+import com.example.goodsprice.store.application.port.in.dto.CreateStoreCriteria;
 import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
+import com.example.goodsprice.store.application.port.in.dto.UpdateStoreCriteria;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -66,10 +68,11 @@ class StoreServiceTest {
   @DisplayName("Should create a new store")
   void shouldCreateStore() {
     when(storeRepository.save(any(StoreDomain.class))).thenReturn(store1);
-
-    var result =
-        storeService.create(
+    var criteria =
+        new CreateStoreCriteria(
             "Toko Segar", "Jakarta", "Segar Group", "Jl. Sudirman No. 1", -6.2, 106.8);
+
+    var result = storeService.create(criteria);
 
     assertNotNull(result);
     assertEquals("Toko Segar", result.getName());
@@ -108,9 +111,8 @@ class StoreServiceTest {
   void shouldUpdateExistingStore() {
     when(storeRepository.findById(1L)).thenReturn(store1);
     when(storeRepository.save(any(StoreDomain.class))).thenReturn(store1);
-
-    var result =
-        storeService.update(
+    var criteria =
+        new UpdateStoreCriteria(
             1L,
             "Toko Segar Baru",
             "Jakarta Pusat",
@@ -119,6 +121,8 @@ class StoreServiceTest {
             -6.3,
             106.9,
             "ACTIVE");
+
+    var result = storeService.update(criteria);
 
     assertEquals("Toko Segar Baru", result.getName());
     assertEquals("Jakarta Pusat", result.getLocation());

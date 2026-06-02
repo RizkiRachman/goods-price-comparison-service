@@ -5,43 +5,41 @@ import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.in.StoreInPort;
+import com.example.goodsprice.store.application.port.in.dto.CreateStoreCriteria;
 import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
+import com.example.goodsprice.store.application.port.in.dto.UpdateStoreCriteria;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StoreService implements StoreInPort {
+
+  private static final Logger LOG = LoggerFactory.getLogger(StoreService.class);
 
   private final StoreRepositoryPort storeRepository;
 
   @Override
   @Transactional
   @ActivityLog
-  public StoreDomain create(
-      String name,
-      String location,
-      String chain,
-      String address,
-      Double latitude,
-      Double longitude) {
+  public StoreDomain create(CreateStoreCriteria criteria) {
     var store =
         StoreDomain.builder()
-            .name(name)
-            .location(location)
-            .chain(chain)
-            .address(address)
-            .latitude(latitude)
-            .longitude(longitude)
+            .name(criteria.getName())
+            .location(criteria.getLocation())
+            .chain(criteria.getChain())
+            .address(criteria.getAddress())
+            .latitude(criteria.getLatitude())
+            .longitude(criteria.getLongitude())
             .build();
     store = storeRepository.save(store);
-    log.info("Store created: {} (id: {})", name, store.getId());
+    LOG.info("Store created: {} (id: {})", criteria.getName(), store.getId());
     return store;
   }
 
@@ -60,26 +58,18 @@ public class StoreService implements StoreInPort {
   @Override
   @Transactional
   @ActivityLog
-  public StoreDomain update(
-      Long id,
-      String name,
-      String location,
-      String chain,
-      String address,
-      Double latitude,
-      Double longitude,
-      String status) {
-    var existing = storeRepository.findById(id);
-    if (Objects.isNull(existing)) throw NotFoundException.store(id);
-    existing.setName(name);
-    existing.setLocation(location);
-    existing.setChain(chain);
-    existing.setAddress(address);
-    existing.setLatitude(latitude);
-    existing.setLongitude(longitude);
-    existing.setStatus(status);
+  public StoreDomain update(UpdateStoreCriteria criteria) {
+    var existing = storeRepository.findById(criteria.getId());
+    if (Objects.isNull(existing)) throw NotFoundException.store(criteria.getId());
+    existing.setName(criteria.getName());
+    existing.setLocation(criteria.getLocation());
+    existing.setChain(criteria.getChain());
+    existing.setAddress(criteria.getAddress());
+    existing.setLatitude(criteria.getLatitude());
+    existing.setLongitude(criteria.getLongitude());
+    existing.setStatus(criteria.getStatus());
     existing = storeRepository.save(existing);
-    log.info("Store updated: {} (id: {})", existing.getName(), id);
+    LOG.info("Store updated: {} (id: {})", existing.getName(), criteria.getId());
     return existing;
   }
 
@@ -95,6 +85,6 @@ public class StoreService implements StoreInPort {
     var store = storeRepository.findById(id);
     if (Objects.isNull(store)) throw NotFoundException.store(id);
     storeRepository.deleteById(id);
-    log.info("Store deleted: (id: {})", id);
+    LOG.info("Store deleted: (id: {})", id);
   }
 }
