@@ -51,6 +51,8 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - `SystemController.java` — moved to `infrastructure/adapter/web/`
 
 ### Changed
+- **FeedbackQuestion**: Refactored `findAll` method to use `FeedbackQuestionCriteria` across service, web adapter, and repository adapter.
+- **Category**: Refactored `findAll` method to use `CategoryCriteria` across in-port, service, web adapter, and repository port/adapter.
 - **LLM providers**: Extracted `AbstractRestLlmProvider` base class — eliminated ~95% code duplication between `GroqLlmProvider` (193→33 lines) and `SumopodLlmProvider` (204→33 lines). Shared prompt, parsing, availability logic.
 - **Page normalization**: Standardized `pageRequest.toZeroBased()` across all 6 adapters (Price, Store, Category, Unit, ActivityLog, FeedbackQuestion). Fixed latent off-by-one bug in `PriceRepositoryAdapter` (treated page as 0-based while others used 1-based).
 - **NotFoundException**: Consolidated 4 subclasses into static factory methods on `NotFoundException` (`.price()`, `.product()`, `.receipt()`, `.store()`). Deleted `PriceNotFoundException`, `ProductNotFoundException`, `ReceiptNotFoundException`, `StoreNotFoundException`.
