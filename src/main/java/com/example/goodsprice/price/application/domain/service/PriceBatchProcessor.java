@@ -2,6 +2,7 @@ package com.example.goodsprice.price.application.domain.service;
 
 import com.example.goodsprice.common.constant.UnitConstants;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
+import com.example.goodsprice.price.application.domain.model.PriceStatistics;
 import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
 import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
 import com.example.goodsprice.price.application.port.out.PriceSummaryRepositoryPort;
@@ -83,11 +84,11 @@ public class PriceBatchProcessor {
 
     return ProductPriceSummary.builder()
         .productId(productId)
-        .avgPrice(stats.avgPrice)
-        .minPrice(stats.minPrice)
-        .maxPrice(stats.maxPrice)
-        .storeCount(stats.storeCount)
-        .priceCount(stats.priceCount)
+        .avgPrice(stats.getAvgPrice())
+        .minPrice(stats.getMinPrice())
+        .maxPrice(stats.getMaxPrice())
+        .storeCount(stats.getStoreCount())
+        .priceCount(stats.getPriceCount())
         .lastCalculatedAt(calculationTime)
         .lastPriceDate(lastPriceDate)
         .build();
@@ -137,15 +138,4 @@ public class PriceBatchProcessor {
     return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP);
   }
 
-  private record PriceStatistics(
-      BigDecimal avgPrice,
-      BigDecimal minPrice,
-      BigDecimal maxPrice,
-      int storeCount,
-      int priceCount) {
-
-    static PriceStatistics empty() {
-      return new PriceStatistics(null, null, null, 0, 0);
-    }
-  }
 }
