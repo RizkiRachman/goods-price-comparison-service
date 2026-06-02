@@ -1,8 +1,8 @@
 package com.example.goodsprice.price.application.port.out;
 
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
+import com.example.goodsprice.price.application.port.in.dto.PriceCriteria;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -31,11 +31,5 @@ public interface PriceRepositoryPort {
 
   List<Long> findProductIdsByStoreIds(List<Long> storeIds);
 
-  PageResponse<PriceDomain> findByProductIdWithFilters(
-      Long productId,
-      LocalDate startDate,
-      LocalDate endDate,
-      Long storeId,
-      Boolean isPromo,
-      PageRequestDto pageRequest);
+  PageResponse<PriceDomain> findByProductIdWithFilters(PriceCriteria criteria);
 }

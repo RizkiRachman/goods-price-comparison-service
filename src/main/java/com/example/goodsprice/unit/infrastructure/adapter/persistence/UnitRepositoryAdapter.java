@@ -6,6 +6,7 @@ import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.common.util.SpecificationBuilder;
 import com.example.goodsprice.unit.application.domain.model.UnitDomain;
+import com.example.goodsprice.unit.application.port.in.dto.UnitCriteria;
 import com.example.goodsprice.unit.application.port.out.UnitRepositoryPort;
 import com.example.goodsprice.unit.infrastructure.adapter.persistence.entity.UnitEntity;
 import jakarta.persistence.criteria.Predicate;
@@ -56,24 +57,25 @@ public class UnitRepositoryAdapter extends AbstractRepositoryAdapter<UnitDomain,
   }
 
   @Override
-  public PageResponse<UnitDomain> findAll(
-      PageRequestDto pageRequest, String search, String type, String status) {
-    var spec = buildSpecification(search, type, status);
-    return PaginationHelper.findAll(pageRequest, spec, jpaRepo, mapper::toDomain);
+  public PageResponse<UnitDomain> findAll(UnitCriteria criteria) {
+    var spec = buildSpecification(criteria);
+    return PaginationHelper.findAll(criteria.pageRequest(), spec, jpaRepo, mapper::toDomain);
   }
 
   @Override
   public PageResponse<UnitDomain> findAll(
       PageRequestDto pageRequest, String search, String status) {
-    return findAll(pageRequest, search, null, status);
+    var criteria = new UnitCriteria(pageRequest, search, null, status);
+    return findAll(criteria);
   }
 
-  private Specification<UnitEntity> buildSpecification(String search, String type, String status) {
+  private Specification<UnitEntity> buildSpecification(UnitCriteria criteria) {
     return (root, query, cb) -> {
       var predicates = new ArrayList<Predicate>();
-      SpecificationBuilder.addSearchLike(predicates, root, cb, search, "name", "symbol", "id");
-      SpecificationBuilder.addEqualIgnoreCase(predicates, root, cb, "type", type);
-      SpecificationBuilder.addEqual(predicates, root, cb, "status", status);
+      SpecificationBuilder.addSearchLike(
+          predicates, root, cb, criteria.search(), "name", "symbol", "id");
+      SpecificationBuilder.addEqualIgnoreCase(predicates, root, cb, "type", criteria.type());
+      SpecificationBuilder.addEqual(predicates, root, cb, "status", criteria.status());
       return cb.and(SpecificationBuilder.toArray(predicates));
     };
   }

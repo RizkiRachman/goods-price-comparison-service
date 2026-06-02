@@ -12,8 +12,10 @@ import com.example.goodsprice.api.model.Unit;
 import com.example.goodsprice.api.model.UnitListResponse;
 import com.example.goodsprice.api.model.UpdateUnitRequest;
 import com.example.goodsprice.common.constant.AppConstants;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.unit.application.port.in.UnitInPort;
+import com.example.goodsprice.unit.application.port.in.dto.UnitCriteria;
 import com.example.goodsprice.unit.infrastructure.adapter.web.mapper.UnitDtoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -48,15 +50,17 @@ public class UnitWebAdapter {
       EntityStatus status,
       String sortBy,
       String sortOrder) {
-    var pageResponse =
-        unitInPort.findAll(
+    var pageRequest =
+        new PageRequestDto(
             resolvePage(page, 1),
             resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE),
             resolveSortBy(sortBy, "name"),
-            resolveSortOrder(sortOrder, "asc"),
-            search,
-            type,
-            ObjectUtils.getOrNull(status, EntityStatus::getValue));
+            resolveSortOrder(sortOrder, "asc"));
+    var criteria =
+        new UnitCriteria(
+            pageRequest, search, type, ObjectUtils.getOrNull(status, EntityStatus::getValue));
+
+    var pageResponse = unitInPort.findAll(criteria);
 
     var response = new UnitListResponse();
     response.setData(pageResponse.content().stream().map(mapper::toApiUnit).toList());

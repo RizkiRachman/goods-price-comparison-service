@@ -4,9 +4,8 @@ import static com.example.goodsprice.activity.infrastructure.config.ActivityLogC
 import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.ENTITY_FIELD_ACTION;
 import static com.example.goodsprice.activity.infrastructure.config.ActivityLogConstants.ENTITY_FIELD_TYPE;
 
-import com.example.goodsprice.activity.application.domain.model.ActivityLogAction;
 import com.example.goodsprice.activity.application.domain.model.ActivityLogDomain;
-import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
+import com.example.goodsprice.activity.application.port.in.dto.ActivityLogCriteria;
 import com.example.goodsprice.activity.application.port.out.ActivityLogRepositoryPort;
 import com.example.goodsprice.activity.infrastructure.adapter.persistence.entity.ActivityLogEntity;
 import com.example.goodsprice.common.dto.PageRequestDto;
@@ -15,9 +14,7 @@ import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.common.util.ObjectUtils;
 import jakarta.persistence.criteria.Predicate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
@@ -54,24 +51,16 @@ public class ActivityLogRepositoryAdapter
   }
 
   @Override
-  public PageResponse<ActivityLogDomain> findAll(
-      PageRequestDto pageRequest, String search, String status) {
-    if (Objects.nonNull(search) && !search.isBlank()) {
-      var spec = searchSpecification(search);
-      return executeQuery(pageRequest, spec);
-    }
-    return findAll(pageRequest, null, null, null, null);
+  public PageResponse<ActivityLogDomain> findAll(ActivityLogCriteria criteria) {
+    var spec = buildSpecification(criteria);
+    return executeQuery(criteria.pageRequest(), spec);
   }
 
   @Override
   public PageResponse<ActivityLogDomain> findAll(
-      PageRequestDto pageRequest,
-      ActivityLogType type,
-      ActivityLogAction action,
-      LocalDateTime startDate,
-      LocalDateTime endDate) {
-    var spec = buildSpecification(type, action, startDate, endDate);
-    return executeQuery(pageRequest, spec);
+      PageRequestDto pageRequest, String search, String status) {
+    // Delegate to the criteria-based findAll for compatibility with GenericRepositoryPort
+    return findAll(new ActivityLogCriteria(pageRequest, null, null, null, null));
   }
 
   private PageResponse<ActivityLogDomain> executeQuery(
@@ -83,33 +72,22 @@ public class ActivityLogRepositoryAdapter
     return PaginationHelper.findAll(pr, spec, jpaRepository, mapper::toDomain);
   }
 
-  private Specification<ActivityLogEntity> buildSpecification(
-      ActivityLogType type,
-      ActivityLogAction action,
-      LocalDateTime startDate,
-      LocalDateTime endDate) {
+  private Specification<ActivityLogEntity> buildSpecification(ActivityLogCriteria criteria) {
     return (root, query, cb) -> {
       var predicates = new ArrayList<Predicate>();
-      if (Objects.nonNull(type)) {
-        predicates.add(cb.equal(root.get(ENTITY_FIELD_TYPE), type.name()));
+      if (Objects.nonNull(criteria.type())) {
+        predicates.add(cb.equal(root.get(ENTITY_FIELD_TYPE), criteria.type().name()));
       }
-      if (Objects.nonNull(action)) {
-        predicates.add(cb.equal(root.get(ENTITY_FIELD_ACTION), action.name()));
+      if (Objects.nonNull(criteria.action())) {
+        predicates.add(cb.equal(root.get(ENTITY_FIELD_ACTION), criteria.action().name()));
       }
-      if (Objects.nonNull(startDate)) {
-        predicates.add(cb.greaterThanOrEqualTo(root.get(DEFAULT_SORT_FIELD), startDate));
+      if (Objects.nonNull(criteria.startDate())) {
+        predicates.add(cb.greaterThanOrEqualTo(root.get(DEFAULT_SORT_FIELD), criteria.startDate()));
       }
-      if (Objects.nonNull(endDate)) {
-        predicates.add(cb.lessThanOrEqualTo(root.get(DEFAULT_SORT_FIELD), endDate));
+      if (Objects.nonNull(criteria.endDate())) {
+        predicates.add(cb.lessThanOrEqualTo(root.get(DEFAULT_SORT_FIELD), criteria.endDate()));
       }
       return cb.and(predicates.toArray(new Predicate[0]));
-    };
-  }
-
-  private Specification<ActivityLogEntity> searchSpecification(String search) {
-    return (root, query, cb) -> {
-      var pattern = "%" + search.toLowerCase(Locale.ROOT) + "%";
-      return cb.like(cb.lower(root.get("description")), pattern);
     };
   }
 }

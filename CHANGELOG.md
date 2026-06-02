@@ -13,6 +13,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 ## [Unreleased]
 
 ### Added
+- feat: Implemented criteria objects for ActivityLog ports
 - **ReceiptProcessedEventHandler**: New handler completing the event pipeline after LLM extraction
 - **Event-driven price summary updates**: `PriceSummaryEventOutPort` + adapter + handler decouples receipt↔price services
 - **DB indexes (V15)**: Missing indexes on `products.category`, `stores.name`, `receipts.status`, `receipts.receipt_date`

@@ -11,6 +11,7 @@ import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
+import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -155,16 +156,16 @@ class StoreServiceTest {
   void shouldFindAllStores() {
     var stores = List.of(store1, store2);
     var pageResponse = PageResponse.of(stores, 0, 10, stores.size());
-    when(storeRepository.findAll(any(PageRequestDto.class), any(), any(), any(), any()))
-        .thenReturn(pageResponse);
+    var pageRequest = new PageRequestDto(0, 10, "name", "asc");
+    var criteria = new StoreCriteria(pageRequest, null, "ACTIVE", "Segar Group", "Jakarta");
+    when(storeRepository.findAll(any(StoreCriteria.class))).thenReturn(pageResponse);
 
-    var result =
-        storeService.findAll(0, 10, "name", "asc", null, "ACTIVE", "Segar Group", "Jakarta");
+    var result = storeService.findAll(criteria);
 
     assertNotNull(result);
     assertEquals(2, result.totalElements());
     assertEquals("Toko Segar", result.content().get(0).getName());
-    verify(storeRepository).findAll(any(PageRequestDto.class), any(), any(), any(), any());
+    verify(storeRepository).findAll(any(StoreCriteria.class));
   }
 
   @Test
