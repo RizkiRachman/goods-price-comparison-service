@@ -1,6 +1,7 @@
 package com.example.goodsprice.category.infrastructure.adapter.persistence;
 
 import com.example.goodsprice.category.application.domain.model.CategoryDomain;
+import com.example.goodsprice.category.application.port.in.dto.CategoryCriteria;
 import com.example.goodsprice.category.application.port.out.CategoryRepositoryPort;
 import com.example.goodsprice.category.infrastructure.adapter.persistence.entity.CategoryEntity;
 import com.example.goodsprice.common.dto.PageRequestDto;
@@ -62,6 +63,11 @@ public class CategoryRepositoryAdapter
       PageRequestDto pageRequest, String search, String status) {
     var spec = buildSpecification(search, status);
     return PaginationHelper.findAll(pageRequest, spec, jpaRepo, mapper::toDomain);
+  }
+
+  @Override
+  public PageResponse<CategoryDomain> findAll(CategoryCriteria criteria) {
+    return findAll(criteria.pageRequest(), criteria.search(), criteria.status());
   }
 
   private Specification<CategoryEntity> buildSpecification(String search, String status) {

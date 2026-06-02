@@ -2,12 +2,12 @@ package com.example.goodsprice.feedbackquestion.application.domain.service;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.common.constant.ErrorCodes;
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionType;
 import com.example.goodsprice.feedbackquestion.application.port.in.FeedbackQuestionInPort;
+import com.example.goodsprice.feedbackquestion.application.port.in.dto.FeedbackQuestionCriteria;
 import com.example.goodsprice.feedbackquestion.application.port.out.FeedbackQuestionRepositoryPort;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
@@ -47,8 +47,7 @@ public class FeedbackQuestionService extends AbstractGenericService<FeedbackQues
   }
 
   @Override
-  public PageResponse<FeedbackQuestionDomain> findAll(
-      int page, int size, String sortBy, String sortDirection) {
-    return findAll(new PageRequestDto(page, size, sortBy, sortDirection), null, null);
+  public PageResponse<FeedbackQuestionDomain> findAll(FeedbackQuestionCriteria criteria) {
+    return findAll(criteria.pageRequest(), criteria.search(), criteria.status());
   }
 }

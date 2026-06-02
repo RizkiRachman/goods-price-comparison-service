@@ -3,6 +3,7 @@ package com.example.goodsprice.feedbackquestion.application.port.in;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionType;
+import com.example.goodsprice.feedbackquestion.application.port.in.dto.FeedbackQuestionCriteria;
 import java.util.UUID;
 
 public interface FeedbackQuestionInPort {
@@ -12,6 +13,5 @@ public interface FeedbackQuestionInPort {
 
   FeedbackQuestionDomain findById(UUID id);
 
-  PageResponse<FeedbackQuestionDomain> findAll(
-      int page, int size, String sortBy, String sortDirection);
+  PageResponse<FeedbackQuestionDomain> findAll(FeedbackQuestionCriteria criteria);
 }

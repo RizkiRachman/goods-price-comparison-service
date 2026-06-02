@@ -12,6 +12,7 @@ import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionType;
+import com.example.goodsprice.feedbackquestion.application.port.in.dto.FeedbackQuestionCriteria;
 import com.example.goodsprice.feedbackquestion.application.port.out.FeedbackQuestionRepositoryPort;
 import java.util.List;
 import java.util.UUID;
@@ -75,10 +76,12 @@ class FeedbackQuestionServiceTest {
   @DisplayName("Should return all feedback questions with pagination")
   void shouldReturnAllFeedbackQuestions() {
     var pageResponse = PageResponse.of(List.of(question), 0, 10, 1);
+    var pageRequest = new PageRequestDto(0, 10, "createdAt", "desc");
+    var criteria = new FeedbackQuestionCriteria(pageRequest, null, null);
     when(feedbackQuestionRepository.findAll(any(PageRequestDto.class), any(), any()))
         .thenReturn(pageResponse);
 
-    var result = feedbackQuestionService.findAll(0, 10, "createdAt", "desc");
+    var result = feedbackQuestionService.findAll(criteria);
 
     assertNotNull(result);
     assertEquals(1, result.totalElements());

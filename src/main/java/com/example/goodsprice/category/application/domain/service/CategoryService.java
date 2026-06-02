@@ -3,9 +3,9 @@ package com.example.goodsprice.category.application.domain.service;
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
 import com.example.goodsprice.category.application.domain.model.CategoryDomain;
 import com.example.goodsprice.category.application.port.in.CategoryInPort;
+import com.example.goodsprice.category.application.port.in.dto.CategoryCriteria;
 import com.example.goodsprice.category.application.port.out.CategoryRepositoryPort;
 import com.example.goodsprice.common.constant.ErrorCodes;
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.config.CacheConfiguration;
@@ -47,9 +47,8 @@ public class CategoryService extends AbstractGenericService<CategoryDomain, Stri
   }
 
   @Override
-  public PageResponse<CategoryDomain> findAll(
-      int page, int size, String sortBy, String sortDirection, String search, String status) {
-    return findAll(new PageRequestDto(page, size, sortBy, sortDirection), search, status);
+  public PageResponse<CategoryDomain> findAll(CategoryCriteria criteria) {
+    return findAll(criteria.pageRequest(), criteria.search(), criteria.status());
   }
 
   @Override

@@ -5,6 +5,7 @@ import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
+import com.example.goodsprice.feedbackquestion.application.port.in.dto.FeedbackQuestionCriteria;
 import com.example.goodsprice.feedbackquestion.application.port.out.FeedbackQuestionRepositoryPort;
 import com.example.goodsprice.feedbackquestion.infrastructure.adapter.persistence.entity.FeedbackQuestionEntity;
 import java.util.UUID;
@@ -59,5 +60,10 @@ public class FeedbackQuestionRepositoryAdapter
       PageRequestDto pageRequest, String search, String status) {
     return PaginationHelper.findAll(
         pageRequest, (root, query, cb) -> cb.isTrue(cb.literal(true)), jpaRepo, mapper::toDomain);
+  }
+
+  @Override
+  public PageResponse<FeedbackQuestionDomain> findAll(FeedbackQuestionCriteria criteria) {
+    return findAll(criteria.pageRequest(), criteria.search(), criteria.status());
   }
 }

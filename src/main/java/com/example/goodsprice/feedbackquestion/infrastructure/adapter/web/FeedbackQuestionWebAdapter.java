@@ -9,8 +9,10 @@ import com.example.goodsprice.api.model.CreateFeedbackQuestionRequest;
 import com.example.goodsprice.api.model.FeedbackQuestion;
 import com.example.goodsprice.api.model.FeedbackQuestionListResponse;
 import com.example.goodsprice.common.constant.AppConstants;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionType;
 import com.example.goodsprice.feedbackquestion.application.port.in.FeedbackQuestionInPort;
+import com.example.goodsprice.feedbackquestion.application.port.in.dto.FeedbackQuestionCriteria;
 import com.example.goodsprice.feedbackquestion.infrastructure.adapter.web.mapper.FeedbackQuestionDtoMapper;
 import java.util.Locale;
 import java.util.UUID;
@@ -38,12 +40,14 @@ public class FeedbackQuestionWebAdapter {
 
   public FeedbackQuestionListResponse list(
       Integer page, Integer pageSize, String sortBy, String sortOrder) {
-    var pageResponse =
-        feedbackQuestionInPort.findAll(
+    var pageRequest =
+        new PageRequestDto(
             resolvePage(page, 1),
             resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE),
             resolveSortBy(sortBy, "createdAt"),
             resolveSortOrder(sortOrder, "desc"));
+    var criteria = new FeedbackQuestionCriteria(pageRequest, null, null);
+    var pageResponse = feedbackQuestionInPort.findAll(criteria);
 
     var response = new FeedbackQuestionListResponse();
     response.setData(pageResponse.content().stream().map(mapper::toApiFeedbackQuestion).toList());

@@ -1,6 +1,7 @@
 package com.example.goodsprice.category.application.port.in;
 
 import com.example.goodsprice.category.application.domain.model.CategoryDomain;
+import com.example.goodsprice.category.application.port.in.dto.CategoryCriteria;
 import com.example.goodsprice.common.dto.PageResponse;
 
 public interface CategoryInPort {
@@ -9,8 +10,7 @@ public interface CategoryInPort {
 
   CategoryDomain findById(String id);
 
-  PageResponse<CategoryDomain> findAll(
-      int page, int size, String sortBy, String sortDirection, String search, String status);
+  PageResponse<CategoryDomain> findAll(CategoryCriteria criteria);
 
   CategoryDomain update(String id, String name, String description, String status);
 }

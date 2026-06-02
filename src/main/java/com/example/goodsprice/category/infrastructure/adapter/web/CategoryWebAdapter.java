@@ -12,8 +12,10 @@ import com.example.goodsprice.api.model.CreateCategoryRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.UpdateCategoryRequest;
 import com.example.goodsprice.category.application.port.in.CategoryInPort;
+import com.example.goodsprice.category.application.port.in.dto.CategoryCriteria;
 import com.example.goodsprice.category.infrastructure.adapter.web.mapper.CategoryDtoMapper;
 import com.example.goodsprice.common.constant.AppConstants;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
 import lombok.RequiredArgsConstructor;
@@ -43,14 +45,16 @@ public class CategoryWebAdapter extends AbstractCrudWebAdapter {
       EntityStatus status,
       String sortBy,
       String sortOrder) {
-    var pageResponse =
-        categoryInPort.findAll(
+    var pageRequest =
+        new PageRequestDto(
             resolvePage(page, 1),
             resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE),
             resolveSortBy(sortBy, "name"),
-            resolveSortOrder(sortOrder, "asc"),
-            search,
-            ObjectUtils.getOrNull(status, EntityStatus::getValue));
+            resolveSortOrder(sortOrder, "asc"));
+    var criteria =
+        new CategoryCriteria(
+            pageRequest, search, ObjectUtils.getOrNull(status, EntityStatus::getValue));
+    var pageResponse = categoryInPort.findAll(criteria);
 
     var response = new CategoryListResponse();
     response.setData(pageResponse.content().stream().map(mapper::toApiCategory).toList());
