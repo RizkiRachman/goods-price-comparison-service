@@ -1,9 +1,9 @@
 package com.example.goodsprice.price.application.port.in;
 
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
+import com.example.goodsprice.price.application.port.in.dto.PriceCriteria;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -22,13 +22,7 @@ public interface PriceInPort {
 
   List<PriceDomain> searchByProduct(Long productId, LocalDate startDate, LocalDate endDate);
 
-  PageResponse<PriceDomain> searchByProduct(
-      Long productId,
-      LocalDate startDate,
-      LocalDate endDate,
-      Long storeId,
-      Boolean isPromo,
-      PageRequestDto pageRequest);
+  PageResponse<PriceDomain> searchByProduct(PriceCriteria criteria);
 
   PriceDomain findCheapestByProduct(Long productId);
 

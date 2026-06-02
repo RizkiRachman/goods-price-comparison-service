@@ -8,7 +8,9 @@ import com.example.goodsprice.common.constant.ErrorCodes;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.service.AbstractGenericService;
+import com.example.goodsprice.config.CacheConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,7 @@ public class CategoryService extends AbstractGenericService<CategoryDomain, Stri
   @Override
   @Transactional
   @ActivityLog
+  @CacheEvict(value = CacheConfiguration.CATEGORIES_CACHE, allEntries = true)
   public CategoryDomain create(String id, String name, String description) {
     var category =
         CategoryDomain.builder()
@@ -52,6 +55,7 @@ public class CategoryService extends AbstractGenericService<CategoryDomain, Stri
   @Override
   @Transactional
   @ActivityLog
+  @CacheEvict(value = CacheConfiguration.CATEGORIES_CACHE, allEntries = true)
   public CategoryDomain update(String id, String name, String description, String status) {
     var existing = findById(id);
     existing.setName(name);

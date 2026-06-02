@@ -1,9 +1,9 @@
 package com.example.goodsprice.price.infrastructure.adapter.persistence;
 
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
+import com.example.goodsprice.price.application.port.in.dto.PriceCriteria;
 import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
 import com.example.goodsprice.price.infrastructure.adapter.persistence.entity.PriceEntity;
 import java.time.LocalDate;
@@ -95,25 +95,28 @@ public class PriceRepositoryAdapter
   }
 
   @Override
-  public PageResponse<PriceDomain> findByProductIdWithFilters(
-      Long productId,
-      LocalDate startDate,
-      LocalDate endDate,
-      Long storeId,
-      Boolean isPromo,
-      PageRequestDto pageRequest) {
+  public PageResponse<PriceDomain> findByProductIdWithFilters(PriceCriteria criteria) {
     var sort =
         Sort.by(
-            "desc".equalsIgnoreCase(pageRequest.sortDirection())
+            "desc".equalsIgnoreCase(criteria.pageRequest().sortDirection())
                 ? Sort.Direction.DESC
                 : Sort.Direction.ASC,
-            pageRequest.sortBy());
-    var pageable = PageRequest.of(pageRequest.toZeroBased(), pageRequest.size(), sort);
+            criteria.pageRequest().sortBy());
+    var pageable =
+        PageRequest.of(criteria.pageRequest().toZeroBased(), criteria.pageRequest().size(), sort);
     var page =
         jpaRepo.findByProductIdWithFilters(
-            productId, startDate, endDate, storeId, isPromo, pageable);
+            criteria.productId(),
+            criteria.startDate(),
+            criteria.endDate(),
+            criteria.storeId(),
+            criteria.isPromo(),
+            pageable);
     var domains = page.getContent().stream().map(mapper::toDomain).toList();
     return PageResponse.of(
-        domains, pageRequest.page(), pageRequest.size(), page.getTotalElements());
+        domains,
+        criteria.pageRequest().page(),
+        criteria.pageRequest().size(),
+        page.getTotalElements());
   }
 }

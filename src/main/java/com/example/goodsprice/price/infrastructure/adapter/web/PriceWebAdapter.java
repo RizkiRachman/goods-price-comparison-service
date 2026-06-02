@@ -15,6 +15,7 @@ import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
+import com.example.goodsprice.price.application.port.in.dto.PriceCriteria;
 import com.example.goodsprice.price.infrastructure.adapter.web.mapper.PriceDtoMapper;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
@@ -76,16 +77,22 @@ public class PriceWebAdapter {
       Integer size,
       String sortBy,
       String sortDirection) {
-    var fromDate = ObjectUtils.getOrNull(startDate, OffsetDateTime::toLocalDate);
-    var toDate = ObjectUtils.getOrNull(endDate, OffsetDateTime::toLocalDate);
-    var actualPage = ObjectUtils.getOrDefault(page, p -> p, 0);
-    var actualSize = ObjectUtils.getOrDefault(size, s -> s, 20);
-    var actualSortBy = ObjectUtils.getOrDefault(sortBy, s -> s, "dateRecorded");
-    var actualSortDir = ObjectUtils.getOrDefault(sortDirection, s -> s, "desc");
-    var pageRequest = new PageRequestDto(actualPage, actualSize, actualSortBy, actualSortDir);
+    var pageRequest =
+        new PageRequestDto(
+            ObjectUtils.getOrDefault(page, p -> p, 0),
+            ObjectUtils.getOrDefault(size, s -> s, 20),
+            ObjectUtils.getOrDefault(sortBy, s -> s, "dateRecorded"),
+            ObjectUtils.getOrDefault(sortDirection, s -> s, "desc"));
+    var criteria =
+        new PriceCriteria(
+            productId,
+            ObjectUtils.getOrNull(startDate, OffsetDateTime::toLocalDate),
+            ObjectUtils.getOrNull(endDate, OffsetDateTime::toLocalDate),
+            storeId,
+            isPromo,
+            pageRequest);
 
-    var pageResponse =
-        priceInPort.searchByProduct(productId, fromDate, toDate, storeId, isPromo, pageRequest);
+    var pageResponse = priceInPort.searchByProduct(criteria);
 
     var storeMap = fetchStoresMap(pageResponse.content());
     var records =

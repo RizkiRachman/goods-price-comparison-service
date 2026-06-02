@@ -40,12 +40,16 @@ public class ActivityLogWebAdapter {
       OffsetDateTime endDate) {
     var pageValue = resolvePage(page, 1);
     var sizeValue = resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE);
+    var pageRequest =
+        new com.example.goodsprice.common.dto.PageRequestDto(
+            pageValue, sizeValue, sortBy, sortOrder);
 
     var typeEnum = parseType(type);
     var actionEnum = parseAction(action);
-    var pageResponse =
-        activityLogInPort.findAll(
-            pageValue, sizeValue, sortBy, sortOrder, typeEnum, actionEnum, startDate, endDate);
+    var criteria =
+        new com.example.goodsprice.activity.application.port.in.dto.ActivityLogCriteria(
+            pageRequest, typeEnum, actionEnum, startDate, endDate);
+    var pageResponse = activityLogInPort.findAll(criteria);
 
     var response = new ActivityLogListResponse();
     response.setData(pageResponse.content().stream().map(mapper::toApiModel).toList());

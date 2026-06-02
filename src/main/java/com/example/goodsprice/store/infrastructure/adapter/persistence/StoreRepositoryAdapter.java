@@ -1,11 +1,11 @@
 package com.example.goodsprice.store.infrastructure.adapter.persistence;
 
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.common.util.SpecificationBuilder;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
+import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
 import com.example.goodsprice.store.infrastructure.adapter.persistence.entity.StoreEntity;
 import jakarta.persistence.criteria.Predicate;
@@ -85,21 +85,19 @@ public class StoreRepositoryAdapter
   }
 
   @Override
-  public PageResponse<StoreDomain> findAll(
-      PageRequestDto pageRequest, String search, String status, String chain, String location) {
-    var spec = buildSpecification(search, status, chain, location);
-    return PaginationHelper.findAll(pageRequest, spec, jpaRepo, mapper::toDomain);
+  public PageResponse<StoreDomain> findAll(StoreCriteria criteria) {
+    var spec = buildSpecification(criteria);
+    return PaginationHelper.findAll(criteria.pageRequest(), spec, jpaRepo, mapper::toDomain);
   }
 
-  private Specification<StoreEntity> buildSpecification(
-      String search, String status, String chain, String location) {
+  private Specification<StoreEntity> buildSpecification(StoreCriteria criteria) {
     return (root, query, cb) -> {
       var predicates = new ArrayList<Predicate>();
       SpecificationBuilder.addSearchLike(
-          predicates, root, cb, search, "name", "location", "chain", "address");
-      SpecificationBuilder.addEqual(predicates, root, cb, "status", status);
-      SpecificationBuilder.addSearchLike(predicates, root, cb, chain, "chain");
-      SpecificationBuilder.addSearchLike(predicates, root, cb, location, "location");
+          predicates, root, cb, criteria.search(), "name", "location", "chain", "address");
+      SpecificationBuilder.addEqual(predicates, root, cb, "status", criteria.status());
+      SpecificationBuilder.addSearchLike(predicates, root, cb, criteria.chain(), "chain");
+      SpecificationBuilder.addSearchLike(predicates, root, cb, criteria.location(), "location");
       return cb.and(SpecificationBuilder.toArray(predicates));
     };
   }

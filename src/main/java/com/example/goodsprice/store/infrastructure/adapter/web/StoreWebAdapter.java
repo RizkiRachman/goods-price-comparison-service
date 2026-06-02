@@ -9,9 +9,11 @@ import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Store;
 import com.example.goodsprice.api.model.StoreListResponse;
 import com.example.goodsprice.api.model.UpdateStoreRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.in.StoreInPort;
+import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
 import com.example.goodsprice.store.infrastructure.adapter.web.mapper.StoreDtoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,25 +53,21 @@ public class StoreWebAdapter {
       EntityStatus status,
       String chain,
       String location) {
-    var pageValue = resolvePage(page, 1);
-    var sizeValue = resolveSize(pageSize, 20);
-    var sortByValue = ObjectUtils.getOrNull(sortBy, s -> s);
-    var sortDirValue = ObjectUtils.getOrNull(sortOrder, s -> s);
-    var searchValue = ObjectUtils.getOrNull(search, s -> s);
-    var statusValue = ObjectUtils.getOrNull(status, EntityStatus::getValue);
-    var chainValue = ObjectUtils.getOrNull(chain, s -> s);
-    var locationValue = ObjectUtils.getOrNull(location, s -> s);
+    var pageRequest =
+        new PageRequestDto(
+            resolvePage(page, 1),
+            resolveSize(pageSize, 20),
+            ObjectUtils.getOrNull(sortBy, s -> s),
+            ObjectUtils.getOrNull(sortOrder, s -> s));
+    var criteria =
+        new StoreCriteria(
+            pageRequest,
+            ObjectUtils.getOrNull(search, s -> s),
+            ObjectUtils.getOrNull(status, EntityStatus::getValue),
+            ObjectUtils.getOrNull(chain, s -> s),
+            ObjectUtils.getOrNull(location, s -> s));
 
-    var pageResponse =
-        storeInPort.findAll(
-            pageValue,
-            sizeValue,
-            sortByValue,
-            sortDirValue,
-            searchValue,
-            statusValue,
-            chainValue,
-            locationValue);
+    var pageResponse = storeInPort.findAll(criteria);
 
     var response = new StoreListResponse();
     response.setData(pageResponse.content().stream().map(mapper::toApiStore).toList());

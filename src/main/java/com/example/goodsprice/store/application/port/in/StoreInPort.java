@@ -2,6 +2,7 @@ package com.example.goodsprice.store.application.port.in;
 
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
+import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
 import java.util.List;
 
 public interface StoreInPort {
@@ -16,15 +17,7 @@ public interface StoreInPort {
 
   StoreDomain findById(Long id);
 
-  PageResponse<StoreDomain> findAll(
-      int page,
-      int size,
-      String sortBy,
-      String sortDirection,
-      String search,
-      String status,
-      String chain,
-      String location);
+  PageResponse<StoreDomain> findAll(StoreCriteria criteria);
 
   StoreDomain update(
       Long id,

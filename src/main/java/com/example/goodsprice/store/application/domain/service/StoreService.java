@@ -1,11 +1,11 @@
 package com.example.goodsprice.store.application.domain.service;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.in.StoreInPort;
+import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
 import java.util.List;
 import java.util.Objects;
@@ -53,17 +53,8 @@ public class StoreService implements StoreInPort {
   }
 
   @Override
-  public PageResponse<StoreDomain> findAll(
-      int page,
-      int size,
-      String sortBy,
-      String sortDirection,
-      String search,
-      String status,
-      String chain,
-      String location) {
-    var pageRequest = new PageRequestDto(page, size, sortBy, sortDirection);
-    return storeRepository.findAll(pageRequest, search, status, chain, location);
+  public PageResponse<StoreDomain> findAll(StoreCriteria criteria) {
+    return storeRepository.findAll(criteria);
   }
 
   @Override

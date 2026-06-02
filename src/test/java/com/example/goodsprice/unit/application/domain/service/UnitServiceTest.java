@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -13,6 +12,7 @@ import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.unit.application.domain.model.UnitDomain;
 import com.example.goodsprice.unit.application.domain.model.UnitType;
+import com.example.goodsprice.unit.application.port.in.dto.UnitCriteria;
 import com.example.goodsprice.unit.application.port.out.UnitRepositoryPort;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -69,15 +69,16 @@ class UnitServiceTest {
   @DisplayName("Should find all units with type filter")
   void shouldFindAllUnitsWithTypeFilter() {
     var pageResponse = PageResponse.of(List.of(kgUnit), 0, 20, 1);
-    when(unitRepository.findAll(any(PageRequestDto.class), any(), eq("WEIGHT"), any()))
-        .thenReturn(pageResponse);
+    var pageRequest = new PageRequestDto(0, 20, "name", "asc");
+    var criteria = new UnitCriteria(pageRequest, null, "WEIGHT", "ACTIVE");
+    when(unitRepository.findAll(any(UnitCriteria.class))).thenReturn(pageResponse);
 
-    var result = unitService.findAll(0, 20, "name", "asc", null, "WEIGHT", "ACTIVE");
+    var result = unitService.findAll(criteria);
 
     assertNotNull(result);
     assertEquals(1, result.totalElements());
     assertEquals(UnitType.WEIGHT, result.content().get(0).getType());
-    verify(unitRepository).findAll(any(PageRequestDto.class), any(), eq("WEIGHT"), any());
+    verify(unitRepository).findAll(any(UnitCriteria.class));
   }
 
   @Test

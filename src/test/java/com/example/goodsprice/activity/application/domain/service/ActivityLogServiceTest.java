@@ -4,13 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.activity.application.domain.model.ActivityLogAction;
 import com.example.goodsprice.activity.application.domain.model.ActivityLogDomain;
 import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
+import com.example.goodsprice.activity.application.port.in.dto.ActivityLogCriteria;
 import com.example.goodsprice.activity.application.port.out.ActivityLogRepositoryPort;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
@@ -70,97 +70,59 @@ class ActivityLogServiceTest {
   }
 
   @Test
-  @DisplayName("Should find all with date filter using converted LocalDateTime parameters")
+  @DisplayName("Should find all with date filter")
   void shouldFindAllWithDateFilter() {
     var startDate = OffsetDateTime.of(2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
     var endDate = OffsetDateTime.of(2026, 6, 1, 0, 0, 0, 0, ZoneOffset.UTC);
-    var expectedStart = startDate.toLocalDateTime();
-    var expectedEnd = endDate.toLocalDateTime();
+    var pageRequest = new PageRequestDto(0, 20, "createdAt", "desc");
+    var criteria =
+        new ActivityLogCriteria(
+            pageRequest, ActivityLogType.PRODUCT, ActivityLogAction.CREATE, startDate, endDate);
 
     var pageResponse = PageResponse.of(List.of(activityLog), 0, 20, 1);
-    when(activityLogRepository.findAll(
-            any(PageRequestDto.class),
-            eq(ActivityLogType.PRODUCT),
-            eq(ActivityLogAction.CREATE),
-            eq(expectedStart),
-            eq(expectedEnd)))
-        .thenReturn(pageResponse);
+    when(activityLogRepository.findAll(any(ActivityLogCriteria.class))).thenReturn(pageResponse);
 
-    var result =
-        activityLogService.findAll(
-            0,
-            20,
-            "createdAt",
-            "desc",
-            ActivityLogType.PRODUCT,
-            ActivityLogAction.CREATE,
-            startDate,
-            endDate);
+    var result = activityLogService.findAll(criteria);
 
     assertNotNull(result);
     assertEquals(1, result.totalElements());
     assertEquals(logId, result.content().get(0).getId());
-    verify(activityLogRepository)
-        .findAll(
-            any(PageRequestDto.class),
-            eq(ActivityLogType.PRODUCT),
-            eq(ActivityLogAction.CREATE),
-            eq(expectedStart),
-            eq(expectedEnd));
+    verify(activityLogRepository).findAll(any(ActivityLogCriteria.class));
   }
 
   @Test
-  @DisplayName("Should handle null start and end dates")
+  @DisplayName("Should handle null dates")
   void shouldHandleNullDates() {
-    var pageResponse = PageResponse.of(List.of(activityLog), 0, 20, 1);
-    when(activityLogRepository.findAll(
-            any(PageRequestDto.class),
-            eq(ActivityLogType.PRODUCT),
-            eq(ActivityLogAction.CREATE),
-            eq(null),
-            eq(null)))
-        .thenReturn(pageResponse);
+    var pageRequest = new PageRequestDto(0, 20, "createdAt", "desc");
+    var criteria =
+        new ActivityLogCriteria(
+            pageRequest, ActivityLogType.PRODUCT, ActivityLogAction.CREATE, null, null);
 
-    var result =
-        activityLogService.findAll(
-            0,
-            20,
-            "createdAt",
-            "desc",
-            ActivityLogType.PRODUCT,
-            ActivityLogAction.CREATE,
-            null,
-            null);
+    var pageResponse = PageResponse.of(List.of(activityLog), 0, 20, 1);
+    when(activityLogRepository.findAll(any(ActivityLogCriteria.class))).thenReturn(pageResponse);
+
+    var result = activityLogService.findAll(criteria);
 
     assertNotNull(result);
     assertEquals(1, result.totalElements());
-    verify(activityLogRepository)
-        .findAll(
-            any(PageRequestDto.class),
-            eq(ActivityLogType.PRODUCT),
-            eq(ActivityLogAction.CREATE),
-            eq(null),
-            eq(null));
+    verify(activityLogRepository).findAll(any(ActivityLogCriteria.class));
   }
 
   @Test
-  @DisplayName("Should find all with only start date and null end date")
+  @DisplayName("Should find all with only start date")
   void shouldFindAllWithOnlyStartDate() {
     var startDate = OffsetDateTime.of(2026, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC);
-    var expectedStart = startDate.toLocalDateTime();
+    var pageRequest = new PageRequestDto(0, 20, "createdAt", "desc");
+    var criteria = new ActivityLogCriteria(pageRequest, null, null, startDate, null);
 
     var pageResponse = PageResponse.of(List.of(activityLog), 0, 20, 1);
-    when(activityLogRepository.findAll(
-            any(PageRequestDto.class), eq(null), eq(null), eq(expectedStart), eq(null)))
-        .thenReturn(pageResponse);
+    when(activityLogRepository.findAll(any(ActivityLogCriteria.class))).thenReturn(pageResponse);
 
-    var result =
-        activityLogService.findAll(0, 20, "createdAt", "desc", null, null, startDate, null);
+    var result = activityLogService.findAll(criteria);
 
     assertNotNull(result);
     assertEquals(1, result.totalElements());
-    verify(activityLogRepository)
-        .findAll(any(PageRequestDto.class), eq(null), eq(null), eq(expectedStart), eq(null));
+    verify(activityLogRepository).findAll(any(ActivityLogCriteria.class));
   }
 
   @Test

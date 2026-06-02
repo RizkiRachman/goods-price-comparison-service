@@ -1,13 +1,13 @@
 package com.example.goodsprice.price.application.domain.service;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
+import com.example.goodsprice.price.application.port.in.dto.PriceCriteria;
 import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
 import java.time.LocalDate;
@@ -73,15 +73,8 @@ public class PriceService implements PriceInPort {
   }
 
   @Override
-  public PageResponse<PriceDomain> searchByProduct(
-      Long productId,
-      LocalDate startDate,
-      LocalDate endDate,
-      Long storeId,
-      Boolean isPromo,
-      PageRequestDto pageRequest) {
-    return priceRepository.findByProductIdWithFilters(
-        productId, startDate, endDate, storeId, isPromo, pageRequest);
+  public PageResponse<PriceDomain> searchByProduct(PriceCriteria criteria) {
+    return priceRepository.findByProductIdWithFilters(criteria);
   }
 
   @Override

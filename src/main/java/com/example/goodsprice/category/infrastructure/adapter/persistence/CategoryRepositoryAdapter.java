@@ -8,6 +8,7 @@ import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.common.util.SpecificationBuilder;
+import com.example.goodsprice.config.CacheConfiguration;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import org.springframework.cache.annotation.CachePut;
@@ -45,13 +46,13 @@ public class CategoryRepositoryAdapter
   }
 
   @Override
-  @CachePut(value = "categories", key = "#result.id")
+  @CachePut(value = CacheConfiguration.CATEGORIES_CACHE, key = "#result.id")
   public CategoryDomain save(CategoryDomain domain) {
     return super.save(domain);
   }
 
   @Override
-  @Cacheable("categories")
+  @Cacheable(CacheConfiguration.CATEGORIES_CACHE)
   public CategoryDomain findById(String id) {
     return super.findById(id);
   }
