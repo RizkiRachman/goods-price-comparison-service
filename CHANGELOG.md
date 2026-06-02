@@ -12,6 +12,15 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 
 ## [Unreleased]
 
+### Added
+- **Receipt creation response**: `POST /api/v1/receipts/create` now returns `200 OK` with the created receipt details (`ReceiptResultResponse`) instead of `201 Created` with an empty body.
+- **API spec version**: Updated `goods-price-comparison-api` from `1.7.0` to `1.7.1`.
+
+### Changed
+- **ReceiptInPort**: Changed `create` method return type from `void` to `ReceiptDomain`.
+- **ReceiptService**: Updated `create` to return the newly created receipt domain model.
+- **ReceiptWebAdapter**: Updated `create` to return `ReceiptResultResponse`.
+
 ### Fixed
 - **Null pointer during create receipt**: `imageHash` now computed from items via `HashUtils.sha256` and stored on creation
 - **JsonUtils.hash256**: Centralized `hash256(List<?>)` method in `JsonUtils` for consistent hash computation from item lists
