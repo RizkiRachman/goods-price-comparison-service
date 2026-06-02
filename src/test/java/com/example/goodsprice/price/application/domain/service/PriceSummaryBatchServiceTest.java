@@ -43,8 +43,9 @@ class PriceSummaryBatchServiceTest {
 
   @BeforeEach
   void setUp() {
-    batchService =
-        new PriceSummaryBatchService(priceRepository, priceSummaryRepository, productRepository);
+    var batchProcessor =
+        new PriceBatchProcessor(priceRepository, priceSummaryRepository, productRepository);
+    batchService = new PriceSummaryBatchService(batchProcessor, productRepository);
     ReflectionTestUtils.setField(batchService, "batchSize", 100);
   }
 
