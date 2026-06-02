@@ -137,5 +137,4 @@ public class PriceBatchProcessor {
     }
     return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP);
   }
-
 }
