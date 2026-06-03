@@ -193,6 +193,27 @@ class ReceiptServiceTest {
     assertNotNull(result.getId());
   }
 
+  @Test
+  void shouldReturnStatusWhenReceiptExists() {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).status(ReceiptStatus.APPROVED).build();
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+
+    var result = receiptService.getStatus(id);
+
+    assertEquals(ReceiptStatus.APPROVED, result);
+  }
+
+  @Test
+  void shouldThrowNotFoundExceptionWhenReceiptDoesNotExistInGetStatus() {
+    var id = UUID.randomUUID();
+    when(receiptRepository.findById(id)).thenReturn(null);
+
+    org.junit.jupiter.api.Assertions.assertThrows(
+        com.example.goodsprice.common.exception.NotFoundException.class,
+        () -> receiptService.getStatus(id));
+  }
+
   private void mockSaveWithStore() {
     when(receiptRepository.save(any()))
         .thenAnswer(

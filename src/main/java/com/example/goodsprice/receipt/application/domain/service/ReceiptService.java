@@ -81,7 +81,7 @@ public class ReceiptService implements ReceiptInPort {
   @Override
   public ReceiptStatus getStatus(UUID id) {
     var receipt = receiptRepository.findById(id);
-    if (Objects.isNull(receipt)) return null;
+    if (Objects.isNull(receipt)) throw NotFoundException.receipt(id);
     return receipt.getStatus();
   }
 
