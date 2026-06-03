@@ -33,6 +33,7 @@
 - [ ] `mvn clean verify` — full quality gates pass (SpotBugs, PMD CPD)
 - [ ] `mvn verify -P security-check` — OWASP Dependency-Check passes (no CVSS >= 7)
 - [ ] `./scripts/check-conventions.sh` — convention checks pass
+- [ ] `npx newman run "postman/Goods Price Comparison Service.postman_collection.json"` — smoke tests pass (requires app running on localhost:8080)
 - [ ] New code has unit tests (100% coverage for new code)
 - [ ] CHANGELOG.md updated under `[Unreleased]`
 - [ ] Documentation updated if user-facing change (README.md, docs/)
