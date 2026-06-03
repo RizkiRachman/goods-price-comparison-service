@@ -214,6 +214,53 @@ class ReceiptServiceTest {
         () -> receiptService.getStatus(id));
   }
 
+  @Test
+  void shouldFindReceiptById() {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).storeName("Toko Segar").build();
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+
+    var result = receiptService.findById(id);
+
+    assertNotNull(result);
+    assertEquals("Toko Segar", result.getStoreName());
+  }
+
+  @Test
+  void shouldThrowNotFoundExceptionWhenReceiptNotFound() {
+    var id = UUID.randomUUID();
+    when(receiptRepository.findById(id)).thenReturn(null);
+
+    org.junit.jupiter.api.Assertions.assertThrows(
+        com.example.goodsprice.common.exception.NotFoundException.class,
+        () -> receiptService.findById(id));
+  }
+
+  @Test
+  void shouldApproveReceipt() {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).status(ReceiptStatus.PENDING).build();
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
+
+    receiptService.approve(id);
+
+    verify(receiptRepository).save(any(ReceiptDomain.class));
+    verify(eventOutPort).publishReceiptApproved(receipt);
+  }
+
+  @Test
+  void shouldRejectReceipt() {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).status(ReceiptStatus.PENDING).build();
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
+
+    receiptService.reject(id);
+
+    verify(receiptRepository).save(any(ReceiptDomain.class));
+  }
+
   private void mockSaveWithStore() {
     when(receiptRepository.save(any()))
         .thenAnswer(
