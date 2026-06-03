@@ -80,7 +80,7 @@ public class PriceService implements PriceInPort {
   @Override
   public PriceDomain findCheapestByProduct(Long productId) {
     var prices = priceRepository.findCheapestByProductId(productId);
-    return prices.isEmpty() ? null : prices.get(0);
+    return prices.isEmpty() ? null : prices.getFirst();
   }
 
   @Override
@@ -149,9 +149,9 @@ public class PriceService implements PriceInPort {
     var existing = priceRepository.findById(id);
     if (Objects.isNull(existing)) throw NotFoundException.price(id);
 
-    existing.setPrice(price);
-    existing.setUnitPrice(unitPrice);
-    existing.setDateRecorded(dateRecorded);
+    existing.setPrice(ObjectUtils.defaultIfNull(price, existing.getPrice()));
+    existing.setUnitPrice(ObjectUtils.defaultIfNull(unitPrice, existing.getUnitPrice()));
+    existing.setDateRecorded(ObjectUtils.defaultIfNull(dateRecorded, existing.getDateRecorded()));
     existing.setIsPromo(ObjectUtils.defaultIfNull(isPromo, Boolean.FALSE));
 
     existing = priceRepository.save(existing);

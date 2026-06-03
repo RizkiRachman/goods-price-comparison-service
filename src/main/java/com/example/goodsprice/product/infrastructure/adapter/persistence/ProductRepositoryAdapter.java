@@ -49,6 +49,11 @@ public class ProductRepositoryAdapter
   }
 
   @Override
+  public List<ProductDomain> searchByName(String name) {
+    return jpaRepo.findByNameContainingIgnoreCase(name).stream().map(mapper::toDomain).toList();
+  }
+
+  @Override
   public List<ProductDomain> findAllByNames(List<String> names) {
     return jpaRepo.findByNameIn(names).stream().map(mapper::toDomain).toList();
   }

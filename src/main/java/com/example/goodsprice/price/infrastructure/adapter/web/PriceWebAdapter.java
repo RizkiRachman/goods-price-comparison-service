@@ -156,7 +156,9 @@ public class PriceWebAdapter {
 
   private SearchContext resolveRequest(String productName, DateRange dateRange) {
     if (Objects.isNull(productName)) return null;
-    var product = productInPort.findByName(productName);
+    var products = productInPort.searchByName(productName);
+    if (products.isEmpty()) return null;
+    var product = products.getFirst();
     var fromDate = ObjectUtils.getOrNull(dateRange, DateRange::getFrom);
     var toDate = ObjectUtils.getOrNull(dateRange, DateRange::getTo);
     var prices = priceInPort.searchByProduct(product.getId(), fromDate, toDate);

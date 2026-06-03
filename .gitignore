@@ -214,5 +214,8 @@ graphify-out/
 # Release plans (development artifacts — keep in PR body, not in repo)
 docs/release-plans/
 
+# Superpowers planning docs (development artifacts)
+docs/superpowers/
+
 # AI agent CI workflows
 .github/workflows/pr-agent-context.yml

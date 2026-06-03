@@ -17,6 +17,8 @@ public interface ProductInPort {
 
   ProductDomain findByName(String name);
 
+  List<ProductDomain> searchByName(String name);
+
   List<ProductDomain> findAllByNames(List<String> names);
 
   List<ProductDomain> findAll();

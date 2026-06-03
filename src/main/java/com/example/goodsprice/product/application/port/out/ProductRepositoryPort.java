@@ -14,6 +14,8 @@ public interface ProductRepositoryPort {
 
   ProductDomain findByName(String name);
 
+  List<ProductDomain> searchByName(String name);
+
   List<ProductDomain> findAllByNames(List<String> names);
 
   boolean existsByName(String name);
