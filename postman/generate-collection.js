@@ -136,6 +136,14 @@ const ad = folder("Admin");
 ad.item.push(req("Trigger Job","POST","/v1/admin/jobs/price-summary-update"));
 collection.item.push(ad);
 
+// === Receipts ===
+const rc = folder("Receipts");
+rc.item.push(reqStatus("Get Status - Non-Existent","GET","/v1/receipts/00000000-0000-0000-0000-000000000000/status",null,404));
+rc.item.push(reqStatus("Get Results - Non-Existent","GET","/v1/receipts/00000000-0000-0000-0000-000000000000/results",null,404));
+rc.item.push(reqStatus("Approve - Non-Existent","POST","/v1/receipts/00000000-0000-0000-0000-000000000000/approve",null,404));
+rc.item.push(reqStatus("Reject - Non-Existent","DELETE","/v1/receipts/00000000-0000-0000-0000-000000000000/reject",null,404));
+collection.item.push(rc);
+
 // Write
 fs.writeFileSync(path.join(__dirname, 'Goods Price Comparison Service.postman_collection.json'), JSON.stringify(collection, null, 2));
 console.log("Generated! All endpoints check 2xx success only.");
