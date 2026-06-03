@@ -6,8 +6,9 @@ This directory contains the generated Postman collection file for running smoke 
 - `Goods Price Comparison Service.postman_collection.json`: The main Postman collection with all API requests organized by domain.
 
 - `generate-collection.js`: A Node.js script used to programmatically generate the above JSON files.
+- `generate-markdown-report.js`: A Node.js script used to parse Newman JSON reports and generate Markdown summaries.
 
-## How to Import and Run the Tests
+## How to Import and Run the Tests in Postman App
 
 ### 1. Start the Goods Price Comparison Service
 Ensure your Spring Boot application is running, typically on `http://localhost:8080`.
@@ -30,6 +31,22 @@ Ensure your Spring Boot application is running, typically on `http://localhost:8
 ### 4. Review Results
 
 The Collection Runner will execute all requests sequentially. Each request includes test scripts to assert HTTP status codes and validate response body structures. Captured IDs from `POST` requests will be automatically stored as collection variables and used by subsequent dependent requests.
+
+## How to Run the Tests via Newman CLI
+
+You can also run the smoke tests directly from the command line using Newman (the Postman CLI runner).
+
+### 1. Start the Goods Price Comparison Service
+Ensure your Spring Boot application is running locally (e.g., using the `local` profile with H2 in-memory database):
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+```
+
+### 2. Run Newman
+Run the collection using `npx newman`:
+```bash
+npx newman run "postman/Goods Price Comparison Service.postman_collection.json"
+```
 
 ## Special Notes
 

@@ -74,6 +74,8 @@ application-dev.properties
 
 # Test generated files
 test-output/
+postman/smoke-test-report.json
+postman/SMOKE_TEST_REPORT.md
 
 # Coverage reports
 target/site/jacoco/
