@@ -1209,7 +1209,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"productName\": \"Test Product\"\n}"
+              "raw": "{\n  \"productName\": \"Updated\"\n}"
             }
           },
           "response": [],
@@ -1248,7 +1248,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"productName\": \"Test Product\"\n}"
+              "raw": "{\n  \"productName\": \"Updated\"\n}"
             }
           },
           "response": [],
@@ -1259,6 +1259,271 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('success',()=>pm.expect(pm.response.code).to.be.within(200,299));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search v1 - Null Product Name",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/prices/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "prices",
+                "search"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 400',()=>pm.expect(pm.response.code).to.equal(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search v1 - Product Not Found",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/prices/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "prices",
+                "search"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productName\": \"NonExistentProduct\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 404',()=>pm.expect(pm.response.code).to.equal(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search v2 - Null Product Name",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v2/prices/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v2",
+                "prices",
+                "search"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 400',()=>pm.expect(pm.response.code).to.equal(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Search v2 - Product Not Found",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v2/prices/search",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v2",
+                "prices",
+                "search"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productName\": \"NonExistentProduct\"\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 404',()=>pm.expect(pm.response.code).to.equal(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Get Non-Existent",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/prices/99999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "prices",
+                "99999"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 404',()=>pm.expect(pm.response.code).to.equal(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update Non-Existent",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/prices/99999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "prices",
+                "99999"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 12,\n  \"isPromo\": false\n}"
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 404',()=>pm.expect(pm.response.code).to.equal(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Delete Non-Existent",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/prices/99999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "v1",
+                "prices",
+                "99999"
+              ]
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status is 404',()=>pm.expect(pm.response.code).to.equal(404));"
                 ]
               }
             }
@@ -1292,7 +1557,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"items\": [\n    \"Test Product\"\n  ]\n}"
+              "raw": "{\n  \"items\": [\n    \"Updated\"\n  ]\n}"
             }
           },
           "response": [],
