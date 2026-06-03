@@ -113,9 +113,12 @@ public class ProductService implements ProductInPort {
 
   @Override
   public ProductDomain findByName(String name) {
-    var product = productRepository.findByName(name);
-    if (Objects.isNull(product)) throw NotFoundException.product(name);
-    return product;
+    return productRepository.findByName(name);
+  }
+
+  @Override
+  public List<ProductDomain> searchByName(String name) {
+    return productRepository.searchByName(name);
   }
 
   @Override

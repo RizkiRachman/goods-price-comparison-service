@@ -15,6 +15,7 @@ import com.example.goodsprice.feedbackquestion.application.port.in.FeedbackQuest
 import com.example.goodsprice.feedbackquestion.application.port.in.dto.FeedbackQuestionCriteria;
 import com.example.goodsprice.feedbackquestion.infrastructure.adapter.web.mapper.FeedbackQuestionDtoMapper;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -27,7 +28,12 @@ public class FeedbackQuestionWebAdapter {
   private final FeedbackQuestionDtoMapper mapper;
 
   public FeedbackQuestion create(CreateFeedbackQuestionRequest request) {
-    var type = FeedbackQuestionType.valueOf(request.getType().getValue().toUpperCase(Locale.ROOT));
+    FeedbackQuestionType type;
+    if (Objects.isNull(request.getType())) {
+      type = FeedbackQuestionType.QUESTION;
+    } else {
+      type = FeedbackQuestionType.valueOf(request.getType().getValue().toUpperCase(Locale.ROOT));
+    }
     var domain =
         feedbackQuestionInPort.create(
             request.getUserName(), request.getUserEmail(), type, request.getMessage());

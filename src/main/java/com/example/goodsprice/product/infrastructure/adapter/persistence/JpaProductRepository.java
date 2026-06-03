@@ -16,6 +16,8 @@ public interface JpaProductRepository
 
   Optional<ProductEntity> findByName(String name);
 
+  List<ProductEntity> findByNameContainingIgnoreCase(String name);
+
   List<ProductEntity> findByNameIn(List<String> names);
 
   boolean existsByName(String name);

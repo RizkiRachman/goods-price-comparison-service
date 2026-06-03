@@ -8,7 +8,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -66,7 +65,6 @@ public class ReceiptEntity {
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
 
-  @Lob
   @Column(name = "image_data", columnDefinition = "BYTEA")
   private byte[] imageData;
 
