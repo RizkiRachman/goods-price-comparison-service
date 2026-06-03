@@ -67,7 +67,7 @@ Key capabilities:
 
 ### Prerequisites
 
-- Java 17+
+- Java 21+
 - Maven 3.9+
 - PostgreSQL 14+ (production only)
 - Docker (optional, local development)

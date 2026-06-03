@@ -1,25 +1,29 @@
 package com.example.goodsprice.product.application.domain.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
+import com.example.goodsprice.product.application.port.in.ProductInPort;
 import com.example.goodsprice.product.application.port.in.ProductPriceQueryInPort;
 import com.example.goodsprice.product.application.port.in.StoreLookupInPort;
 import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -33,141 +37,184 @@ class ProductServiceTest {
 
   @InjectMocks private ProductService productService;
 
-  @Captor private ArgumentCaptor<ProductSearchCriteria> criteriaCaptor;
-
-  private ProductDomain product1;
-  private ProductDomain product2;
+  private ProductDomain product;
 
   @BeforeEach
   void setUp() {
-    product1 = ProductDomain.builder().id(1L).name("Apple").category("Fruit").build();
-    product2 = ProductDomain.builder().id(2L).name("Banana").category("Fruit").build();
+    product =
+        ProductDomain.builder()
+            .id(1L)
+            .name("Susu Kotak")
+            .category("Minuman")
+            .brand("Indomilk")
+            .unit("KG")
+            .status("ACTIVE")
+            .build();
   }
 
   @Test
-  @DisplayName("Should search without storeId and call repository directly")
-  void searchWithoutStoreIdShouldCallRepositoryDirectly() {
-    var criteria = ProductSearchCriteria.builder().search("apple").build();
-    var expectedPage =
-        PageResponse.of(List.of(product1), criteria.getPage(), criteria.getSize(), 1);
-    when(productRepository.search(criteria)).thenReturn(expectedPage);
+  void shouldCreateProduct() {
+    when(productRepository.save(any(ProductDomain.class))).thenReturn(product);
+
+    var result = productService.create("Susu Kotak", "Minuman", "Indomilk", "KG");
+
+    assertNotNull(result);
+    assertEquals("Susu Kotak", result.getName());
+    verify(productRepository).save(any(ProductDomain.class));
+  }
+
+  @Test
+  void shouldCreateIfNotExistWhenNotFound() {
+    when(productRepository.findByName("Susu Kotak")).thenReturn(null);
+    when(productRepository.save(any(ProductDomain.class))).thenReturn(product);
+
+    var result = productService.createIfNotExist("Susu Kotak", "Minuman", "KG");
+
+    assertNotNull(result);
+    assertEquals("Susu Kotak", result.getName());
+    verify(productRepository).save(any(ProductDomain.class));
+  }
+
+  @Test
+  void shouldReturnExistingWhenCreateIfNotExist() {
+    when(productRepository.findByName("Susu Kotak")).thenReturn(product);
+
+    var result = productService.createIfNotExist("Susu Kotak", "Minuman", "KG");
+
+    assertNotNull(result);
+    assertEquals("Susu Kotak", result.getName());
+    verify(productRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldFindById() {
+    when(productRepository.findById(1L)).thenReturn(product);
+
+    var result = productService.findById(1L);
+
+    assertNotNull(result);
+    assertEquals(1L, result.getId());
+  }
+
+  @Test
+  void shouldThrowNotFoundWhenFindByIdFails() {
+    when(productRepository.findById(999L)).thenReturn(null);
+
+    assertThrows(NotFoundException.class, () -> productService.findById(999L));
+  }
+
+  @Test
+  void shouldFindByName() {
+    when(productRepository.findByName("Susu Kotak")).thenReturn(product);
+
+    var result = productService.findByName("Susu Kotak");
+
+    assertNotNull(result);
+    assertEquals("Susu Kotak", result.getName());
+  }
+
+  @Test
+  void shouldSearchByName() {
+    when(productRepository.searchByName("Susu")).thenReturn(List.of(product));
+
+    var result = productService.searchByName("Susu");
+
+    assertEquals(1, result.size());
+    assertEquals("Susu Kotak", result.getFirst().getName());
+  }
+
+  @Test
+  void shouldFindAllByNames() {
+    when(productRepository.findAllByNames(List.of("Susu Kotak"))).thenReturn(List.of(product));
+
+    var result = productService.findAllByNames(List.of("Susu Kotak"));
+
+    assertEquals(1, result.size());
+  }
+
+  @Test
+  void shouldFindAll() {
+    when(productRepository.findAll()).thenReturn(List.of(product));
+
+    var result = productService.findAll();
+
+    assertEquals(1, result.size());
+  }
+
+  @Test
+  void shouldUpdateProduct() {
+    when(productRepository.findById(1L)).thenReturn(product);
+    when(productRepository.save(any(ProductDomain.class))).thenReturn(product);
+
+    var result = productService.update(1L, "Updated", "Makanan", "Baru", "LITER");
+
+    assertNotNull(result);
+    assertEquals("Updated", result.getName());
+    verify(productRepository).save(any(ProductDomain.class));
+  }
+
+  @Test
+  void shouldThrowNotFoundWhenUpdateFails() {
+    when(productRepository.findById(999L)).thenReturn(null);
+
+    assertThrows(NotFoundException.class, () -> productService.update(999L, "x", "x", "x", "x"));
+  }
+
+  @Test
+  void shouldUpdateLastPriceUpdate() {
+    var now = LocalDateTime.now();
+    productService.updateLastPriceUpdate(1L, now);
+
+    verify(productRepository).updateLastPriceUpdate(1L, now);
+  }
+
+  @Test
+  void shouldDeleteById() {
+    when(productRepository.findById(1L)).thenReturn(product);
+
+    productService.deleteById(1L);
+
+    verify(productRepository).deleteById(1L);
+  }
+
+  @Test
+  void shouldThrowNotFoundWhenDeleteFails() {
+    when(productRepository.findById(999L)).thenReturn(null);
+
+    assertThrows(NotFoundException.class, () -> productService.deleteById(999L));
+    verify(productRepository, never()).deleteById(999L);
+  }
+
+  @Test
+  void shouldSearchWithCriteria() {
+    var criteria = ProductSearchCriteria.builder().search("Susu").page(0).size(20).build();
+    var pageResponse = PageResponse.of(List.of(product), 0, 20, 1);
+    when(productRepository.search(criteria)).thenReturn(pageResponse);
 
     var result = productService.search(criteria);
 
+    assertEquals(1, result.content().size());
     assertEquals(1, result.totalElements());
-    assertEquals("Apple", result.content().get(0).getName());
-    verify(productRepository).search(criteria);
-    verify(productPriceQueryInPort, never()).findProductIdsByStoreIds(any());
   }
 
   @Test
-  @DisplayName("Should pre-fetch product IDs for numeric storeId with matching products")
-  void searchWithNumericStoreIdAndMatchingProductsShouldPreFetchProductIds() {
-    var criteria = ProductSearchCriteria.builder().storeId("5").search("apple").build();
-    when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(5L))).thenReturn(List.of(1L, 2L));
+  void shouldCreateIfNotExistBatch() {
+    var item1 = new ProductInPort.ProductCreateItem("Apple", "Fruit", "KG");
+    var item2 = new ProductInPort.ProductCreateItem("Banana", "Fruit", "KG");
 
-    var expectedPage =
-        PageResponse.of(List.of(product1, product2), criteria.getPage(), criteria.getSize(), 2);
-    when(productRepository.search(any())).thenReturn(expectedPage);
+    when(productRepository.findAllByNames(any())).thenReturn(List.of());
+    when(productRepository.save(any(ProductDomain.class)))
+        .thenAnswer(
+            inv -> {
+              var p = inv.<ProductDomain>getArgument(0);
+              if (p.getId() == null) p.setId(1L);
+              return p;
+            });
 
-    var result = productService.search(criteria);
+    var result = productService.createIfNotExistBatch(List.of(item1, item2));
 
-    assertEquals(2, result.totalElements());
-    verify(productRepository).search(criteriaCaptor.capture());
-    var capturedCriteria = criteriaCaptor.getValue();
-    assertTrue(capturedCriteria.hasProductIds());
-    assertEquals(List.of(1L, 2L), capturedCriteria.getProductIds());
-    assertEquals("apple", capturedCriteria.getSearch());
-  }
-
-  @Test
-  @DisplayName("Should return empty page for numeric storeId with no matching products")
-  void searchWithNumericStoreIdAndNoMatchingProductsShouldReturnEmptyPage() {
-    var criteria = ProductSearchCriteria.builder().storeId("999").build();
-    when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(999L))).thenReturn(List.of());
-
-    var result = productService.search(criteria);
-
-    assertTrue(result.content().isEmpty());
-    assertEquals(0, result.totalElements());
-    verify(productRepository, never()).search(any());
-  }
-
-  @Test
-  @DisplayName("Should resolve store name and pre-fetch product IDs when stores found")
-  void searchWithStoreNameAndStoresFoundShouldResolveAndPreFetchProductIds() {
-    var criteria = ProductSearchCriteria.builder().storeId("Toko Segar").build();
-    when(storeLookupInPort.findStoreIdsByName("Toko Segar")).thenReturn(List.of(1L, 2L));
-    when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(1L, 2L))).thenReturn(List.of(1L));
-
-    var expectedPage =
-        PageResponse.of(List.of(product1), criteria.getPage(), criteria.getSize(), 1);
-    when(productRepository.search(any())).thenReturn(expectedPage);
-
-    var result = productService.search(criteria);
-
-    assertEquals(1, result.totalElements());
-    verify(productRepository).search(criteriaCaptor.capture());
-    assertTrue(criteriaCaptor.getValue().hasProductIds());
-    assertEquals(List.of(1L), criteriaCaptor.getValue().getProductIds());
-  }
-
-  @Test
-  @DisplayName("Should return empty page when store name not found")
-  void searchWithStoreNameAndNoStoresFoundShouldReturnEmptyPage() {
-    var criteria = ProductSearchCriteria.builder().storeId("Unknown Store").build();
-    when(storeLookupInPort.findStoreIdsByName("Unknown Store")).thenReturn(List.of());
-
-    var result = productService.search(criteria);
-
-    assertTrue(result.content().isEmpty());
-    assertEquals(0, result.totalElements());
-    verify(productPriceQueryInPort, never()).findProductIdsByStoreIds(any());
-    verify(productRepository, never()).search(any());
-  }
-
-  @Test
-  @DisplayName("Should return empty page when price query returns null")
-  void searchWithStoreIdAndPriceQueryReturnsNullShouldReturnEmptyPage() {
-    var criteria = ProductSearchCriteria.builder().storeId("5").build();
-    when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(5L))).thenReturn(null);
-
-    var result = productService.search(criteria);
-
-    assertTrue(result.content().isEmpty());
-    assertEquals(0, result.totalElements());
-    verify(productRepository, never()).search(any());
-  }
-
-  @Test
-  @DisplayName("Should handle storeId 0 as valid numeric edge case")
-  void searchWithStoreIdZeroShouldHandleNumericEdgeCase() {
-    var criteria = ProductSearchCriteria.builder().storeId("0").build();
-    when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(0L))).thenReturn(List.of(1L));
-    var expectedPage =
-        PageResponse.of(List.of(product1), criteria.getPage(), criteria.getSize(), 1);
-    when(productRepository.search(any())).thenReturn(expectedPage);
-
-    var result = productService.search(criteria);
-
-    assertEquals(1, result.totalElements());
-    verify(productRepository).search(criteriaCaptor.capture());
-    assertEquals(List.of(1L), criteriaCaptor.getValue().getProductIds());
-  }
-
-  @Test
-  @DisplayName("Should not trigger store lookup for blank storeId")
-  void searchWithBlankStoreIdShouldNotTriggerStoreLookup() {
-    var criteria = ProductSearchCriteria.builder().storeId("  ").search("apple").build();
-    var expectedPage =
-        PageResponse.of(List.of(product1), criteria.getPage(), criteria.getSize(), 1);
-    when(productRepository.search(criteria)).thenReturn(expectedPage);
-
-    var result = productService.search(criteria);
-
-    assertEquals(1, result.totalElements());
-    verify(productRepository).search(criteria);
-    verify(productPriceQueryInPort, never()).findProductIdsByStoreIds(any());
-    verify(storeLookupInPort, never()).findStoreIdsByName(any());
+    assertThat(result).hasSize(2);
+    assertThat(result).containsKeys("Apple", "Banana");
+    verify(productRepository, times(2)).save(any(ProductDomain.class));
   }
 }

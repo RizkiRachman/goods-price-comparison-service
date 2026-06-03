@@ -13,6 +13,9 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 ## [Unreleased]
 
 ### Added
+- **Application layer test coverage**: Added 32 new unit tests across 7 modules — SystemService (3), AdminService (3), AlertService (4), ActivityLogService (5), LlmService (7), UnitService (5), FeedbackQuestionService (2)
+- **AdminService null validation**: `triggerJob()` now throws `IllegalArgumentException` for null job names
+- **Lombok annotation processing fix**: Configured `maven-compiler-plugin` `test-compile` goal to apply annotation processors to test sources
 - feat: Implemented criteria objects for ActivityLog ports
 - **ReceiptProcessedEventHandler**: New handler completing the event pipeline after LLM extraction
 - **Event-driven price summary updates**: `PriceSummaryEventOutPort` + adapter + handler decouples receipt↔price services

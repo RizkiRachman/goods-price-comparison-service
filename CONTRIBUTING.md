@@ -116,6 +116,9 @@ mvn clean verify
 
 # SAST + dependency scan
 mvn verify -P security-check
+
+# Smoke tests (requires app running on localhost:8080)
+npx newman run "postman/Goods Price Comparison Service.postman_collection.json"
 ```
 
 ### 4. Commit Your Changes
@@ -146,9 +149,10 @@ Ensure the following checks pass:
 
 - [ ] `mvn spotless:apply` - Formatting is clean (Google Java Style)
 - [ ] `mvn clean test` - All tests pass (0 failures), ArchUnit (7 rules)
-- [ ] `mvn clean verify` - Full quality gates pass (SpotBugs, PMD CPD)
+- [ ] `mvn clean verify` - Full quality gates pass (SpotBugs, PMD CPD, JaCoCo ≥90% INSTRUCTION / ≥80% BRANCH)
 - [ ] `mvn verify -P security-check` - OWASP Dependency-Check passes (no CVSS >= 7)
 - [ ] `./scripts/check-conventions.sh` - Convention checks pass
+- [ ] `npx newman run "postman/Goods Price Comparison Service.postman_collection.json"` - Smoke tests pass (requires app running on localhost:8080)
 - [ ] New code has unit tests (100% coverage for new code)
 - [ ] Documentation updated (CHANGELOG.md, README.md, docs/ if applicable)
 - [ ] CHANGELOG.md updated under `[Unreleased]`

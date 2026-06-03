@@ -2,7 +2,9 @@ package com.example.goodsprice.receipt.application.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -194,6 +196,28 @@ class ReceiptServiceTest {
   }
 
   @Test
+  void shouldFindReceiptById() {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).storeName("Toko Segar").build();
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+
+    var result = receiptService.findById(id);
+
+    assertNotNull(result);
+    assertEquals("Toko Segar", result.getStoreName());
+  }
+
+  @Test
+  void shouldThrowNotFoundWhenReceiptNotFound() {
+    var id = UUID.randomUUID();
+    when(receiptRepository.findById(id)).thenReturn(null);
+
+    assertThrows(
+        com.example.goodsprice.common.exception.NotFoundException.class,
+        () -> receiptService.findById(id));
+  }
+
+  @Test
   void shouldReturnStatusWhenReceiptExists() {
     var id = UUID.randomUUID();
     var receipt = ReceiptDomain.builder().id(id).status(ReceiptStatus.APPROVED).build();
@@ -205,13 +229,125 @@ class ReceiptServiceTest {
   }
 
   @Test
-  void shouldThrowNotFoundExceptionWhenReceiptDoesNotExistInGetStatus() {
+  void shouldThrowNotFoundWhenReceiptDoesNotExistInGetStatus() {
     var id = UUID.randomUUID();
     when(receiptRepository.findById(id)).thenReturn(null);
 
-    org.junit.jupiter.api.Assertions.assertThrows(
+    assertThrows(
         com.example.goodsprice.common.exception.NotFoundException.class,
         () -> receiptService.getStatus(id));
+  }
+
+  @Test
+  void shouldApproveReceipt() {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).status(ReceiptStatus.PENDING).build();
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
+
+    receiptService.approve(id);
+
+    verify(receiptRepository).save(any(ReceiptDomain.class));
+    verify(eventOutPort).publishReceiptApproved(receipt);
+  }
+
+  @Test
+  void shouldRejectReceipt() {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).status(ReceiptStatus.PENDING).build();
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
+
+    receiptService.reject(id);
+
+    verify(receiptRepository).save(any(ReceiptDomain.class));
+  }
+
+  // ===== Positive cases for upload, process, insertItems =====
+
+  @Test
+  void shouldUploadReceipt() {
+    var imageBytes = "test-image".getBytes();
+    var receipt =
+        ReceiptDomain.builder().id(UUID.randomUUID()).status(ReceiptStatus.PENDING).build();
+    when(receiptRepository.findByImageHash(any())).thenReturn(null);
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
+
+    var result = receiptService.upload(imageBytes, "receipt.jpg");
+
+    assertNotNull(result);
+    assertEquals(ReceiptStatus.PENDING, result.getStatus());
+    verify(receiptRepository).save(any(ReceiptDomain.class));
+    verify(eventOutPort).publishReceiptUploaded(any());
+  }
+
+  @Test
+  void shouldProcessReceiptWithValidLlmResponse() throws Exception {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).build();
+    Map<String, Object> llmData = new HashMap<>();
+    llmData.put("storeName", "Toko Segar");
+    llmData.put("totalAmount", "15000");
+
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
+    when(llmProvider.extractReceiptData(any())).thenReturn(llmData);
+    when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+    receiptService.process(id, "data".getBytes());
+
+    verify(receiptRepository, times(2)).save(any(ReceiptDomain.class));
+    verify(eventOutPort).publishReceiptProcessed(any());
+  }
+
+  @Test
+  void shouldInsertItemsIntoReceipt() {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).build();
+    List<Map<String, Object>> items = List.of(new HashMap<>(Map.of("productName", "Apple")));
+
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
+
+    receiptService.insertItems(id, items);
+
+    verify(receiptRepository).save(any(ReceiptDomain.class));
+  }
+
+  @Test
+  void shouldRejectDuplicateUpload() {
+    var existing =
+        ReceiptDomain.builder().id(UUID.randomUUID()).status(ReceiptStatus.COMPLETED).build();
+    when(receiptRepository.findByImageHash(any())).thenReturn(existing);
+
+    var result = receiptService.upload("data".getBytes(), "dup.jpg");
+
+    assertNotNull(result);
+    assertEquals(existing.getId(), result.getId());
+    verify(receiptRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldThrowWhenInsertItemsIsEmpty() {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).build();
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+
+    assertThrows(IllegalArgumentException.class, () -> receiptService.insertItems(id, List.of()));
+  }
+
+  @Test
+  void shouldHandleProcessLlmFailure() {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).build();
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
+    when(llmProvider.extractReceiptData(any())).thenThrow(new RuntimeException("LLM error"));
+
+    receiptService.process(id, "data".getBytes());
+
+    verify(receiptRepository, times(2)).save(any(ReceiptDomain.class));
+    verify(eventOutPort, never()).publishReceiptProcessed(any());
   }
 
   private void mockSaveWithStore() {
