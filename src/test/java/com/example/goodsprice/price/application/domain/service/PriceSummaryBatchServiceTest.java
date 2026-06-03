@@ -81,7 +81,7 @@ class PriceSummaryBatchServiceTest {
     ArgumentCaptor<List<ProductPriceSummary>> summaryCaptor = ArgumentCaptor.forClass(List.class);
     verify(priceSummaryRepository, times(1)).saveAll(summaryCaptor.capture());
 
-    ProductPriceSummary summary = summaryCaptor.getValue().get(0);
+    ProductPriceSummary summary = summaryCaptor.getValue().getFirst();
     assertEquals(1L, summary.getProductId());
     assertEquals(new BigDecimal("12.50"), summary.getAvgPrice());
     assertEquals(new BigDecimal("10.00"), summary.getMinPrice());
@@ -117,7 +117,7 @@ class PriceSummaryBatchServiceTest {
     ArgumentCaptor<List<ProductPriceSummary>> summaryCaptor = ArgumentCaptor.forClass(List.class);
     verify(priceSummaryRepository).saveAll(summaryCaptor.capture());
 
-    ProductPriceSummary summary = summaryCaptor.getValue().get(0);
+    ProductPriceSummary summary = summaryCaptor.getValue().getFirst();
     assertEquals(1L, summary.getProductId());
     assertNull(summary.getAvgPrice());
     assertNotNull(summary.getLastCalculatedAt());
@@ -157,7 +157,7 @@ class PriceSummaryBatchServiceTest {
     ArgumentCaptor<List<ProductPriceSummary>> summaryCaptor = ArgumentCaptor.forClass(List.class);
     verify(priceSummaryRepository).saveAll(summaryCaptor.capture());
 
-    ProductPriceSummary summary = summaryCaptor.getValue().get(0);
+    ProductPriceSummary summary = summaryCaptor.getValue().getFirst();
     assertEquals(new BigDecimal("15.00"), summary.getAvgPrice());
     assertEquals(2, summary.getPriceCount());
   }
@@ -195,7 +195,7 @@ class PriceSummaryBatchServiceTest {
     ArgumentCaptor<List<ProductPriceSummary>> summaryCaptor = ArgumentCaptor.forClass(List.class);
     verify(priceSummaryRepository).saveAll(summaryCaptor.capture());
 
-    ProductPriceSummary summary = summaryCaptor.getValue().get(0);
+    ProductPriceSummary summary = summaryCaptor.getValue().getFirst();
     assertEquals(new BigDecimal("10.00"), summary.getAvgPrice());
     assertEquals(2, summary.getPriceCount());
   }
@@ -242,7 +242,7 @@ class PriceSummaryBatchServiceTest {
     ArgumentCaptor<List<ProductPriceSummary>> summaryCaptor = ArgumentCaptor.forClass(List.class);
     verify(priceSummaryRepository).saveAll(summaryCaptor.capture());
 
-    ProductPriceSummary summary = summaryCaptor.getValue().get(0);
+    ProductPriceSummary summary = summaryCaptor.getValue().getFirst();
     assertEquals(2, summary.getStoreCount());
     assertEquals(3, summary.getPriceCount());
   }
@@ -325,7 +325,7 @@ class PriceSummaryBatchServiceTest {
     ArgumentCaptor<List<ProductPriceSummary>> summaryCaptor = ArgumentCaptor.forClass(List.class);
     verify(priceSummaryRepository).saveAll(summaryCaptor.capture());
 
-    ProductPriceSummary summary = summaryCaptor.getValue().get(0);
+    ProductPriceSummary summary = summaryCaptor.getValue().getFirst();
     assertEquals(today.minusDays(5), summary.getLastPriceDate());
   }
 }

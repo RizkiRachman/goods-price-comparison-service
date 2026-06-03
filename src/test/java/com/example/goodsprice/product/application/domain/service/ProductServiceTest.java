@@ -1,21 +1,20 @@
 package com.example.goodsprice.product.application.domain.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
 import com.example.goodsprice.product.application.port.in.ProductPriceQueryInPort;
-import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
 import com.example.goodsprice.product.application.port.in.StoreLookupInPort;
+import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,9 +35,15 @@ class ProductServiceTest {
 
   @BeforeEach
   void setUp() {
-    product = ProductDomain.builder()
-        .id(1L).name("Susu Kotak").category("Minuman").brand("Indomilk").unit("KG")
-        .status("ACTIVE").build();
+    product =
+        ProductDomain.builder()
+            .id(1L)
+            .name("Susu Kotak")
+            .category("Minuman")
+            .brand("Indomilk")
+            .unit("KG")
+            .status("ACTIVE")
+            .build();
   }
 
   @Test
@@ -176,8 +181,7 @@ class ProductServiceTest {
 
   @Test
   void shouldSearchWithCriteria() {
-    var criteria = ProductSearchCriteria.builder()
-        .search("Susu").page(0).size(20).build();
+    var criteria = ProductSearchCriteria.builder().search("Susu").page(0).size(20).build();
     var pageResponse = PageResponse.of(List.of(product), 0, 20, 1);
     when(productRepository.search(criteria)).thenReturn(pageResponse);
 
@@ -187,4 +191,24 @@ class ProductServiceTest {
     assertEquals(1, result.totalElements());
   }
 
+  @Test
+  void shouldCreateIfNotExistBatch() {
+    var item1 = new ProductInPort.ProductCreateItem("Apple", "Fruit", "KG");
+    var item2 = new ProductInPort.ProductCreateItem("Banana", "Fruit", "KG");
+
+    when(productRepository.findAllByNames(any())).thenReturn(List.of());
+    when(productRepository.save(any(ProductDomain.class)))
+        .thenAnswer(
+            inv -> {
+              var p = inv.<ProductDomain>getArgument(0);
+              if (p.getId() == null) p.setId(1L);
+              return p;
+            });
+
+    var result = productService.createIfNotExistBatch(List.of(item1, item2));
+
+    assertThat(result).hasSize(2);
+    assertThat(result).containsKeys("Apple", "Banana");
+    verify(productRepository, times(2)).save(any(ProductDomain.class));
+  }
 }

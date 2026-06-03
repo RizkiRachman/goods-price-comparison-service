@@ -4,15 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.example.goodsprice.common.constant.ErrorCodes;
 import com.example.goodsprice.common.exception.NotFoundException;
-import com.example.goodsprice.config.ratelimit.RateLimitExceededException;
 import com.example.goodsprice.receipt.application.exception.DuplicateReceiptException;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.ConstraintViolationException;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 class GlobalExceptionHandlerTest {
 
@@ -30,6 +25,7 @@ class GlobalExceptionHandlerTest {
     var response = handler.handleNotFound(ex);
 
     assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    assert response.getBody() != null;
     assertEquals(ErrorCodes.PRODUCT_NOT_FOUND, response.getBody().get("error"));
   }
 
@@ -40,6 +36,7 @@ class GlobalExceptionHandlerTest {
     var response = handler.handleIllegalArgument(ex);
 
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assert response.getBody() != null;
     assertEquals("Invalid input", response.getBody().get("message"));
   }
 
@@ -50,6 +47,7 @@ class GlobalExceptionHandlerTest {
     var response = handler.handleDuplicateReceipt(ex);
 
     assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+    assert response.getBody() != null;
     assertEquals(ErrorCodes.DUPLICATE_RECEIPT, response.getBody().get("error"));
   }
 
@@ -60,6 +58,7 @@ class GlobalExceptionHandlerTest {
     var response = handler.handleGeneral(ex);
 
     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    assert response.getBody() != null;
     assertEquals(ErrorCodes.INTERNAL_ERROR, response.getBody().get("error"));
   }
 }

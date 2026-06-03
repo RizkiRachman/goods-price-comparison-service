@@ -9,7 +9,9 @@ class JsonNullableUtilsTest {
 
   @Test
   void shouldResolveValueWhenPresent() {
-    var result = JsonNullableUtils.resolveNullable(org.openapitools.jackson.nullable.JsonNullable.of("hello"));
+    var result =
+        JsonNullableUtils.resolveNullable(
+            org.openapitools.jackson.nullable.JsonNullable.of("hello"));
     assertEquals("hello", result);
   }
 

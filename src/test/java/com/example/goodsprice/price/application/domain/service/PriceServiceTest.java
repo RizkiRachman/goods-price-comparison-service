@@ -21,7 +21,6 @@ import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -43,16 +42,26 @@ class PriceServiceTest {
 
   @BeforeEach
   void setUp() {
-    price1 = PriceDomain.builder()
-        .id(1L).productId(100L).storeId(10L)
-        .price(15000.0).unitPrice(15000.0)
-        .dateRecorded(LocalDate.of(2026, 6, 1))
-        .isPromo(false).build();
-    price2 = PriceDomain.builder()
-        .id(2L).productId(100L).storeId(20L)
-        .price(12000.0).unitPrice(12000.0)
-        .dateRecorded(LocalDate.of(2026, 6, 2))
-        .isPromo(true).build();
+    price1 =
+        PriceDomain.builder()
+            .id(1L)
+            .productId(100L)
+            .storeId(10L)
+            .price(15000.0)
+            .unitPrice(15000.0)
+            .dateRecorded(LocalDate.of(2026, 6, 1))
+            .isPromo(false)
+            .build();
+    price2 =
+        PriceDomain.builder()
+            .id(2L)
+            .productId(100L)
+            .storeId(20L)
+            .price(12000.0)
+            .unitPrice(12000.0)
+            .dateRecorded(LocalDate.of(2026, 6, 2))
+            .isPromo(true)
+            .build();
   }
 
   @Test
@@ -106,7 +115,8 @@ class PriceServiceTest {
     when(priceRepository.findByProductIdAndDateRange(eq(100L), any(), any()))
         .thenReturn(List.of(price1, price2));
 
-    var result = priceService.searchByProduct(100L, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31));
+    var result =
+        priceService.searchByProduct(100L, LocalDate.of(2026, 1, 1), LocalDate.of(2026, 12, 31));
 
     assertEquals(2, result.size());
     verify(priceRepository).findByProductIdAndDateRange(eq(100L), any(), any());
@@ -155,7 +165,9 @@ class PriceServiceTest {
   @Test
   @DisplayName("Should search prices by criteria")
   void shouldSearchByCriteria() {
-    var criteria = new PriceCriteria(100L, null, null, null, null, new PageRequestDto(0, 20, "dateRecorded", "desc"));
+    var criteria =
+        new PriceCriteria(
+            100L, null, null, null, null, new PageRequestDto(0, 20, "dateRecorded", "desc"));
     var pageResponse = PageResponse.of(List.of(price1, price2), 0, 20, 2);
     when(priceRepository.findByProductIdWithFilters(criteria)).thenReturn(pageResponse);
 
@@ -191,7 +203,8 @@ class PriceServiceTest {
   void shouldFindCheapestByProducts() {
     var priceA = PriceDomain.builder().id(1L).productId(100L).price(15000.0).build();
     var priceB = PriceDomain.builder().id(2L).productId(200L).price(12000.0).build();
-    when(priceRepository.findCheapestByProductIds(List.of(100L, 200L))).thenReturn(List.of(priceA, priceB));
+    when(priceRepository.findCheapestByProductIds(List.of(100L, 200L)))
+        .thenReturn(List.of(priceA, priceB));
 
     var result = priceService.findCheapestByProducts(List.of(100L, 200L));
 

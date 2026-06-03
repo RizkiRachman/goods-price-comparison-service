@@ -29,7 +29,8 @@ class DateUtilsTest {
 
   @Test
   void shouldFormatLocalDateTime() {
-    assertEquals("2026-06-03 10:30",
+    assertEquals(
+        "2026-06-03 10:30",
         DateUtils.format(LocalDateTime.of(2026, 6, 3, 10, 30), "yyyy-MM-dd HH:mm"));
   }
 
@@ -40,9 +41,10 @@ class DateUtilsTest {
 
   @Test
   void shouldFormatOffsetDateTime() {
-    assertEquals("2026-06-03T10:30",
-        DateUtils.format(OffsetDateTime.of(2026, 6, 3, 10, 30, 0, 0, ZoneOffset.UTC),
-            "yyyy-MM-dd'T'HH:mm"));
+    assertEquals(
+        "2026-06-03T10:30",
+        DateUtils.format(
+            OffsetDateTime.of(2026, 6, 3, 10, 30, 0, 0, ZoneOffset.UTC), "yyyy-MM-dd'T'HH:mm"));
   }
 
   @Test

@@ -34,7 +34,12 @@ class ObjectUtilsTest {
 
   @Test
   void shouldReturnNullWhenGetterThrows() {
-    assertNull(ObjectUtils.getOrNull("test", s -> { throw new RuntimeException(); }));
+    assertNull(
+        ObjectUtils.getOrNull(
+            "test",
+            s -> {
+              throw new RuntimeException();
+            }));
   }
 
   @Test

@@ -18,6 +18,9 @@ public class AdminService implements AdminInPort {
 
   @Override
   public AdminJobTriggerResponse triggerJob(String jobName) {
+    if (jobName == null) {
+      throw new IllegalArgumentException("Job name cannot be null");
+    }
     var executor = jobRegistry.get(jobName);
     if (executor == null) {
       log.warn("Unknown job requested: {}", jobName);
