@@ -248,6 +248,7 @@ Run these in order. Each must pass before the next.
 | Formatting | `mvn spotless:apply` | Google Java Style violations |
 | Architecture | `mvn test` (ArchUnit) | Package dependency violations |
 | Static Analysis | `mvn verify` | SpotBugs bugs, PMD CPD duplicates |
+| Coverage | `mvn verify` (JaCoCo) | ≥90% INSTRUCTION / ≥80% BRANCH |
 | Conventions | `./scripts/check-conventions.sh` | getOrNull usage, method refs, no JPA in domain |
 | Full Test | `mvn test && mvn verify` | All tests pass, 0 failures |
 | Security | `mvn verify -P security-check` | OWASP dependency vulnerabilities |
