@@ -1,7 +1,10 @@
 package com.example.goodsprice.shopping.application.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.shopping.application.domain.model.ShoppingOptimizationResult;
 import com.example.goodsprice.shopping.application.domain.service.optimize.ShoppingOptimizer;
@@ -21,7 +24,7 @@ class ShoppingServiceTest {
   @InjectMocks private ShoppingService shoppingService;
 
   @Test
-  void optimizeShoppingRoute_shouldCallOptimizerWithCorrectItems() {
+  void optimizeShoppingRouteShouldCallOptimizerWithCorrectItems() {
     // Given
     List<String> itemNames = Arrays.asList("apple", "banana", "orange");
     ShoppingOptimizationResult expectedResult = mock(ShoppingOptimizationResult.class);

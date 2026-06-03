@@ -1,6 +1,9 @@
 package com.example.goodsprice.product.application.domain.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import java.util.Comparator;
@@ -32,19 +35,19 @@ class ProductComparatorsTest {
 
   @Test
   @DisplayName("Resolve comparator for null sortBy returns null")
-  void resolve_nullSortBy_returnsNull() {
+  void resolveNullSortByReturnsNull() {
     assertNull(productComparators.resolve(null), "Should return null for null sortBy");
   }
 
   @Test
   @DisplayName("Resolve comparator for empty sortBy returns null")
-  void resolve_emptySortBy_returnsNull() {
+  void resolveEmptySortByReturnsNull() {
     assertNull(productComparators.resolve(""), "Should return null for empty sortBy");
   }
 
   @Test
   @DisplayName("Resolve comparator for valid sortBy returns correct comparator")
-  void resolve_validSortBy_returnsCorrectComparator() {
+  void resolveValidSortByReturnsCorrectComparator() {
     // Test for "name" comparator
     Comparator<ProductDomain> nameComparator = productComparators.resolve("name");
     assertNotNull(nameComparator, "Comparator for 'name' should not be null");
@@ -72,7 +75,7 @@ class ProductComparatorsTest {
 
   @Test
   @DisplayName("Resolve comparator for invalid sortBy returns null")
-  void resolve_invalidSortBy_returnsNull() {
+  void resolveInvalidSortByReturnsNull() {
     assertNull(
         productComparators.resolve("invalidField"),
         "Should return null for an invalid sortBy field");
@@ -80,19 +83,19 @@ class ProductComparatorsTest {
 
   @Test
   @DisplayName("Has comparator for null sortBy returns false")
-  void hasComparator_nullSortBy_returnsFalse() {
+  void hasComparatorNullSortByReturnsFalse() {
     assertFalse(productComparators.hasComparator(null), "Should return false for null sortBy");
   }
 
   @Test
   @DisplayName("Has comparator for empty sortBy returns false")
-  void hasComparator_emptySortBy_returnsFalse() {
+  void hasComparatorEmptySortByReturnsFalse() {
     assertFalse(productComparators.hasComparator(""), "Should return false for empty sortBy");
   }
 
   @Test
   @DisplayName("Has comparator for valid sortBy returns true")
-  void hasComparator_validSortBy_returnsTrue() {
+  void hasComparatorValidSortByReturnsTrue() {
     assertTrue(
         productComparators.hasComparator("name"), "Should return true for valid sortBy 'name'");
     assertTrue(productComparators.hasComparator("id"), "Should return true for valid sortBy 'id'");
@@ -106,7 +109,7 @@ class ProductComparatorsTest {
 
   @Test
   @DisplayName("Has comparator for invalid sortBy returns false")
-  void hasComparator_invalidSortBy_returnsFalse() {
+  void hasComparatorInvalidSortByReturnsFalse() {
     assertFalse(
         productComparators.hasComparator("nonExistentField"),
         "Should return false for an invalid sortBy field");
@@ -114,14 +117,14 @@ class ProductComparatorsTest {
 
   @Test
   @DisplayName("Resolve comparator for a valid sortBy field should return a non-null comparator")
-  void resolve_validField_returnsComparator() {
+  void resolveValidFieldReturnsComparator() {
     Comparator<ProductDomain> comparator = productComparators.resolve("name");
     assertNotNull(comparator);
   }
 
   @Test
   @DisplayName("Resolve comparator for an invalid sortBy field should return null")
-  void resolve_invalidField_returnsNull() {
+  void resolveInvalidFieldReturnsNull() {
     Comparator<ProductDomain> comparator =
         productComparators.resolve("price"); // Assuming 'price' is not a valid sort field
     assertNull(comparator);
@@ -129,13 +132,13 @@ class ProductComparatorsTest {
 
   @Test
   @DisplayName("Has comparator for a valid sortBy field should return true")
-  void hasComparator_validField_returnsTrue() {
+  void hasComparatorValidFieldReturnsTrue() {
     assertTrue(productComparators.hasComparator("brand")); // Assuming 'brand' is a valid sort field
   }
 
   @Test
   @DisplayName("Has comparator for an invalid sortBy field should return false")
-  void hasComparator_invalidField_returnsFalse() {
+  void hasComparatorInvalidFieldReturnsFalse() {
     assertFalse(
         productComparators.hasComparator(
             "discount")); // Assuming 'discount' is not a valid sort field

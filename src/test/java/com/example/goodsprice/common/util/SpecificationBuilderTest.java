@@ -1,7 +1,14 @@
 package com.example.goodsprice.common.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Path;
@@ -26,7 +33,7 @@ class SpecificationBuilderTest {
   @Mock private Predicate predicate;
 
   @Test
-  void addSearchLike_shouldAddLikePredicateWhenSearchIsNotBlank() {
+  void addSearchLikeShouldAddLikePredicateWhenSearchIsNotBlank() {
     List<Predicate> predicates = new ArrayList<>();
     String search = "test";
     String[] fields = {"field1", "field2"};
@@ -56,7 +63,7 @@ class SpecificationBuilderTest {
   }
 
   @Test
-  void addSearchLike_shouldDoNothingWhenSearchIsBlank() {
+  void addSearchLikeShouldDoNothingWhenSearchIsBlank() {
     List<Predicate> predicates = new ArrayList<>();
     String search = " ";
     String[] fields = {"field1", "field2"};
@@ -68,7 +75,7 @@ class SpecificationBuilderTest {
   }
 
   @Test
-  void addSearchLike_shouldDoNothingWhenSearchIsNull() {
+  void addSearchLikeShouldDoNothingWhenSearchIsNull() {
     List<Predicate> predicates = new ArrayList<>();
     String search = null;
     String[] fields = {"field1", "field2"};
@@ -80,7 +87,7 @@ class SpecificationBuilderTest {
   }
 
   @Test
-  void addEqual_shouldAddEqualPredicateWhenValueIsNotBlank() {
+  void addEqualShouldAddEqualPredicateWhenValueIsNotBlank() {
     List<Predicate> predicates = new ArrayList<>();
     String field = "field";
     String value = "value";
@@ -94,7 +101,7 @@ class SpecificationBuilderTest {
   }
 
   @Test
-  void addEqual_shouldDoNothingWhenValueIsBlank() {
+  void addEqualShouldDoNothingWhenValueIsBlank() {
     List<Predicate> predicates = new ArrayList<>();
     String field = "field";
     String value = " ";
@@ -106,7 +113,7 @@ class SpecificationBuilderTest {
   }
 
   @Test
-  void addEqual_shouldDoNothingWhenValueIsNull() {
+  void addEqualShouldDoNothingWhenValueIsNull() {
     List<Predicate> predicates = new ArrayList<>();
     String field = "field";
     String value = null;
@@ -118,7 +125,7 @@ class SpecificationBuilderTest {
   }
 
   @Test
-  void addEqualIgnoreCase_shouldAddEqualPredicateWhenValueIsNotBlank() {
+  void addEqualIgnoreCaseShouldAddEqualPredicateWhenValueIsNotBlank() {
     List<Predicate> predicates = new ArrayList<>();
     String field = "field";
     String value = "Value";
@@ -140,7 +147,7 @@ class SpecificationBuilderTest {
   }
 
   @Test
-  void addEqualIgnoreCase_shouldDoNothingWhenValueIsBlank() {
+  void addEqualIgnoreCaseShouldDoNothingWhenValueIsBlank() {
     List<Predicate> predicates = new ArrayList<>();
     String field = "field";
     String value = " ";
@@ -152,7 +159,7 @@ class SpecificationBuilderTest {
   }
 
   @Test
-  void addEqualIgnoreCase_shouldDoNothingWhenValueIsNull() {
+  void addEqualIgnoreCaseShouldDoNothingWhenValueIsNull() {
     List<Predicate> predicates = new ArrayList<>();
     String field = "field";
     String value = null;
@@ -164,7 +171,7 @@ class SpecificationBuilderTest {
   }
 
   @Test
-  void toArray_shouldConvertListToPredicateArray() {
+  void toArrayShouldConvertListToPredicateArray() {
     List<Predicate> predicates = new ArrayList<>();
     predicates.add(predicate);
 
