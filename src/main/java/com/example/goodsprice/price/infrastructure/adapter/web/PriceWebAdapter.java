@@ -12,6 +12,7 @@ import com.example.goodsprice.api.model.PriceSearchResponse;
 import com.example.goodsprice.api.model.PriceSearchResponseV2;
 import com.example.goodsprice.api.model.UpdatePriceRecordRequest;
 import com.example.goodsprice.common.dto.PageRequestDto;
+import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
@@ -118,13 +119,11 @@ public class PriceWebAdapter {
 
   public PriceSearchResponse search(PriceSearchRequest request) {
     var ctx = resolveRequest(request.getProductName(), request.getDateRange());
-    if (Objects.isNull(ctx)) return new PriceSearchResponse();
     return (PriceSearchResponse) doSearch(ctx, false);
   }
 
   public PriceSearchResponseV2 searchV2(PriceSearchRequestV2 request) {
     var ctx = resolveRequest(request.getProductName(), request.getDateRange());
-    if (Objects.isNull(ctx)) return new PriceSearchResponseV2();
     return (PriceSearchResponseV2) doSearch(ctx, true);
   }
 
@@ -155,9 +154,13 @@ public class PriceWebAdapter {
   private record SearchContext(ProductDomain product, List<PriceDomain> prices) {}
 
   private SearchContext resolveRequest(String productName, DateRange dateRange) {
-    if (Objects.isNull(productName)) return null;
+    if (Objects.isNull(productName)) {
+      throw new IllegalArgumentException("Product name must not be null");
+    }
     var products = productInPort.searchByName(productName);
-    if (products.isEmpty()) return null;
+    if (products.isEmpty()) {
+      throw NotFoundException.product(productName);
+    }
     var product = products.getFirst();
     var fromDate = ObjectUtils.getOrNull(dateRange, DateRange::getFrom);
     var toDate = ObjectUtils.getOrNull(dateRange, DateRange::getTo);

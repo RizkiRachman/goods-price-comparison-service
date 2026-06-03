@@ -43,7 +43,13 @@ function req(name, method, url, body, extraTests, strict = true) {
     return r;
 }
 
-const cap = v => `pm.collectionVariables.set('${v}',String(pm.response.json().id));`;
+function reqStatus(name, method, url, body, status) {
+    const r = req(name, method, url, body, null, false);
+    r.event[0].script.exec = [`pm.test('status is ${status}',()=>pm.expect(pm.response.code).to.equal(${status}));`];
+    return r;
+}
+
+const cap = v => `pm.collectionVariables.set(\'${v}\',String(pm.response.json().id));`;
 
 // === System ===
 const s = folder("System");
@@ -97,13 +103,20 @@ pr.item.push(req("Get","GET","/v1/prices/{{priceId}}"));
 pr.item.push(req("Update","PUT","/v1/prices/{{priceId}}",{price:12.0,isPromo:false}));
 pr.item.push(req("Create Del","POST","/v1/products/{{productId}}/prices",{storeId:"{{storeId}}",price:15.0,isPromo:false,dateRecorded:"2026-06-03T00:00:00Z"},[cap('priceIdToDelete')]));
 pr.item.push(req("Delete","DELETE","/v1/prices/{{priceIdToDelete}}"));
-pr.item.push(req("Search v1","POST","/v1/prices/search",{productName:"Test Product"}));
-pr.item.push(req("Search v2","POST","/v2/prices/search",{productName:"Test Product"}));
+pr.item.push(req("Search v1","POST","/v1/prices/search",{productName:"Updated"}));
+pr.item.push(req("Search v2","POST","/v2/prices/search",{productName:"Updated"}));
+pr.item.push(reqStatus("Search v1 - Null Product Name","POST","/v1/prices/search",{},400));
+pr.item.push(reqStatus("Search v1 - Product Not Found","POST","/v1/prices/search",{productName:"NonExistentProduct"},404));
+pr.item.push(reqStatus("Search v2 - Null Product Name","POST","/v2/prices/search",{},400));
+pr.item.push(reqStatus("Search v2 - Product Not Found","POST","/v2/prices/search",{productName:"NonExistentProduct"},404));
+pr.item.push(reqStatus("Get Non-Existent","GET","/v1/prices/99999",null,404));
+pr.item.push(reqStatus("Update Non-Existent","PUT","/v1/prices/99999",{price:12.0,isPromo:false},404));
+pr.item.push(reqStatus("Delete Non-Existent","DELETE","/v1/prices/99999",null,404));
 collection.item.push(pr);
 
 // === Shopping ===
 const sh = folder("Shopping");
-sh.item.push(req("Optimize","POST","/v1/shopping/optimize",{items:["Test Product"]}));
+sh.item.push(req("Optimize","POST","/v1/shopping/optimize",{items:["Updated"]}));
 collection.item.push(sh);
 
 // === Feedback ===

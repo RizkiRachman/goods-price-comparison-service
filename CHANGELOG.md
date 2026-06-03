@@ -26,6 +26,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **Unit tests (30 tests)**: 6 new test suites for CategoryService, UnitService, FeedbackQuestionService, ActivityLogService, StoreService, AlertService
 
 ### Changed
+- **PriceWebAdapter**: Refactored `resolveRequest` to throw `IllegalArgumentException` for null product names and `NotFoundException` for missing products instead of returning null, and simplified `search`/`searchV2` by removing redundant null checks.
 - **ReceiptCorrectedPriceCalcHandler**: Now publishes event instead of directly importing `PriceSummaryBatchService`
 - **Admin/System controllers**: Moved to `infrastructure/adapter/web/` for hexagonal compliance
 - **ProductDomain**: Removed 4 phantom price summary fields — pricing data now handled via `ProductPriceSummary` in web adapter
@@ -36,6 +37,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **JaCoCo gate**: Re-enabled at 30% INSTRUCTION / 20% BRANCH thresholds
 
 ### Fixed
+- **Validation Exception Handling**: Added a global exception handler for `MethodArgumentNotValidException` in `GlobalExceptionHandler` to map Spring validation errors (like `@NotNull` violations on request bodies) to `400 Bad Request` instead of falling back to `500 Internal Server Error`.
 - **Orphan ReceiptProcessedEvent**: Now has a handler (was published but unhandled)
 - **Cross-service coupling**: Receipt handler no longer directly imports price domain service
 - **ProductDomain data loss risk**: MapStruct no longer silently drops price fields
