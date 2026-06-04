@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCorrectionDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptItemCorrectionDomain;
@@ -62,7 +63,7 @@ class ReceiptCorrectionServiceTest {
     when(receiptRepository.findById(id)).thenReturn(null);
 
     assertThrows(
-        com.example.goodsprice.common.exception.NotFoundException.class,
+        NotFoundException.class,
         () -> service.correct(id, ReceiptCorrectionDomain.builder().storeName("X").build()));
   }
 

@@ -15,6 +15,7 @@ import com.example.goodsprice.api.model.PriceRecord;
 import com.example.goodsprice.api.model.PriceSearchRequest;
 import com.example.goodsprice.api.model.PriceSearchRequestV2;
 import com.example.goodsprice.api.model.UpdatePriceRecordRequest;
+import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
@@ -228,9 +229,7 @@ class PriceWebAdapterTest {
     priceRecord.setPrice(15000.0);
 
     when(priceInPort.searchByProduct(any()))
-        .thenReturn(
-            new com.example.goodsprice.common.dto.PageResponse<>(
-                List.of(price), 0, pageSize, 1, 1, true, true));
+        .thenReturn(new PageResponse<>(List.of(price), 0, pageSize, 1, 1, true, true));
     when(storeInPort.findAllById(anyList())).thenReturn(List.of(store));
     when(mapper.toPriceRecord(price, store)).thenReturn(priceRecord);
 

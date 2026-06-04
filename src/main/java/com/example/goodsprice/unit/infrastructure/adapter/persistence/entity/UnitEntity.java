@@ -1,5 +1,6 @@
 package com.example.goodsprice.unit.infrastructure.adapter.persistence.entity;
 
+import com.example.goodsprice.unit.application.domain.model.UnitType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -32,7 +33,7 @@ public class UnitEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "type", nullable = false, length = 20)
-  private com.example.goodsprice.unit.application.domain.model.UnitType type;
+  private UnitType type;
 
   @Column(name = "description", columnDefinition = "TEXT")
   private String description;

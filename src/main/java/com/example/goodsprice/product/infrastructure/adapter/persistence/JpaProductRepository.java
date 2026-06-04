@@ -1,6 +1,7 @@
 package com.example.goodsprice.product.infrastructure.adapter.persistence;
 
 import com.example.goodsprice.product.infrastructure.adapter.persistence.entity.ProductEntity;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -33,17 +34,16 @@ public interface JpaProductRepository
   @Modifying
   @Query("UPDATE ProductEntity p SET p.summaryLastCalculated = :timestamp WHERE p.id = :productId")
   void updateSummaryLastCalculated(
-      @Param("productId") Long productId, @Param("timestamp") java.time.LocalDateTime timestamp);
+      @Param("productId") Long productId, @Param("timestamp") LocalDateTime timestamp);
 
   @Modifying
   @Query(
       "UPDATE ProductEntity p SET p.summaryLastCalculated = :timestamp WHERE p.id IN :productIds")
   int updateSummaryLastCalculated(
-      @Param("productIds") List<Long> productIds,
-      @Param("timestamp") java.time.LocalDateTime timestamp);
+      @Param("productIds") List<Long> productIds, @Param("timestamp") LocalDateTime timestamp);
 
   @Modifying
   @Query("UPDATE ProductEntity p SET p.lastPriceUpdate = :timestamp WHERE p.id = :productId")
   void updateLastPriceUpdate(
-      @Param("productId") Long productId, @Param("timestamp") java.time.LocalDateTime timestamp);
+      @Param("productId") Long productId, @Param("timestamp") LocalDateTime timestamp);
 }

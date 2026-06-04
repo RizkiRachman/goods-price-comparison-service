@@ -6,12 +6,16 @@ import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
 import com.example.goodsprice.activity.application.domain.model.ActivityLogAction;
 import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
 import com.example.goodsprice.activity.application.port.in.ActivityLogInPort;
+import com.example.goodsprice.activity.application.port.in.dto.ActivityLogCriteria;
 import com.example.goodsprice.activity.infrastructure.adapter.web.mapper.ActivityLogDtoMapper;
+import com.example.goodsprice.api.model.ActivityLog;
 import com.example.goodsprice.api.model.ActivityLogListResponse;
 import com.example.goodsprice.common.constant.AppConstants;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import java.time.OffsetDateTime;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -24,7 +28,7 @@ public class ActivityLogWebAdapter {
   private final ActivityLogInPort activityLogInPort;
   private final ActivityLogDtoMapper mapper;
 
-  public com.example.goodsprice.api.model.ActivityLog getById(java.util.UUID id) {
+  public ActivityLog getById(UUID id) {
     var domain = activityLogInPort.findById(id);
     return mapper.toApiModel(domain);
   }
@@ -40,15 +44,11 @@ public class ActivityLogWebAdapter {
       OffsetDateTime endDate) {
     var pageValue = resolvePage(page, 1);
     var sizeValue = resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE);
-    var pageRequest =
-        new com.example.goodsprice.common.dto.PageRequestDto(
-            pageValue, sizeValue, sortBy, sortOrder);
+    var pageRequest = new PageRequestDto(pageValue, sizeValue, sortBy, sortOrder);
 
     var typeEnum = parseType(type);
     var actionEnum = parseAction(action);
-    var criteria =
-        new com.example.goodsprice.activity.application.port.in.dto.ActivityLogCriteria(
-            pageRequest, typeEnum, actionEnum, startDate, endDate);
+    var criteria = new ActivityLogCriteria(pageRequest, typeEnum, actionEnum, startDate, endDate);
     var pageResponse = activityLogInPort.findAll(criteria);
 
     var response = new ActivityLogListResponse();

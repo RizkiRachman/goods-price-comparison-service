@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.api.model.ShoppingOptimizeRequest;
+import com.example.goodsprice.api.model.ShoppingSavings;
 import com.example.goodsprice.api.model.StoreVisit;
 import com.example.goodsprice.shopping.application.domain.model.ShoppingOptimizationResult;
 import com.example.goodsprice.shopping.application.domain.model.ShoppingSavingsDomain;
@@ -63,8 +64,7 @@ class ShoppingWebAdapterTest {
 
     when(shoppingInPort.optimizeShoppingRoute(List.of("Apple", "Bread"))).thenReturn(result);
     when(mapper.toStoreVisits(List.of(visitDomain))).thenReturn(List.of(storeVisitApi));
-    when(mapper.toShoppingSavings(result.getSavings()))
-        .thenReturn(new com.example.goodsprice.api.model.ShoppingSavings());
+    when(mapper.toShoppingSavings(result.getSavings())).thenReturn(new ShoppingSavings());
 
     var response = adapter.optimize(request);
 

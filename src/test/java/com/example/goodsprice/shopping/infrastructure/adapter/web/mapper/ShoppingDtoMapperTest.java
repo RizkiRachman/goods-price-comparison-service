@@ -7,12 +7,12 @@ import com.example.goodsprice.shopping.application.domain.model.ShoppingSavingsD
 import com.example.goodsprice.shopping.application.domain.model.StoreVisitDomain;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 @SuppressWarnings("checkstyle:MethodName")
 class ShoppingDtoMapperTest {
 
-  private final ShoppingDtoMapper mapper =
-      org.mapstruct.factory.Mappers.getMapper(ShoppingDtoMapper.class);
+  private final ShoppingDtoMapper mapper = Mappers.getMapper(ShoppingDtoMapper.class);
 
   @Test
   void shouldMapStoreVisitDomain() {

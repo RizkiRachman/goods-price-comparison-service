@@ -2,6 +2,7 @@ package com.example.goodsprice.price.application.domain.service;
 
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -47,6 +48,6 @@ public class PriceSummaryBatchService {
     log.info(
         "Price summary batch update completed. Processed {} products in {}",
         totalProcessed,
-        java.time.Duration.between(startTime, LocalDateTime.now()));
+        Duration.between(startTime, LocalDateTime.now()));
   }
 }

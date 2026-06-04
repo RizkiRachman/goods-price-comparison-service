@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
+import com.example.goodsprice.store.infrastructure.adapter.persistence.entity.StoreEntity;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,8 +35,7 @@ class StoreRepositoryAdapterTest {
   @DisplayName("Should save store")
   void shouldSaveStore() {
     var domain = StoreDomain.builder().name("Toko Segar").build();
-    var entity =
-        new com.example.goodsprice.store.infrastructure.adapter.persistence.entity.StoreEntity();
+    var entity = new StoreEntity();
     entity.setName("Toko Segar");
 
     when(mapper.toEntity(domain)).thenReturn(entity);
@@ -52,8 +52,7 @@ class StoreRepositoryAdapterTest {
   @Test
   @DisplayName("Should find store by id")
   void shouldFindById() {
-    var entity =
-        new com.example.goodsprice.store.infrastructure.adapter.persistence.entity.StoreEntity();
+    var entity = new StoreEntity();
     entity.setId(1L);
     entity.setName("Toko Segar");
     var domain = StoreDomain.builder().id(1L).name("Toko Segar").build();
@@ -84,8 +83,7 @@ class StoreRepositoryAdapterTest {
   @Test
   @DisplayName("Should find stores by name")
   void shouldFindByName() {
-    var entity =
-        new com.example.goodsprice.store.infrastructure.adapter.persistence.entity.StoreEntity();
+    var entity = new StoreEntity();
     entity.setName("Toko Segar");
     var domain = StoreDomain.builder().name("Toko Segar").build();
 
@@ -108,8 +106,7 @@ class StoreRepositoryAdapterTest {
   @Test
   @DisplayName("Should find store by name and location")
   void shouldFindByNameAndLocation() {
-    var entity =
-        new com.example.goodsprice.store.infrastructure.adapter.persistence.entity.StoreEntity();
+    var entity = new StoreEntity();
     entity.setName("Toko Segar");
     entity.setLocation("Jakarta");
     var domain = StoreDomain.builder().name("Toko Segar").location("Jakarta").build();
@@ -144,8 +141,7 @@ class StoreRepositoryAdapterTest {
   @Test
   @DisplayName("Should find all stores by ids")
   void shouldFindAllByIds() {
-    var entity =
-        new com.example.goodsprice.store.infrastructure.adapter.persistence.entity.StoreEntity();
+    var entity = new StoreEntity();
     entity.setId(1L);
     var domain = StoreDomain.builder().id(1L).build();
 

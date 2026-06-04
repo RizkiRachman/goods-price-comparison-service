@@ -12,6 +12,9 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 
 ## [Unreleased]
 
+### Changed
+- **FQN inline usages refactored**: All 51 Fully Qualified Name references across 21 files (8 main + 13 test) replaced with proper imports per AGENTS.md §6.3. Only 1 intentional exception: `CorsConfiguration.java` where `org.springframework.web.cors.CorsConfiguration` clashes with the project's own class (§6.2 naming conflict rule)
+
 ### Added
 - **Smoke test data cleanup**: New `Cleanup` folder in Postman collection deletes test-created entities (Price → Product → Store) in reverse dependency order after all tests complete, preventing dirty data in production
 - **Project-wide test coverage**: Coverage increased from 13.9% to 91.5% instruction (80.6% branch) — 846 tests passing across all quality gates

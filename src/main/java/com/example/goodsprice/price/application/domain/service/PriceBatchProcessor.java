@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -38,8 +39,7 @@ public class PriceBatchProcessor {
     var productIds = products.stream().map(ProductDomain::getId).filter(Objects::nonNull).toList();
     var allPrices = priceRepository.findAllByProductIds(productIds);
     var pricesByProductId =
-        allPrices.stream()
-            .collect(java.util.stream.Collectors.groupingBy(PriceDomain::getProductId));
+        allPrices.stream().collect(Collectors.groupingBy(PriceDomain::getProductId));
 
     for (ProductDomain product : products) {
       try {

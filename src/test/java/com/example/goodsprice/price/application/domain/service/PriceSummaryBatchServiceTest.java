@@ -22,6 +22,7 @@ import com.example.goodsprice.product.application.port.out.ProductRepositoryPort
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -251,7 +252,7 @@ class PriceSummaryBatchServiceTest {
   @DisplayName("Should handle multiple batches")
   void shouldHandleMultipleBatches() {
     ProductDomain product = ProductDomain.builder().id(1L).name("Test Product").build();
-    List<ProductDomain> firstBatch = java.util.Collections.nCopies(100, product);
+    List<ProductDomain> firstBatch = Collections.nCopies(100, product);
 
     when(productRepository.findProductsNeedingSummaryUpdate(100))
         .thenReturn(firstBatch)
