@@ -22,7 +22,8 @@
     "rules_references": [
       { "source": "AGENTS.md", "sections": ["§3 - Non-Negotiable Rules", "§5 - Writing Order", "§8 - Null Handling"] },
       { "source": "ARCHITECTURE_HYBRID.md", "sections": ["§2 - Hexagonal Structure"] },
-      { "source": "PROJECT.md", "sections": ["scope", "constraints"] }
+      { "source": "PROJECT.md", "sections": ["scope", "constraints"] },
+      { "source": ".opencode/orchestration/template.json", "sections": ["all"] }
     ],
     "current_guidance": "",
     "permissions": {
