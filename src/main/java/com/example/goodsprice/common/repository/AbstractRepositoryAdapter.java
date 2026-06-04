@@ -1,5 +1,8 @@
 package com.example.goodsprice.common.repository;
 
+import com.example.goodsprice.common.dto.PageRequestDto;
+import com.example.goodsprice.common.dto.PageResponse;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
@@ -43,5 +46,13 @@ public abstract class AbstractRepositoryAdapter<T, ID, E> {
 
   public void deleteById(ID id) {
     getJpaRepository().deleteById(id);
+  }
+
+  public PageResponse<T> findAll(PageRequestDto pageRequest, String search, String status) {
+    var pageable = PageRequest.of(pageRequest.toZeroBased(), pageRequest.size());
+    var page = getJpaRepository().findAll(pageable);
+    var domains = page.getContent().stream().map(this::toDomain).toList();
+    return PageResponse.of(
+        domains, pageRequest.page(), pageRequest.size(), page.getTotalElements());
   }
 }

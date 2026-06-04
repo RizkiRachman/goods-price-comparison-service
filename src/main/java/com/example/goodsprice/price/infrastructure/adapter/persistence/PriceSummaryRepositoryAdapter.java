@@ -1,19 +1,39 @@
 package com.example.goodsprice.price.infrastructure.adapter.persistence;
 
+import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
 import com.example.goodsprice.price.application.port.out.PriceSummaryRepositoryPort;
+import com.example.goodsprice.price.infrastructure.adapter.persistence.entity.PriceSummaryEntity;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class PriceSummaryRepositoryAdapter implements PriceSummaryRepositoryPort {
+public class PriceSummaryRepositoryAdapter
+    extends AbstractRepositoryAdapter<ProductPriceSummary, Long, PriceSummaryEntity>
+    implements PriceSummaryRepositoryPort {
 
   private final JpaPriceSummaryRepository jpaRepository;
   private final PriceSummaryMapper mapper;
+
+  @Override
+  protected JpaRepository<PriceSummaryEntity, Long> getJpaRepository() {
+    return jpaRepository;
+  }
+
+  @Override
+  protected PriceSummaryEntity toEntity(ProductPriceSummary domain) {
+    return mapper.toEntity(domain);
+  }
+
+  @Override
+  protected ProductPriceSummary toDomain(PriceSummaryEntity entity) {
+    return mapper.toDomain(entity);
+  }
 
   @Override
   public ProductPriceSummary save(ProductPriceSummary summary) {

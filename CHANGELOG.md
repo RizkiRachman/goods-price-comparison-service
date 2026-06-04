@@ -13,7 +13,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 ## [Unreleased]
 
 ### Changed
-- **FQN inline usages refactored**: All 51 Fully Qualified Name references across 21 files (8 main + 13 test) replaced with proper imports per AGENTS.md §6.3. Only 1 intentional exception: `CorsConfiguration.java` where `org.springframework.web.cors.CorsConfiguration` clashes with the project's own class (§6.2 naming conflict rule)
+- **Generic repository port pattern enforced**: 6 port interfaces now extend `GenericRepositoryPort<T, ID>` with typed domain/ID parameters instead of declaring duplicate CRUD methods. `AbstractRepositoryAdapter` gained a `findAll(PageRequestDto, String, String)` default implementation. Applies to Product, Store, Price, Alert, Receipt, PriceSummary. ReceiptItem skipped (no standalone ID).
 
 ### Added
 - **Smoke test data cleanup**: New `Cleanup` folder in Postman collection deletes test-created entities (Price → Product → Store) in reverse dependency order after all tests complete, preventing dirty data in production

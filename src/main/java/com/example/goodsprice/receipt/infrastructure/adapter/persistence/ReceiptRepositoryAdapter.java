@@ -1,30 +1,36 @@
 package com.example.goodsprice.receipt.infrastructure.adapter.persistence;
 
+import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.port.out.ReceiptRepositoryPort;
+import com.example.goodsprice.receipt.infrastructure.adapter.persistence.entity.ReceiptEntity;
 import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class ReceiptRepositoryAdapter implements ReceiptRepositoryPort {
+public class ReceiptRepositoryAdapter
+    extends AbstractRepositoryAdapter<ReceiptDomain, UUID, ReceiptEntity>
+    implements ReceiptRepositoryPort {
 
   private final JpaReceiptRepository jpaRepo;
   private final ReceiptMapper mapper;
 
   @Override
-  public ReceiptDomain save(ReceiptDomain receipt) {
-    var entity = mapper.toEntity(receipt);
-    var saved = jpaRepo.save(entity);
-    return mapper.toDomain(saved);
+  protected JpaRepository<ReceiptEntity, UUID> getJpaRepository() {
+    return jpaRepo;
   }
 
   @Override
-  public ReceiptDomain findById(UUID id) {
-    var entity = jpaRepo.findById(id).orElse(null);
-    if (Objects.isNull(entity)) return null;
+  protected ReceiptEntity toEntity(ReceiptDomain domain) {
+    return mapper.toEntity(domain);
+  }
+
+  @Override
+  protected ReceiptDomain toDomain(ReceiptEntity entity) {
     return mapper.toDomain(entity);
   }
 
@@ -38,16 +44,6 @@ public class ReceiptRepositoryAdapter implements ReceiptRepositoryPort {
   @Override
   public boolean existsByImageHash(String imageHash) {
     return jpaRepo.existsByImageHash(imageHash);
-  }
-
-  @Override
-  public boolean existsById(UUID id) {
-    return jpaRepo.existsById(id);
-  }
-
-  @Override
-  public void deleteById(UUID id) {
-    jpaRepo.deleteById(id);
   }
 
   @Override
