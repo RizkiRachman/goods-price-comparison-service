@@ -216,6 +216,10 @@ graphify-out/
 # Release plans (development artifacts — keep in PR body, not in repo)
 docs/release-plans/
 
+# Code quality reports (development artifacts — local analysis only)
+docs/quality-analysis-*.md
+docs/analysis-*.md
+
 # Superpowers planning docs (development artifacts)
 docs/superpowers/
 
