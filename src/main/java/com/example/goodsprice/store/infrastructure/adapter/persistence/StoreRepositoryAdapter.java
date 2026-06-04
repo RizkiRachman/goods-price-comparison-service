@@ -1,43 +1,61 @@
 package com.example.goodsprice.store.infrastructure.adapter.persistence;
 
-import com.example.goodsprice.common.dto.PageRequest;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.persistence.PaginationHelper;
+import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
+import com.example.goodsprice.common.util.SpecificationBuilder;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
+import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
 import com.example.goodsprice.store.infrastructure.adapter.persistence.entity.StoreEntity;
 import jakarta.persistence.criteria.Predicate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
-public class StoreRepositoryAdapter implements StoreRepositoryPort {
+public class StoreRepositoryAdapter
+    extends AbstractRepositoryAdapter<StoreDomain, Long, StoreEntity>
+    implements StoreRepositoryPort {
 
   private final JpaStoreRepository jpaRepo;
   private final StoreMapper mapper;
 
+  public StoreRepositoryAdapter(JpaStoreRepository jpaRepo, StoreMapper mapper) {
+    this.jpaRepo = jpaRepo;
+    this.mapper = mapper;
+  }
+
+  @Override
+  protected JpaRepository<StoreEntity, Long> getJpaRepository() {
+    return jpaRepo;
+  }
+
+  @Override
+  protected StoreEntity toEntity(StoreDomain domain) {
+    return mapper.toEntity(domain);
+  }
+
+  @Override
+  protected StoreDomain toDomain(StoreEntity entity) {
+    return mapper.toDomain(entity);
+  }
+
   @Override
   @CachePut(value = "stores", key = "#result.id")
   public StoreDomain save(StoreDomain store) {
-    var entity = mapper.toEntity(store);
-    var saved = jpaRepo.save(entity);
-    return mapper.toDomain(saved);
+    return super.save(store);
   }
 
   @Override
   @Cacheable("stores")
   public StoreDomain findById(Long id) {
-    return jpaRepo.findById(id).map(mapper::toDomain).orElse(null);
+    return super.findById(id);
   }
 
   @Override
@@ -52,73 +70,35 @@ public class StoreRepositoryAdapter implements StoreRepositoryPort {
 
   @Override
   public StoreDomain findByNameAndLocation(String name, String location) {
-    return jpaRepo.findAll().stream()
-        .filter(e -> Objects.equals(e.getName(), name) && Objects.equals(e.getLocation(), location))
-        .findFirst()
-        .map(mapper::toDomain)
-        .orElse(null);
+    return jpaRepo.findByNameAndLocation(name, location).map(mapper::toDomain).orElse(null);
   }
 
   @Override
   public boolean existsByNameAndLocation(String name, String location) {
-    return jpaRepo.findAll().stream()
-        .anyMatch(
-            e -> Objects.equals(e.getName(), name) && Objects.equals(e.getLocation(), location));
+    return jpaRepo.existsByNameAndLocation(name, location);
   }
 
   @Override
   @CacheEvict(value = "stores", key = "#id")
   public void deleteById(Long id) {
-    jpaRepo.deleteById(id);
+    super.deleteById(id);
   }
 
   @Override
-  public PageResponse<StoreDomain> findAll(
-      PageRequest pageRequest, String search, String status, String chain, String location) {
-    var sort =
-        Sort.by(
-            "desc".equalsIgnoreCase(pageRequest.sortDirection())
-                ? Sort.Direction.DESC
-                : Sort.Direction.ASC,
-            pageRequest.sortBy());
-
-    var pageNumber = Math.max(0, pageRequest.page() - 1);
-    var pageable =
-        org.springframework.data.domain.PageRequest.of(pageNumber, pageRequest.size(), sort);
-    var spec = buildSpecification(search, status, chain, location);
-    Page<StoreEntity> page = jpaRepo.findAll(spec, pageable);
-    var stores = page.getContent().stream().map(mapper::toDomain).toList();
-    return PageResponse.of(stores, pageRequest.page(), pageRequest.size(), page.getTotalElements());
+  public PageResponse<StoreDomain> findAll(StoreCriteria criteria) {
+    var spec = buildSpecification(criteria);
+    return PaginationHelper.findAll(criteria.pageRequest(), spec, jpaRepo, mapper::toDomain);
   }
 
-  private Specification<StoreEntity> buildSpecification(
-      String search, String status, String chain, String location) {
+  private Specification<StoreEntity> buildSpecification(StoreCriteria criteria) {
     return (root, query, cb) -> {
       var predicates = new ArrayList<Predicate>();
-      if (Objects.nonNull(search) && !search.isBlank()) {
-        var pattern = "%%%s%%".formatted(search.toLowerCase(Locale.ROOT));
-        predicates.add(
-            cb.or(
-                cb.like(cb.lower(root.get("name")), pattern),
-                cb.like(cb.lower(root.get("location")), pattern),
-                cb.like(cb.lower(root.get("chain")), pattern),
-                cb.like(cb.lower(root.get("address")), pattern)));
-      }
-      if (Objects.nonNull(status) && !status.isBlank()) {
-        predicates.add(cb.equal(root.get("status"), status));
-      }
-      if (Objects.nonNull(chain) && !chain.isBlank()) {
-        predicates.add(
-            cb.like(
-                cb.lower(root.get("chain")), "%%%s%%".formatted(chain.toLowerCase(Locale.ROOT))));
-      }
-      if (Objects.nonNull(location) && !location.isBlank()) {
-        predicates.add(
-            cb.like(
-                cb.lower(root.get("location")),
-                "%%%s%%".formatted(location.toLowerCase(Locale.ROOT))));
-      }
-      return cb.and(predicates.toArray(new Predicate[0]));
+      SpecificationBuilder.addSearchLike(
+          predicates, root, cb, criteria.search(), "name", "location", "chain", "address");
+      SpecificationBuilder.addEqual(predicates, root, cb, "status", criteria.status());
+      SpecificationBuilder.addSearchLike(predicates, root, cb, criteria.chain(), "chain");
+      SpecificationBuilder.addSearchLike(predicates, root, cb, criteria.location(), "location");
+      return cb.and(SpecificationBuilder.toArray(predicates));
     };
   }
 }
