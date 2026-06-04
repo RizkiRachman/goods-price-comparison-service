@@ -43,7 +43,8 @@ For every task, follow this sequence:
 - Read `AGENTS.md` for project conventions (architecture, rules, writing order)
 - **Load shared envelope** — read via `lean-ctx ctx_knowledge recall --query "orchestration-envelope"` (or `ctx_knowledge` with key `orchestration-envelope`)
   - If no envelope exists: read `.opencode/orchestration/template.json`, populate `session` fields (`task_id`, `branch`, `created_at`), write via `lean-ctx ctx_knowledge remember key orchestration-envelope value <JSON>`
-  - If envelope exists: read `state` and `retry.issues` to know where to resume
+  - If envelope exists: **session resume detected**. Read `state`, `retry.current_phase`, `retry.issues`. Update STATE.md Current Focus with `"Resuming at ${state} (phase: ${retry.current_phase}). Issues: ${retry.issues}"`. Summarize to user: `"Resuming previous session — state=${state}, blocked at ${retry.current_phase}"`
+- **Checkpoint: persist envelope before any work** — this ensures the last known state survives a crash: `lean-ctx ctx_knowledge remember key orchestration-envelope value <current envelope JSON>`
 - Load relevant skills via `/skill` as needed
 - **Before editing any symbol:** run `gitnexus_impact({target, direction: "upstream"})` to check blast radius — warn user on HIGH/CRITICAL risk
 - If resuming from a previous session: use `ctx_session load` to restore context, or use `ctx_session task "<current task>"` to set the working context for lean-ctx compression
@@ -61,6 +62,8 @@ Run a quick 5-lens check before planning:
 > Alternatively, use `/gsd-discuss-phase` for a structured discussion.
 
 ### 2. Plan
+**Checkpoint:** Persist envelope before delegation via `lean-ctx ctx_knowledge remember key orchestration-envelope value <JSON>` — ensures last known state survives if opencode closes mid-task.
+
 Read envelope for context, then delegate to @planner (`.opencode/agents/planner.md`). Inject into the prompt:
 - `requirements` (goal, acceptance_criteria, constraints)
 - `governance.rules_references`
@@ -78,6 +81,8 @@ After planner returns → run **Scoring Pipeline (§4.5)** on output → update 
 > Alternatively, use `/gsd-plan-phase` for GSD planning with backlog/dependency analysis.
 
 ### 3. Build
+**Checkpoint:** Persist envelope before delegation via `lean-ctx ctx_knowledge remember key orchestration-envelope value <JSON>`.
+
 Read envelope for context, then delegate to @task-manager (`.opencode/agents/task-manager.md`). Inject into the prompt:
 - `decisions.approved_architecture`
 - `decisions.coding_standard`
@@ -95,6 +100,8 @@ After task-manager returns → run **Scoring Pipeline (§4.5)** on output → up
 > Alternatively, use `/gsd-execute-phase` for structured execution with step tracking.
 
 ### 4. Review
+**Checkpoint:** Persist envelope before delegation via `lean-ctx ctx_knowledge remember key orchestration-envelope value <JSON>`.
+
 Read envelope for context, then delegate to @code-reviewer (`.opencode/agents/code-reviewer.md`). Inject into the prompt:
 - `requirements` (so reviewer knows what the code should do)
 - `governance.rules_references`
@@ -185,11 +192,17 @@ If code-reviewer reported **Critical** or **High** findings:
 
 > Alternatively, use `/gsd-verify-phase` for GSD verification with traceability.
 
-### 5.5 Envelope Persist
-After each subagent delegation returns and scoring completes, persist the shared envelope:
+### 5.5 Envelope Persist & Session Sync
+After each subagent delegation returns and scoring completes, persist state across all layers:
+
 1. Read current envelope from `lean-ctx ctx_knowledge recall --query "orchestration-envelope"`
 2. Update `state`, `outputs.<phase>`, `score.*`, `retry.*` with results
-3. Write back via `lean-ctx ctx_knowledge remember key orchestration-envelope value <updated JSON>`
+3. **Persist envelope** — write via `lean-ctx ctx_knowledge remember key orchestration-envelope value <updated JSON>`
+4. **Sync STATE.md** — update Current Focus and Known Blockers:
+   - Current Focus: `"Agent orchestration — ${state} (phase: ${retry.current_phase}). ${score.combined >= 70 ? '' : 'Score: ' + score.combined}"`
+   - If BLOCKED: add to Known Blockers with issues from `retry.issues[]`
+   - If PASS: clear Known Blockers
+5. **Save conversation** — `ctx_session save` so conversation context survives opencode restart
 
 ### 5.6 State Machine
 
@@ -222,8 +235,11 @@ BLOCKED (any phase) → user intervention → retry with guidance
 **BLOCKED escalation:**
 If state = `BLOCKED`:
 1. Read envelope from `lean-ctx ctx_knowledge recall --query "orchestration-envelope"`
-2. Summarize blockers to user: `"I hit BLOCKED at ${phase}. Issues: ${issues}. Please review and decide: adjust threshold, fix guidance, or discard."`
-3. Stop — do not continue execution until user responds
+2. Update STATE.md Known Blockers: `"BLOCKED at ${phase}: ${issues}"`
+3. Persist envelope final state via `lean-ctx ctx_knowledge remember key orchestration-envelope value <JSON>`
+4. Save conversation via `ctx_session save`
+5. Summarize blockers to user: `"I hit BLOCKED at ${phase}. Issues: ${issues}. Please review and decide: adjust threshold, fix guidance, or discard."`
+6. Stop — do not continue execution until user responds
 
 **Normal completion:**
 If state = `COMPLETE` and scoring passed:
