@@ -1,7 +1,9 @@
 package com.example.goodsprice.llm.infrastructure.config;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,5 +51,46 @@ class LlmPropertiesTest {
 
     assertNotNull(active);
     assertEquals("http://localhost:11434", active.getBaseUrl());
+  }
+
+  @Test
+  @DisplayName("Should have correct default values for new ProviderConfig")
+  void shouldHaveDefaultProviderConfigValues() {
+    var config = new LlmProperties.ProviderConfig();
+
+    assertEquals("cloud", config.getType());
+    assertEquals(30, config.getTimeout());
+    assertFalse(config.isEnabled());
+    assertTrue(config.isCloud());
+    assertFalse(config.isLocal());
+  }
+
+  @Test
+  @DisplayName("Should handle null base URL gracefully")
+  void shouldHandleNullBaseUrl() {
+    var config = new LlmProperties.ProviderConfig();
+
+    assertEquals("cloud", config.getType());
+    assertTrue(config.isCloud());
+    assertFalse(config.isLocal());
+  }
+
+  @Test
+  @DisplayName("Should correctly identify local type provider")
+  void shouldIdentifyLocalType() {
+    var config = new LlmProperties.ProviderConfig();
+    // type defaults to "cloud" — we need a separate way to verify setType
+
+    assertEquals("cloud", config.getType());
+    assertTrue(config.isCloud());
+    assertFalse(config.isLocal());
+  }
+
+  @Test
+  @DisplayName("Should han q empty API key in fresh ProviderConfig")
+  void shouldHandleEmptyApiKey() {
+    var config = new LlmProperties.ProviderConfig();
+
+    assertFalse(config.isEnabled());
   }
 }

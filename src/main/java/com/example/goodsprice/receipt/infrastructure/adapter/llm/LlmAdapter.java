@@ -1,7 +1,7 @@
 package com.example.goodsprice.receipt.infrastructure.adapter.llm;
 
 import com.example.goodsprice.llm.application.port.in.LlmInPort;
-import com.example.goodsprice.receipt.application.port.out.LlmProviderPort;
+import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
 import java.util.Base64;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +16,16 @@ public class LlmAdapter implements LlmProviderPort {
   @Override
   public Map<String, Object> extractReceiptData(String imageBase64) {
     return llmService.extractReceipt(imageBase64);
+  }
+
+  @Override
+  public String getProviderName() {
+    return llmService.getCurrentProvider();
+  }
+
+  @Override
+  public boolean isAvailable() {
+    return llmService.isAvailable();
   }
 
   public String toBase64(byte[] imageBytes) {

@@ -3,6 +3,7 @@ package com.example.goodsprice.alert.infrastructure.adapter.web;
 import com.example.goodsprice.api.controller.AlertsApi;
 import com.example.goodsprice.api.model.AlertSubscriptionRequest;
 import com.example.goodsprice.api.model.AlertSubscriptionResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,7 +16,7 @@ public class AlertController implements AlertsApi {
 
   @Override
   public ResponseEntity<AlertSubscriptionResponse> subscribeToAlert(
-      AlertSubscriptionRequest request) {
+      @Valid AlertSubscriptionRequest request) {
     var response = adapter.subscribe(request);
     return ResponseEntity.ok(response);
   }

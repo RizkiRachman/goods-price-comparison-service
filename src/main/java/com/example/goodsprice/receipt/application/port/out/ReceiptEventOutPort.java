@@ -4,7 +4,7 @@ import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 
 public interface ReceiptEventOutPort {
 
-  void publishReceiptUploaded(ReceiptDomain receipt, byte[] imageBytes);
+  void publishReceiptUploaded(ReceiptDomain receipt);
 
   void publishReceiptProcessed(ReceiptDomain receipt);
 
