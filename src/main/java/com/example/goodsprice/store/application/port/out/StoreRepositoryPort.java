@@ -1,15 +1,12 @@
 package com.example.goodsprice.store.application.port.out;
 
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.repository.GenericRepositoryPort;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
 import java.util.List;
 
-public interface StoreRepositoryPort {
-
-  StoreDomain save(StoreDomain store);
-
-  StoreDomain findById(Long id);
+public interface StoreRepositoryPort extends GenericRepositoryPort<StoreDomain, Long> {
 
   List<StoreDomain> findByName(String name);
 
@@ -20,6 +17,4 @@ public interface StoreRepositoryPort {
   List<StoreDomain> findAllById(List<Long> ids);
 
   PageResponse<StoreDomain> findAll(StoreCriteria criteria);
-
-  void deleteById(Long id);
 }

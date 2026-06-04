@@ -1,18 +1,15 @@
 package com.example.goodsprice.price.application.port.out;
 
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.repository.GenericRepositoryPort;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.dto.PriceCriteria;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface PriceRepositoryPort {
-
-  PriceDomain save(PriceDomain price);
+public interface PriceRepositoryPort extends GenericRepositoryPort<PriceDomain, Long> {
 
   List<PriceDomain> saveAll(Iterable<PriceDomain> prices);
-
-  PriceDomain findById(Long id);
 
   List<PriceDomain> findAll();
 
@@ -26,8 +23,6 @@ public interface PriceRepositoryPort {
   List<PriceDomain> findCheapestByProductIds(List<Long> productIds);
 
   List<PriceDomain> findAllByProductIds(List<Long> productIds);
-
-  void deleteById(Long id);
 
   List<Long> findProductIdsByStoreIds(List<Long> storeIds);
 
