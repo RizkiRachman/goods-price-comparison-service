@@ -1,6 +1,23 @@
 # Project State
 
 ## Completed Work
+- **Service Code Quality Analysis (2026-06-04)**:
+  - 3-way parallel analysis: PMD CPD (0 exact dups) + hardcoded string scan (8 categories) + GitNexus pattern analysis (6 dimensions)
+  - 10 findings across 19 files: 3 HIGH, 3 MEDIUM, 4 LOW (severity-adjusted by post-review)
+  - Top issues: `"ACTIVE"` status strings in 3 services, cache name literals ignoring constants, missing `@CacheEvict` on 3 adapters, missing EntityConstants entries
+  - Report saved to `docs/quality-analysis-2026-06-04.md`
+  - 3 knowledge artifacts persisted (gotcha, pattern, knowledge)
+  - Only pattern-level duplication: StoreService/ProductService/PriceService inline same findById/deleteById/NotFoundException pattern
+- **FQN Inline → Import Refactoring + Release (2026-06-04)**:
+  - Scanned all 22 files with FQN inline usages; fixed 51/52 occurrences
+  - 1 intentional exception: `CorsConfiguration.java` — naming conflict with project class (§6.2)
+  - Parallel dispatch: 1 explorer + 4 fixers; `mvn compile` passes cleanly
+  - PR #113 created on `feature/20260604-fqn-inline-to-import`
+  - Post-review: @code-reviewer verdict FLAG (pre-existing false positive only)
+  - Learner persisted 3 knowledge artifacts
+  - CHANGELOG.md updated
+- **Orchestration Envelope Protocol (2026-06-04)**:
+  - Updated all 5 agents with dedicated "Orchestration Envelope — Session Protocol" section
 - **Smoke Test Data Cleanup (2026-06-04)**:
   - Added Cleanup folder to Postman collection (Price→Product→Store DELETE, reverse dep order, strict=false)
   - 52 total smoke test items (49 original + 3 cleanup)
@@ -14,39 +31,7 @@
   - Note: All 18 A) Common and 8/10 B) Config/Security test files already existed with comprehensive coverage. Only 2 missing files created.
 
 ## Current Focus
-- **FQN Inline → Import Refactoring (2026-06-04)**:
-  1. Scanned all 14 files (6 main + 8 test) with 52 FQN inline usages
-  2. Fixed 51/52 occurrences — replaced with proper imports and short names
-  3. 1 intentional exception: `CorsConfiguration.java:26` — `org.springframework.web.cors.CorsConfiguration` kept as FQN due to naming conflict with project class
-  4. All 4 parallel fixer agents: `mvn compile` passes cleanly
-  5. 3 files that the explorer flagged were already clean (imports already existed)
-  6. Branch: main (no push — `.opencode/` changes also gitignored)
-- **Orchestration Envelope Protocol (2026-06-04)**:
-  (completed)
-  1. ✅ Coverage: **13.9% → 91.1% instruction** (+77.2pp), **16.8% → 79.2% branch** (+62.4pp)
-  2. ✅ Narrowed JaCoCo exclusions to boilerplate only (entity, dto, constants, exceptions, domain models, Application)
-  3. ✅ **40 zero-coverage classes eliminated** — every class now has ≥1 test
-  4. ✅ **845 tests** passing, 0 failures, all quality gates pass
-  5. ✅ Parallel dispatch of 6 agents across 12 service domains
-  6. ✅ 103 files changed, 9491 insertions
-  7. ✅ Branch: `feature/20260604-coverage-80-percent`
-
-- **Infrastructure Test Coverage (2026-06-04)**:
-  (superseded by Coverage 80% Initiative above)
-- **Price Domain Test Coverage (2026-06-04)**:
-  (superseded by Coverage 80% Initiative above)
-  1. ✅ **ProductPriceQueryServiceTest** — 4 tests: null/empty storeIds, valid, empty repository result
-  2. ✅ **PriceSummaryQueryServiceTest** — 4 tests: null/empty productIds, valid, empty repository result
-  3. ✅ **PriceBatchProcessorTest** — 9 tests: weight unit path, non-weight unit, null product IDs filtered, zero prices edge case, null unit, empty prices, exception handling, summary timing update, null price values
-  4. ✅ **PriceRepositoryAdapterTest** — 14 tests: save, findById, not found, saveAll, findByProductId, findByProductIdAndDateRange, findCheapest, findByProductIds, findAllByProductIds, findProductIdsByStoreIds, findByCriteria, deleteById, existsById, findAll (deprecated)
-  5. ✅ **PriceMapperTest** — 6 tests: domain→entity, entity→domain, null inputs for both directions, null fields in both
-  6. ✅ **PriceDtoMapperTest** — 11 tests: toPriceRecord, toResult, toResultV2, toCheapestPrice, null store for all, null date, null price
-  7. ✅ **PriceWebAdapterTest** — extended with 5 CRUD tests: create, get, delete, update, list
-  8. ✅ **PriceControllerTest** — 7 tests: create (201), get (200), delete (204), list (200), search, searchV2, update
-  9. ✅ **PriceSummaryEventAdapterTest** — 1 test: publishes event correctly
-  10. ✅ **PriceSummaryUpdateRequestedEventHandlerTest** — 2 tests: triggers batch, handles exception
-  11. ✅ **ProductPricesCalculateJobTest** — 2 tests: registers with correct name, executes batch on run
-  12. ✅ **PriceSummaryBatchSchedulerTest** — 2 tests: triggers batch, handles exception
+- **(awaiting next task)**
 
 
 
