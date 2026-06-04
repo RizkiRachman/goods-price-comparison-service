@@ -10,6 +10,7 @@ import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
+import com.example.goodsprice.receipt.application.port.in.ReceiptApprovalInPort;
 import com.example.goodsprice.receipt.application.port.in.ReceiptInPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptEventOutPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptRepositoryPort;
@@ -34,6 +35,7 @@ public class ReceiptService implements ReceiptInPort {
   private final ReceiptEventOutPort eventOutPort;
   private final LlmProviderPort llmProvider;
   private final ObjectMapper objectMapper;
+  private final ReceiptApprovalInPort receiptApprovalInPort;
 
   @Override
   @Transactional
@@ -86,14 +88,8 @@ public class ReceiptService implements ReceiptInPort {
   }
 
   @Override
-  @Transactional
-  @ActivityLog
   public void approve(UUID id) {
-    var receipt = findById(id);
-    receipt.markAsApproved();
-    receiptRepository.save(receipt);
-    eventOutPort.publishReceiptApproved(receipt);
-    log.info("Receipt approved: {}", id);
+    receiptApprovalInPort.approve(id);
   }
 
   @Override
@@ -170,7 +166,7 @@ public class ReceiptService implements ReceiptInPort {
             .receiptDate(request.getReceiptDate())
             .build();
     receipt = receiptRepository.save(receipt);
-    this.approve(receipt.getId());
+    receiptApprovalInPort.approve(receipt.getId());
     return this.findById(receipt.getId());
   }
 
