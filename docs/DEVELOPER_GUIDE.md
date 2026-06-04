@@ -1,6 +1,6 @@
 <a id="readme-top"></a>
 
-[![Java 17][java-shield]][java-url]
+[![Java 21][java-shield]][java-url]
 [![Spring Boot][spring-shield]][spring-url]
 [![Maven][maven-shield]][maven-url]
 [![PostgreSQL][postgres-shield]][postgres-url]
@@ -37,8 +37,8 @@
 
 ### Prerequisites
 
-- Java 17+
-- Maven 3.8+
+- Java 21+
+- Maven 3.9+
 - Docker (for PostgreSQL option)
 - Git
 
@@ -119,8 +119,12 @@ Each service follows the hexagonal pattern: **ports → domain → adapters**. S
 ### Branching
 
 ```bash
-git checkout -b ANEH-YYYYMMDD-SHORTDESC1-SHORTDESC2-SHORTDESC3
+git checkout -b feature/YYYYMMDD-short-description
 ```
+
+- **ALWAYS** create a new feature branch before starting work. Never commit directly to `main`.
+- **Branch naming:** `feature/YYYYMMDD-<short-description>` for features, `bugfix/YYYYMMDD-<short-description>` for bug fixes.
+- Push the new branch to the remote before starting significant work.
 
 ### Committing
 
@@ -244,14 +248,19 @@ Run these in order. Each must pass before the next.
 | Formatting | `mvn spotless:apply` | Google Java Style violations |
 | Architecture | `mvn test` (ArchUnit) | Package dependency violations |
 | Static Analysis | `mvn verify` | SpotBugs bugs, PMD CPD duplicates |
+| Coverage | `mvn verify` (JaCoCo) | ≥90% INSTRUCTION / ≥80% BRANCH |
 | Conventions | `./scripts/check-conventions.sh` | getOrNull usage, method refs, no JPA in domain |
 | Full Test | `mvn test && mvn verify` | All tests pass, 0 failures |
 | Security | `mvn verify -P security-check` | OWASP dependency vulnerabilities |
+| Smoke Tests | `npx newman run "postman/Goods Price Comparison Service.postman_collection.json"` | API endpoint integration (requires app running on localhost:8080) |
 
 ```bash
 mvn spotless:apply              # Quick fix
 mvn verify                      # Standard quality
 mvn verify -P security-check    # Full + security
+# Smoke tests (start app first):
+mvn spring-boot:run -Dspring-boot.run.profiles=local
+npx newman run "postman/Goods Price Comparison Service.postman_collection.json"
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -404,7 +413,7 @@ mvn flyway:migrate -Pflyway            # Run migrations
 
 ---
 
-[java-shield]: https://img.shields.io/badge/Java_17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white
+[java-shield]: https://img.shields.io/badge/Java_21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white
 [java-url]: https://www.oracle.com/java/
 [spring-shield]: https://img.shields.io/badge/Spring_Boot_3-6DB33F?style=for-the-badge&logo=springboot&logoColor=white
 [spring-url]: https://spring.io/projects/spring-boot

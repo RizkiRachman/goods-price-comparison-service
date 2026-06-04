@@ -1,10 +1,15 @@
 package com.example.goodsprice.price.application.domain.service;
 
+import com.example.goodsprice.activity.application.annotation.ActivityLog;
+import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.util.ObjectUtils;
+import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
-import com.example.goodsprice.price.application.exception.PriceNotFoundException;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
+import com.example.goodsprice.price.application.port.in.dto.PriceCriteria;
 import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
-import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
+import com.example.goodsprice.product.application.port.in.ProductInPort;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,10 +28,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class PriceService implements PriceInPort {
 
   private final PriceRepositoryPort priceRepository;
-  private final ProductRepositoryPort productRepository;
+  private final ProductInPort productInPort;
 
   @Override
   @Transactional
+  @ActivityLog
   public PriceDomain create(
       Long productId,
       Long storeId,
@@ -45,7 +51,7 @@ public class PriceService implements PriceInPort {
             .build();
     priceRecord = priceRepository.save(priceRecord);
 
-    productRepository.updateLastPriceUpdate(productId, LocalDateTime.now());
+    productInPort.updateLastPriceUpdate(productId, LocalDateTime.now());
 
     log.info("Price created: product={}, store={}, price={}", productId, storeId, price);
     return priceRecord;
@@ -54,7 +60,7 @@ public class PriceService implements PriceInPort {
   @Override
   public PriceDomain findById(Long id) {
     var price = priceRepository.findById(id);
-    if (Objects.isNull(price)) throw new PriceNotFoundException(id);
+    if (Objects.isNull(price)) throw NotFoundException.price(id);
     return price;
   }
 
@@ -67,9 +73,14 @@ public class PriceService implements PriceInPort {
   }
 
   @Override
+  public PageResponse<PriceDomain> searchByProduct(PriceCriteria criteria) {
+    return priceRepository.findByProductIdWithFilters(criteria);
+  }
+
+  @Override
   public PriceDomain findCheapestByProduct(Long productId) {
     var prices = priceRepository.findCheapestByProductId(productId);
-    return prices.isEmpty() ? null : prices.get(0);
+    return prices.isEmpty() ? null : prices.getFirst();
   }
 
   @Override
@@ -85,28 +96,67 @@ public class PriceService implements PriceInPort {
 
   @Override
   @Transactional
+  @ActivityLog
+  public void createBatch(List<PriceCreateItem> items) {
+    if (items == null || items.isEmpty()) return;
+
+    var prices =
+        items.stream()
+            .filter(item -> item.productId() != null && item.storeId() != null)
+            .map(
+                item ->
+                    PriceDomain.builder()
+                        .productId(item.productId())
+                        .storeId(item.storeId())
+                        .price(item.totalPrice())
+                        .unitPrice(item.unitPrice())
+                        .dateRecorded(item.dateRecorded())
+                        .isPromo(item.isPromo())
+                        .build())
+            .toList();
+
+    if (prices.isEmpty()) return;
+
+    priceRepository.saveAll(prices);
+
+    // Update last price update timestamp for all affected products
+    var productIds =
+        prices.stream()
+            .map(PriceDomain::getProductId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+    var now = LocalDateTime.now();
+    productIds.forEach(id -> productInPort.updateLastPriceUpdate(id, now));
+
+    log.info("Created {} prices in batch", prices.size());
+  }
+
+  @Override
+  @Transactional
+  @ActivityLog
   public void deleteById(Long id) {
     var price = priceRepository.findById(id);
-    if (Objects.isNull(price)) throw new PriceNotFoundException(id);
+    if (Objects.isNull(price)) throw NotFoundException.price(id);
     priceRepository.deleteById(id);
     log.info("Price deleted: id={}", id);
   }
 
   @Override
   @Transactional
+  @ActivityLog
   public PriceDomain update(
       Long id, Double price, Double unitPrice, LocalDate dateRecorded, Boolean isPromo) {
     var existing = priceRepository.findById(id);
-    if (Objects.isNull(existing)) throw new PriceNotFoundException(id);
+    if (Objects.isNull(existing)) throw NotFoundException.price(id);
 
-    existing.setPrice(price);
-    existing.setUnitPrice(unitPrice);
-    existing.setDateRecorded(dateRecorded);
-    existing.setIsPromo(isPromo);
+    existing.setPrice(ObjectUtils.defaultIfNull(price, existing.getPrice()));
+    existing.setUnitPrice(ObjectUtils.defaultIfNull(unitPrice, existing.getUnitPrice()));
+    existing.setDateRecorded(ObjectUtils.defaultIfNull(dateRecorded, existing.getDateRecorded()));
+    existing.setIsPromo(ObjectUtils.defaultIfNull(isPromo, Boolean.FALSE));
 
     existing = priceRepository.save(existing);
 
-    productRepository.updateLastPriceUpdate(existing.getProductId(), LocalDateTime.now());
+    productInPort.updateLastPriceUpdate(existing.getProductId(), LocalDateTime.now());
 
     log.info("Price updated: id={}, price={}", id, existing.getPrice());
     return existing;

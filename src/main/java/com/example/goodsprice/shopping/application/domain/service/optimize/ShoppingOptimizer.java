@@ -24,10 +24,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
 
 @Slf4j
-@Component
+@Service
 @RequiredArgsConstructor
 public class ShoppingOptimizer {
 
@@ -35,6 +36,7 @@ public class ShoppingOptimizer {
   private final PriceInPort priceInPort;
   private final StoreRepositoryPort storeRepository;
 
+  @Cacheable(value = "shopping-optimization", key = "#itemNames")
   public ShoppingOptimizationResult optimize(List<String> itemNames) {
     if (Objects.isNull(itemNames) || itemNames.isEmpty()) {
       return emptyResult();

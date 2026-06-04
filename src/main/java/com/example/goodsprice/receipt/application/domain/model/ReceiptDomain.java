@@ -21,6 +21,7 @@ public class ReceiptDomain {
   private BigDecimal totalAmount;
   private String extractedDataJson;
   private String errorMessage;
+  private byte[] imageData;
 
   public void markAsProcessing() {
     this.status = ReceiptStatus.PROCESSING;

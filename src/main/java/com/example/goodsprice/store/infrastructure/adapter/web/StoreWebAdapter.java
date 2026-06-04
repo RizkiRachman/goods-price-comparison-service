@@ -1,15 +1,22 @@
 package com.example.goodsprice.store.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.util.JsonNullableUtils.resolveNullable;
+import static com.example.goodsprice.common.util.PaginationUtils.resolvePage;
+import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
+
 import com.example.goodsprice.api.model.CreateStoreRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Store;
 import com.example.goodsprice.api.model.StoreListResponse;
 import com.example.goodsprice.api.model.UpdateStoreRequest;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.in.StoreInPort;
+import com.example.goodsprice.store.application.port.in.dto.CreateStoreCriteria;
+import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
+import com.example.goodsprice.store.application.port.in.dto.UpdateStoreCriteria;
 import com.example.goodsprice.store.infrastructure.adapter.web.mapper.StoreDtoMapper;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -23,14 +30,16 @@ public class StoreWebAdapter {
   private final StoreDtoMapper mapper;
 
   public Store create(CreateStoreRequest request) {
-    StoreDomain domain =
-        storeInPort.create(
-            request.getName(),
-            request.getLocation(),
-            request.getChain(),
-            request.getAddress(),
-            request.getLatitude(),
-            request.getLongitude());
+    var criteria =
+        CreateStoreCriteria.builder()
+            .name(request.getName())
+            .location(request.getLocation())
+            .chain(request.getChain())
+            .address(request.getAddress())
+            .latitude(request.getLatitude())
+            .longitude(request.getLongitude())
+            .build();
+    StoreDomain domain = storeInPort.create(criteria);
     return mapper.toApiStore(domain);
   }
 
@@ -48,25 +57,21 @@ public class StoreWebAdapter {
       EntityStatus status,
       String chain,
       String location) {
-    var pageValue = ObjectUtils.getOrDefault(page, p -> p, 0);
-    var sizeValue = ObjectUtils.getOrDefault(pageSize, s -> s, 20);
-    var sortByValue = ObjectUtils.getOrNull(sortBy, s -> s);
-    var sortDirValue = ObjectUtils.getOrNull(sortOrder, s -> s);
-    var searchValue = ObjectUtils.getOrNull(search, s -> s);
-    var statusValue = ObjectUtils.getOrNull(status, EntityStatus::getValue);
-    var chainValue = ObjectUtils.getOrNull(chain, s -> s);
-    var locationValue = ObjectUtils.getOrNull(location, s -> s);
+    var pageRequest =
+        new PageRequestDto(
+            resolvePage(page, 1),
+            resolveSize(pageSize, 20),
+            ObjectUtils.getOrNull(sortBy, s -> s),
+            ObjectUtils.getOrNull(sortOrder, s -> s));
+    var criteria =
+        new StoreCriteria(
+            pageRequest,
+            ObjectUtils.getOrNull(search, s -> s),
+            ObjectUtils.getOrNull(status, EntityStatus::getValue),
+            ObjectUtils.getOrNull(chain, s -> s),
+            ObjectUtils.getOrNull(location, s -> s));
 
-    var pageResponse =
-        storeInPort.findAll(
-            pageValue,
-            sizeValue,
-            sortByValue,
-            sortDirValue,
-            searchValue,
-            statusValue,
-            chainValue,
-            locationValue);
+    var pageResponse = storeInPort.findAll(criteria);
 
     var response = new StoreListResponse();
     response.setData(pageResponse.content().stream().map(mapper::toApiStore).toList());
@@ -75,25 +80,22 @@ public class StoreWebAdapter {
   }
 
   public Store update(Long id, UpdateStoreRequest request) {
-    StoreDomain domain =
-        storeInPort.update(
-            id,
-            request.getName(),
-            request.getLocation(),
-            resolveNullable(request.getChain()),
-            resolveNullable(request.getAddress()),
-            resolveNullable(request.getLatitude()),
-            resolveNullable(request.getLongitude()),
-            ObjectUtils.getOrNull(request.getStatus(), EntityStatus::getValue));
+    var criteria =
+        UpdateStoreCriteria.builder()
+            .id(id)
+            .name(request.getName())
+            .location(request.getLocation())
+            .chain(resolveNullable(request.getChain()))
+            .address(resolveNullable(request.getAddress()))
+            .latitude(resolveNullable(request.getLatitude()))
+            .longitude(resolveNullable(request.getLongitude()))
+            .status(ObjectUtils.getOrNull(request.getStatus(), EntityStatus::getValue))
+            .build();
+    StoreDomain domain = storeInPort.update(criteria);
     return mapper.toApiStore(domain);
   }
 
   public void delete(Long id) {
     storeInPort.deleteById(id);
-  }
-
-  private <T> T resolveNullable(org.openapitools.jackson.nullable.JsonNullable<T> nullable) {
-    if (Objects.isNull(nullable)) return null;
-    return nullable.orElse(null);
   }
 }

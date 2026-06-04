@@ -1,6 +1,5 @@
 package com.example.goodsprice.product.application.domain.model;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -25,12 +24,4 @@ public class ProductDomain {
   private LocalDateTime lastPriceUpdate;
 
   private LocalDateTime summaryLastCalculated;
-
-  private BigDecimal avgPrice;
-
-  private BigDecimal minPrice;
-
-  private BigDecimal maxPrice;
-
-  private LocalDateTime priceUpdatedAt;
 }
