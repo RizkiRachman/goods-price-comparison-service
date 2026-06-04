@@ -350,6 +350,44 @@ class ReceiptServiceTest {
     verify(eventOutPort, never()).publishReceiptProcessed(any());
   }
 
+  @Test
+  void shouldRetryUploadWhenExistingReceiptIsFailed() {
+    var imageBytes = "retry-image".getBytes();
+    var failedReceipt =
+        ReceiptDomain.builder().id(UUID.randomUUID()).status(ReceiptStatus.FAILED).build();
+    when(receiptRepository.findByImageHash(any())).thenReturn(failedReceipt);
+    var newReceipt =
+        ReceiptDomain.builder().id(UUID.randomUUID()).status(ReceiptStatus.PENDING).build();
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(newReceipt);
+
+    var result = receiptService.upload(imageBytes, "retry.jpg");
+
+    assertNotNull(result);
+    assertEquals(ReceiptStatus.PENDING, result.getStatus());
+    verify(receiptRepository).deleteById(failedReceipt.getId());
+    verify(receiptRepository).save(any(ReceiptDomain.class));
+    verify(eventOutPort).publishReceiptUploaded(any());
+  }
+
+  @Test
+  void shouldUploadWithEmptyImageBytes() {
+    var imageBytes = new byte[0];
+    when(receiptRepository.findByImageHash(any())).thenReturn(null);
+    when(receiptRepository.save(any(ReceiptDomain.class)))
+        .thenAnswer(
+            invocation -> {
+              var r = invocation.<ReceiptDomain>getArgument(0);
+              r.setId(UUID.randomUUID());
+              return r;
+            });
+
+    var result = receiptService.upload(imageBytes, "empty.jpg");
+
+    assertNotNull(result);
+    assertEquals(ReceiptStatus.PENDING, result.getStatus());
+    verify(receiptRepository, never()).updateImageData(any(), any());
+  }
+
   private void mockSaveWithStore() {
     when(receiptRepository.save(any()))
         .thenAnswer(
