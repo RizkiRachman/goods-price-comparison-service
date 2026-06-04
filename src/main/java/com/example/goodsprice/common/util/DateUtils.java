@@ -34,6 +34,7 @@ public final class DateUtils {
     return DateTimeFormatter.ofPattern(pattern).format(dateTime);
   }
 
+  @SuppressWarnings("PMD.ReplaceJavaUtilDate")
   public static String format(Date date, String pattern) {
     if (Objects.isNull(date) || Objects.isNull(pattern)) return null;
     return format(date.toInstant().atOffset(ZoneOffset.UTC), pattern);

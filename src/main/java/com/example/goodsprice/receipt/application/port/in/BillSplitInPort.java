@@ -4,6 +4,7 @@ import com.example.goodsprice.receipt.application.domain.model.BillSplitRequestD
 import com.example.goodsprice.receipt.application.domain.model.BillSplitResponseDomain;
 import java.util.UUID;
 
+@FunctionalInterface
 public interface BillSplitInPort {
 
   BillSplitResponseDomain splitBill(UUID receiptId, BillSplitRequestDomain request);
