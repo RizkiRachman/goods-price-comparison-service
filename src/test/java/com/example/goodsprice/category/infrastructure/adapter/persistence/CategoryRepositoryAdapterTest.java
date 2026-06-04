@@ -18,6 +18,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 class CategoryRepositoryAdapterTest {
@@ -87,10 +90,8 @@ class CategoryRepositoryAdapterTest {
   void shouldFindAllWithPagination() {
     var pageRequest = new PageRequestDto(0, 10, "name", "asc");
 
-    when(jpaRepository.findAll(
-            any(org.springframework.data.jpa.domain.Specification.class),
-            any(org.springframework.data.domain.Pageable.class)))
-        .thenReturn(org.springframework.data.domain.Page.empty());
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(Page.empty());
 
     var result = adapter.findAll(pageRequest, null, null);
 

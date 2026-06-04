@@ -1,6 +1,12 @@
 # Project State
 
 ## Completed Work
+- **Smoke Test Data Cleanup (2026-06-04)**:
+  - Added Cleanup folder to Postman collection (Price→Product→Store DELETE, reverse dep order, strict=false)
+  - 52 total smoke test items (49 original + 3 cleanup)
+  - Category/Unit/Feedback Question not deletable — no DELETE endpoint in API spec
+  - Branch: `feature/20260604-smoketest-cleanup` → PR #112
+  - Verified: 52/52 smoke tests pass, 0 failures
 - **Config/Common Test Coverage (2026-06-04)**:
   - Created `CacheConfigurationTest`: verifies cache names, @EnableCaching, @Configuration annotations
   - Created `RateLimitConfigurationTest`: verifies interceptor registration in registry
@@ -8,7 +14,15 @@
   - Note: All 18 A) Common and 8/10 B) Config/Security test files already existed with comprehensive coverage. Only 2 missing files created.
 
 ## Current Focus
-- **Coverage 80% Initiative COMPLETE (2026-06-04)**:
+- **FQN Inline → Import Refactoring (2026-06-04)**:
+  1. Scanned all 14 files (6 main + 8 test) with 52 FQN inline usages
+  2. Fixed 51/52 occurrences — replaced with proper imports and short names
+  3. 1 intentional exception: `CorsConfiguration.java:26` — `org.springframework.web.cors.CorsConfiguration` kept as FQN due to naming conflict with project class
+  4. All 4 parallel fixer agents: `mvn compile` passes cleanly
+  5. 3 files that the explorer flagged were already clean (imports already existed)
+  6. Branch: main (no push — `.opencode/` changes also gitignored)
+- **Orchestration Envelope Protocol (2026-06-04)**:
+  (completed)
   1. ✅ Coverage: **13.9% → 91.1% instruction** (+77.2pp), **16.8% → 79.2% branch** (+62.4pp)
   2. ✅ Narrowed JaCoCo exclusions to boilerplate only (entity, dto, constants, exceptions, domain models, Application)
   3. ✅ **40 zero-coverage classes eliminated** — every class now has ≥1 test
@@ -50,6 +64,7 @@
 ## Known Blockers
 - **Pre-existing compilation errors** in other packages (`category`, `common`, `config`, `store`, `unit`) — prevent full `mvn test` run. All new receipt test files compile cleanly (zero errors).
 - **None currently**. All 130 receipt domain tests pass.
+- **None for agent config** — `.opencode/` files are gitignored, no quality gates apply
 
 
 ## Active Decisions (Provider Config)
@@ -119,6 +134,6 @@ Existing generics in `common/` (`AbstractGenericService`, `GenericRepositoryPort
 
 ## Quality Metrics
 - **Tests**: 845 (ArchUnit 8 + unit tests 837) — run via `mvn test`
-- **Smoke Tests**: 49 Postman assertions — run via `npx newman run "postman/Goods Price Comparison Service.postman_collection.json"`
+- **Smoke Tests**: 52 Postman assertions — run via `npx newman run "postman/Goods Price Comparison Service.postman_collection.json"`
 - **Gates**: Spotless → Checkstyle → ArchUnit → JaCoCo → SpotBugs → PMD CPD → check-conventions.sh → Newman smoke tests
 - **Coverage**: 91.1% INSTRUCTION / 79.2% BRANCH (project-wide, only entity/dto/constant/exception/domain model/Application excluded)

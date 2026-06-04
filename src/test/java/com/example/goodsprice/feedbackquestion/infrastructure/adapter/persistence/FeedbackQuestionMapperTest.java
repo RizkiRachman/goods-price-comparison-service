@@ -8,12 +8,12 @@ import com.example.goodsprice.feedbackquestion.infrastructure.adapter.persistenc
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 @SuppressWarnings("checkstyle:MethodName")
 class FeedbackQuestionMapperTest {
 
-  private final FeedbackQuestionMapper mapper =
-      org.mapstruct.factory.Mappers.getMapper(FeedbackQuestionMapper.class);
+  private final FeedbackQuestionMapper mapper = Mappers.getMapper(FeedbackQuestionMapper.class);
 
   @Test
   void shouldMapDomainToEntity() {

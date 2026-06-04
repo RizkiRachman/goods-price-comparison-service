@@ -12,8 +12,10 @@ import com.example.goodsprice.api.model.BillSplitResponse;
 import com.example.goodsprice.api.model.ReceiptCreateRequest;
 import com.example.goodsprice.api.model.ReceiptResultResponse;
 import com.example.goodsprice.api.model.Status;
+import com.example.goodsprice.receipt.application.domain.model.BillSplitRequestDomain;
 import com.example.goodsprice.receipt.application.domain.model.BillSplitResponseDomain;
 import com.example.goodsprice.receipt.application.domain.model.BillSplitType;
+import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
 import com.example.goodsprice.receipt.application.port.in.BillSplitInPort;
@@ -135,10 +137,7 @@ class ReceiptWebAdapterTest {
   @Test
   void shouldCreate() {
     var request = new ReceiptCreateRequest().storeName("Toko Segar");
-    var createDomain =
-        com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain.builder()
-            .storeName("Toko Segar")
-            .build();
+    var createDomain = ReceiptCreateDomain.builder().storeName("Toko Segar").build();
     var receipt = ReceiptDomain.builder().id(receiptId).storeName("Toko Segar").build();
     var response = new ReceiptResultResponse().receiptId(receiptId);
 
@@ -155,10 +154,7 @@ class ReceiptWebAdapterTest {
   @Test
   void shouldSplitBill() {
     var request = new BillSplitRequest();
-    var domainRequest =
-        com.example.goodsprice.receipt.application.domain.model.BillSplitRequestDomain.builder()
-            .type(BillSplitType.RATIO)
-            .build();
+    var domainRequest = BillSplitRequestDomain.builder().type(BillSplitType.RATIO).build();
     var domainResponse =
         BillSplitResponseDomain.builder().receiptId(receiptId).type(BillSplitType.RATIO).build();
     var response = new BillSplitResponse().receiptId(receiptId);

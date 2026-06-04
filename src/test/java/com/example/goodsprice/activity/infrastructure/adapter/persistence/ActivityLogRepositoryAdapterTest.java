@@ -26,6 +26,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
@@ -117,9 +119,8 @@ class ActivityLogRepositoryAdapterTest {
     var pageRequest = new PageRequestDto(0, 20, "createdAt", "desc");
     var criteria = new ActivityLogCriteria(pageRequest, ActivityLogType.PRODUCT, null, null, null);
 
-    var entityPage = new org.springframework.data.domain.PageImpl<>(List.of(entity));
-    when(jpaRepository.findAll(
-            any(Specification.class), any(org.springframework.data.domain.Pageable.class)))
+    var entityPage = new PageImpl<>(List.of(entity));
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
         .thenReturn(entityPage);
     when(mapper.toDomain(entity)).thenReturn(domain);
 
@@ -128,8 +129,7 @@ class ActivityLogRepositoryAdapterTest {
     assertNotNull(result);
     assertEquals(1, result.content().size());
     assertEquals(logId, result.content().get(0).getId());
-    verify(jpaRepository)
-        .findAll(any(Specification.class), any(org.springframework.data.domain.Pageable.class));
+    verify(jpaRepository).findAll(any(Specification.class), any(Pageable.class));
   }
 
   @Test
@@ -138,9 +138,8 @@ class ActivityLogRepositoryAdapterTest {
     var pageRequest = new PageRequestDto(0, 20, "createdAt", "desc");
     var criteria = new ActivityLogCriteria(pageRequest, null, ActivityLogAction.CREATE, null, null);
 
-    var entityPage = new org.springframework.data.domain.PageImpl<>(List.of(entity));
-    when(jpaRepository.findAll(
-            any(Specification.class), any(org.springframework.data.domain.Pageable.class)))
+    var entityPage = new PageImpl<>(List.of(entity));
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
         .thenReturn(entityPage);
     when(mapper.toDomain(entity)).thenReturn(domain);
 
@@ -158,9 +157,8 @@ class ActivityLogRepositoryAdapterTest {
     var pageRequest = new PageRequestDto(0, 20, "createdAt", "desc");
     var criteria = new ActivityLogCriteria(pageRequest, null, null, startDate, endDate);
 
-    var entityPage = new org.springframework.data.domain.PageImpl<>(List.of(entity));
-    when(jpaRepository.findAll(
-            any(Specification.class), any(org.springframework.data.domain.Pageable.class)))
+    var entityPage = new PageImpl<>(List.of(entity));
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
         .thenReturn(entityPage);
     when(mapper.toDomain(entity)).thenReturn(domain);
 
@@ -176,9 +174,8 @@ class ActivityLogRepositoryAdapterTest {
     var pageRequest = new PageRequestDto(0, 20, "createdAt", "desc");
     var criteria = new ActivityLogCriteria(pageRequest, null, null, null, null);
 
-    var entityPage = new org.springframework.data.domain.PageImpl<>(List.of(entity));
-    when(jpaRepository.findAll(
-            any(Specification.class), any(org.springframework.data.domain.Pageable.class)))
+    var entityPage = new PageImpl<>(List.of(entity));
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
         .thenReturn(entityPage);
     when(mapper.toDomain(entity)).thenReturn(domain);
 
@@ -192,9 +189,8 @@ class ActivityLogRepositoryAdapterTest {
   @DisplayName("Should delegate to findAll with criteria for generic findAll")
   void shouldDelegateForGenericFindAll() {
     var pageRequest = new PageRequestDto(0, 20, "createdAt", "desc");
-    var entityPage = new org.springframework.data.domain.PageImpl<>(List.of(entity));
-    when(jpaRepository.findAll(
-            any(Specification.class), any(org.springframework.data.domain.Pageable.class)))
+    var entityPage = new PageImpl<>(List.of(entity));
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
         .thenReturn(entityPage);
     when(mapper.toDomain(entity)).thenReturn(domain);
 
@@ -210,9 +206,8 @@ class ActivityLogRepositoryAdapterTest {
     var pageRequest = new PageRequestDto(0, 20, "createdAt", "desc");
     var criteria = new ActivityLogCriteria(pageRequest, null, null, null, null);
 
-    var emptyPage = new org.springframework.data.domain.PageImpl<>(List.<ActivityLogEntity>of());
-    when(jpaRepository.findAll(
-            any(Specification.class), any(org.springframework.data.domain.Pageable.class)))
+    var emptyPage = new PageImpl<>(List.<ActivityLogEntity>of());
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
         .thenReturn(emptyPage);
 
     PageResponse<ActivityLogDomain> result = adapter.findAll(criteria);
