@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -16,6 +17,7 @@ import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDoma
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptItemDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
+import com.example.goodsprice.receipt.application.port.in.ReceiptApprovalInPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptEventOutPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptRepositoryPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +42,7 @@ class ReceiptServiceTest {
   @Mock private ReceiptEventOutPort eventOutPort;
   @Mock private LlmProviderPort llmProvider;
   @Mock private ObjectMapper objectMapper;
+  @Mock private ReceiptApprovalInPort receiptApprovalInPort;
 
   @InjectMocks private ReceiptService receiptService;
 
@@ -51,6 +54,20 @@ class ReceiptServiceTest {
   @BeforeEach
   void setUp() {
     store.clear();
+    lenient()
+        .doAnswer(
+            invocation -> {
+              var id = invocation.getArgument(0, UUID.class);
+              var receipt = store.get(id);
+              if (receipt != null) {
+                receipt.markAsApproved();
+                receiptRepository.save(receipt);
+                eventOutPort.publishReceiptApproved(receipt);
+              }
+              return null;
+            })
+        .when(receiptApprovalInPort)
+        .approve(any());
     var item =
         ReceiptItemDomain.builder()
             .productName("Apple")
@@ -239,14 +256,10 @@ class ReceiptServiceTest {
   @Test
   void shouldApproveReceipt() {
     var id = UUID.randomUUID();
-    var receipt = ReceiptDomain.builder().id(id).status(ReceiptStatus.PENDING).build();
-    when(receiptRepository.findById(id)).thenReturn(receipt);
-    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
 
     receiptService.approve(id);
 
-    verify(receiptRepository).save(any(ReceiptDomain.class));
-    verify(eventOutPort).publishReceiptApproved(receipt);
+    verify(receiptApprovalInPort).approve(id);
   }
 
   @Test
