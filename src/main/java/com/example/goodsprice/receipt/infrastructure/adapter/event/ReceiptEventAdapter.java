@@ -13,10 +13,10 @@ public class ReceiptEventAdapter implements ReceiptEventOutPort {
   private final ApplicationEventPublisher publisher;
 
   @Override
-  public void publishReceiptUploaded(ReceiptDomain receipt, byte[] imageBytes) {
+  public void publishReceiptUploaded(ReceiptDomain receipt) {
     publisher.publishEvent(
         new ReceiptUploadedEvent(
-            receipt.getId(), receipt.getImageHash(), imageBytes, receipt.getOriginalFilename()));
+            receipt.getId(), receipt.getImageHash(), receipt.getOriginalFilename()));
   }
 
   @Override

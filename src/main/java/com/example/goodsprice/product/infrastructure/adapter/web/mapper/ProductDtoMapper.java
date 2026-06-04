@@ -5,6 +5,7 @@ import com.example.goodsprice.api.model.Product;
 import com.example.goodsprice.api.model.ProductDetail;
 import com.example.goodsprice.api.model.ProductDetailPrice;
 import com.example.goodsprice.common.util.ObjectUtils;
+import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -18,10 +19,10 @@ import org.springframework.stereotype.Component;
 public class ProductDtoMapper {
 
   public Product toApiProduct(ProductDomain domain) {
-    return toApiProduct(domain, false);
+    return toApiProduct(domain, null);
   }
 
-  public Product toApiProduct(ProductDomain domain, boolean includePrice) {
+  public Product toApiProduct(ProductDomain domain, ProductPriceSummary summary) {
     if (Objects.isNull(domain)) return null;
     var result = new Product();
     result.setId(domain.getId());
@@ -31,13 +32,13 @@ public class ProductDtoMapper {
     result.setUnit(domain.getUnit());
     result.setStatus(ObjectUtils.getOrNull(domain.getStatus(), EntityStatus::fromValue));
 
-    if (includePrice && hasPriceData(domain)) {
+    if (Objects.nonNull(summary)) {
       var detail = new ProductDetail();
       var price = new ProductDetailPrice();
-      price.setAvg(ObjectUtils.getOrNull(domain.getAvgPrice(), BigDecimal::doubleValue));
-      price.setMin(ObjectUtils.getOrNull(domain.getMinPrice(), BigDecimal::doubleValue));
-      price.setMax(ObjectUtils.getOrNull(domain.getMaxPrice(), BigDecimal::doubleValue));
-      price.setUpdatedAt(JsonNullable.of(toOffsetDateTime(domain.getPriceUpdatedAt())));
+      price.setAvg(ObjectUtils.getOrNull(summary.getAvgPrice(), BigDecimal::doubleValue));
+      price.setMin(ObjectUtils.getOrNull(summary.getMinPrice(), BigDecimal::doubleValue));
+      price.setMax(ObjectUtils.getOrNull(summary.getMaxPrice(), BigDecimal::doubleValue));
+      price.setUpdatedAt(JsonNullable.of(toOffsetDateTime(summary.getLastCalculatedAt())));
       detail.setPrice(price);
       result.setDetail(detail);
     }
@@ -45,16 +46,10 @@ public class ProductDtoMapper {
     return result;
   }
 
-  private OffsetDateTime toOffsetDateTime(LocalDateTime localDateTime) {
+  private static OffsetDateTime toOffsetDateTime(LocalDateTime localDateTime) {
     if (Objects.isNull(localDateTime)) {
       return null;
     }
     return localDateTime.atOffset(ZoneOffset.UTC);
-  }
-
-  private boolean hasPriceData(ProductDomain domain) {
-    return Objects.nonNull(domain.getAvgPrice())
-        || Objects.nonNull(domain.getMinPrice())
-        || Objects.nonNull(domain.getMaxPrice());
   }
 }

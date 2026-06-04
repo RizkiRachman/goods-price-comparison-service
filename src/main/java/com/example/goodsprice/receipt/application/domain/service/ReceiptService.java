@@ -2,14 +2,15 @@ package com.example.goodsprice.receipt.application.domain.service;
 
 import static com.example.goodsprice.common.constant.ErrorMessageConstants.ITEMS_NOT_EMPTY_MSG;
 
+import com.example.goodsprice.activity.application.annotation.ActivityLog;
+import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.util.HashUtils;
 import com.example.goodsprice.common.util.JsonUtils;
+import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
-import com.example.goodsprice.receipt.application.exception.ReceiptNotFoundException;
 import com.example.goodsprice.receipt.application.port.in.ReceiptInPort;
-import com.example.goodsprice.receipt.application.port.out.LlmProviderPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptEventOutPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptRepositoryPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,6 +37,7 @@ public class ReceiptService implements ReceiptInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public ReceiptDomain upload(byte[] imageBytes, String originalFilename) {
     var imageHash = HashUtils.sha256(imageBytes);
     log.info("Uploading receipt: {} (hash: {})", originalFilename, imageHash);
@@ -60,26 +62,32 @@ public class ReceiptService implements ReceiptInPort {
     receipt = receiptRepository.save(receipt);
     log.info("Receipt created: {}", receipt.getId());
 
-    eventOutPort.publishReceiptUploaded(receipt, imageBytes);
+    // Store image data before firing event to avoid byte[] in memory
+    if (imageBytes.length > 0) {
+      receiptRepository.updateImageData(receipt.getId(), imageBytes);
+    }
+
+    eventOutPort.publishReceiptUploaded(receipt);
     return receipt;
   }
 
   @Override
   public ReceiptDomain findById(UUID id) {
     var receipt = receiptRepository.findById(id);
-    if (Objects.isNull(receipt)) throw new ReceiptNotFoundException(id);
+    if (Objects.isNull(receipt)) throw NotFoundException.receipt(id);
     return receipt;
   }
 
   @Override
   public ReceiptStatus getStatus(UUID id) {
     var receipt = receiptRepository.findById(id);
-    if (Objects.isNull(receipt)) return null;
+    if (Objects.isNull(receipt)) throw NotFoundException.receipt(id);
     return receipt.getStatus();
   }
 
   @Override
   @Transactional
+  @ActivityLog
   public void approve(UUID id) {
     var receipt = findById(id);
     receipt.markAsApproved();
@@ -104,7 +112,11 @@ public class ReceiptService implements ReceiptInPort {
     log.info("Receipt processing started: {}", id);
 
     try {
-      var base64Image = Base64.getEncoder().encodeToString(imageBytes);
+      byte[] bytesToProcess = imageBytes;
+      if (bytesToProcess == null || bytesToProcess.length == 0) {
+        bytesToProcess = receiptRepository.findById(id).getImageData();
+      }
+      var base64Image = Base64.getEncoder().encodeToString(bytesToProcess);
       var extractedData = llmProvider.extractReceiptData(base64Image);
 
       if (Objects.isNull(extractedData) || extractedData.isEmpty()) {
@@ -143,18 +155,23 @@ public class ReceiptService implements ReceiptInPort {
 
   @Override
   @Transactional
-  public void create(ReceiptCreateDomain request) {
+  @ActivityLog
+  public ReceiptDomain create(ReceiptCreateDomain request) {
+    var extractedDataJson = JsonUtils.toJson(request);
+    var imageHash = JsonUtils.hash256(request);
     var receipt =
         ReceiptDomain.builder()
             .status(ReceiptStatus.COMPLETED)
             .storeName(request.getStoreName())
-            .extractedDataJson(JsonUtils.toJson(request.getItems()))
+            .extractedDataJson(extractedDataJson)
+            .imageHash(imageHash)
             .totalAmount(request.getTotalAmount())
             .storeLocation(request.getStoreLocation())
             .receiptDate(request.getReceiptDate())
             .build();
     receipt = receiptRepository.save(receipt);
     this.approve(receipt.getId());
+    return this.findById(receipt.getId());
   }
 
   private BigDecimal extractTotalAmount(Object value) {

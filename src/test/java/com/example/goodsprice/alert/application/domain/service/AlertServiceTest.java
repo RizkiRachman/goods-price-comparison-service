@@ -1,0 +1,128 @@
+package com.example.goodsprice.alert.application.domain.service;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import com.example.goodsprice.alert.application.domain.model.AlertSubscription;
+import com.example.goodsprice.alert.application.port.out.AlertRepositoryPort;
+import com.example.goodsprice.price.application.domain.model.PriceDomain;
+import com.example.goodsprice.price.application.port.in.PriceInPort;
+import com.example.goodsprice.product.application.domain.model.ProductDomain;
+import com.example.goodsprice.product.application.port.in.ProductInPort;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
+class AlertServiceTest {
+
+  @Mock private ProductInPort productInPort;
+
+  @Mock private PriceInPort priceInPort;
+
+  @Mock private AlertRepositoryPort alertRepository;
+
+  @InjectMocks private AlertService alertService;
+
+  @Captor private ArgumentCaptor<AlertSubscription> subscriptionCaptor;
+
+  private ProductDomain product;
+  private PriceDomain cheapestPrice;
+
+  @BeforeEach
+  void setUp() {
+    product = ProductDomain.builder().id(1L).name("Apple").category("Fruit").build();
+
+    cheapestPrice =
+        PriceDomain.builder().id(100L).productId(1L).storeId(10L).price(15_000.0).build();
+  }
+
+  @Test
+  @DisplayName("Should create a subscription with current price")
+  void shouldCreateSubscription() {
+    when(productInPort.findById(1L)).thenReturn(product);
+    when(priceInPort.findCheapestByProduct(1L)).thenReturn(cheapestPrice);
+    when(alertRepository.save(any(AlertSubscription.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    var result = alertService.subscribe(1L, 12_000.0, "EMAIL", "user@test.com");
+
+    assertNotNull(result);
+    assertEquals(1L, result.getProductId());
+    assertEquals("Apple", result.getProductName());
+    assertEquals(12_000.0, result.getTargetPrice(), 0.001);
+    assertEquals(15_000.0, result.getCurrentPrice(), 0.001);
+    assertEquals("EMAIL", result.getNotificationMethod());
+    assertEquals("user@test.com", result.getEmail());
+    assertEquals("ACTIVE", result.getStatus());
+    verify(productInPort).findById(1L);
+    verify(priceInPort).findCheapestByProduct(1L);
+    verify(alertRepository).save(subscriptionCaptor.capture());
+    var captured = subscriptionCaptor.getValue();
+    assertEquals(1L, captured.getProductId());
+    assertEquals("Apple", captured.getProductName());
+    assertEquals(15_000.0, captured.getCurrentPrice(), 0.001);
+  }
+
+  @Test
+  @DisplayName("Should create a subscription with null current price when no price found")
+  void shouldCreateSubscriptionWithNullCurrentPrice() {
+    when(productInPort.findById(1L)).thenReturn(product);
+    when(priceInPort.findCheapestByProduct(1L)).thenReturn(null);
+    when(alertRepository.save(any(AlertSubscription.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    var result = alertService.subscribe(1L, 12_000.0, "EMAIL", "user@test.com");
+
+    assertNotNull(result);
+    assertEquals(1L, result.getProductId());
+    assertEquals("Apple", result.getProductName());
+    assertEquals(12_000.0, result.getTargetPrice(), 0.001);
+    assertNull(result.getCurrentPrice());
+    assertEquals("EMAIL", result.getNotificationMethod());
+    assertEquals("user@test.com", result.getEmail());
+    assertEquals("ACTIVE", result.getStatus());
+    verify(productInPort).findById(1L);
+    verify(priceInPort).findCheapestByProduct(1L);
+    verify(alertRepository).save(any(AlertSubscription.class));
+  }
+
+  @Test
+  @DisplayName("Should create subscription with SMS notification method")
+  void shouldCreateSubscriptionWithSms() {
+    when(productInPort.findById(1L)).thenReturn(product);
+    when(priceInPort.findCheapestByProduct(1L)).thenReturn(cheapestPrice);
+    when(alertRepository.save(any(AlertSubscription.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    var result = alertService.subscribe(1L, 10_000.0, "SMS", "08123456789");
+
+    assertNotNull(result);
+    assertEquals("SMS", result.getNotificationMethod());
+    assertEquals("08123456789", result.getEmail());
+    verify(alertRepository).save(subscriptionCaptor.capture());
+    assertEquals("SMS", subscriptionCaptor.getValue().getNotificationMethod());
+    assertEquals("08123456789", subscriptionCaptor.getValue().getEmail());
+  }
+
+  @Test
+  @DisplayName("Should throw NullPointerException when product not found")
+  void shouldThrowExceptionForInvalidProduct() {
+    when(productInPort.findById(999L)).thenThrow(new NullPointerException("Product not found"));
+
+    assertThrows(
+        NullPointerException.class,
+        () -> alertService.subscribe(999L, 12_000.0, "EMAIL", "user@test.com"));
+  }
+}

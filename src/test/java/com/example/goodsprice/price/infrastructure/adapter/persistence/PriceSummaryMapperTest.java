@@ -19,7 +19,7 @@ class PriceSummaryMapperTest {
 
   @BeforeEach
   void setUp() {
-    mapper = new PriceSummaryMapper();
+    mapper = new PriceSummaryMapperImpl();
   }
 
   @Test

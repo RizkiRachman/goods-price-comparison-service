@@ -47,9 +47,4 @@ public final class LlmConstants {
 
   public static final String CODE_BLOCK_MARKER = "```";
   public static final String JSON_CODE_BLOCK_MARKER = "```json";
-
-  public static final String MOCK_STORE = "Mock Store";
-  public static final String MOCK_DATE = "2024-01-01";
-  public static final String MOCK_PRODUCT_MILK = "Milk";
-  public static final String MOCK_PRODUCT_BREAD = "Bread";
 }
