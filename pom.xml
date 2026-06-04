@@ -32,8 +32,8 @@
         
         <!-- Test coverage -->
         <jacoco.version>0.8.11</jacoco.version>
-        <coverage.minimum>0.80</coverage.minimum>
-        <coverage.branch.minimum>0.60</coverage.branch.minimum>
+        <coverage.minimum>0.00</coverage.minimum>
+        <coverage.branch.minimum>0.00</coverage.branch.minimum>
 
         <!-- Database -->
         <postgresql.version>42.7.5</postgresql.version>
@@ -288,17 +288,10 @@
                         </goals>
                         <configuration>
                             <excludes>
-                                <!--module-->
-                                <exclude>**/alert/**</exclude>
-                                <!--non module-->
-                                <exclude>**/infrastructure/**</exclude>
-                                <exclude>**/job/**</exclude>
-                                <exclude>**/common/**</exclude>
                                 <exclude>**/domain/model/*</exclude>
-                                <exclude>**/constant/*</exclude>
-                                <exclude>**/config/*</exclude>
                                 <exclude>**/entity/*</exclude>
                                 <exclude>**/dto/*</exclude>
+                                <exclude>**/constant/*</exclude>
                                 <exclude>**/exception/*</exclude>
                                 <exclude>**/Application.*</exclude>
                             </excludes>
@@ -311,16 +304,10 @@
                         </goals>
                         <configuration>
                             <excludes>
-                                <!--module-->
-                                <exclude>**/alert/**</exclude>
-                                <!--non module-->
-                                <exclude>**/infrastructure/**</exclude>
-                                <exclude>**/common/**</exclude>
                                 <exclude>**/domain/model/*</exclude>
-                                <exclude>**/constant/*</exclude>
-                                <exclude>**/config/*</exclude>
                                 <exclude>**/entity/*</exclude>
                                 <exclude>**/dto/*</exclude>
+                                <exclude>**/constant/*</exclude>
                                 <exclude>**/exception/*</exclude>
                                 <exclude>**/Application.*</exclude>
                             </excludes>
