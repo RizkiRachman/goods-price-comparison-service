@@ -2,6 +2,7 @@ package com.example.goodsprice.product.application.domain.model;
 
 import com.example.goodsprice.common.constant.AppConstants;
 import com.example.goodsprice.common.constant.SortConstants;
+import java.util.List;
 import java.util.Objects;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,6 +23,7 @@ public class ProductSearchCriteria {
   private Integer size;
   private Boolean includePrice;
   private String storeId;
+  private List<Long> productIds;
 
   public String getSortBy() {
     return Objects.nonNull(sortBy) ? sortBy : SortConstants.NAME;
@@ -68,6 +70,10 @@ public class ProductSearchCriteria {
 
   public boolean hasStoreId() {
     return Objects.nonNull(storeId) && !storeId.isBlank();
+  }
+
+  public boolean hasProductIds() {
+    return Objects.nonNull(productIds) && !productIds.isEmpty();
   }
 
   public boolean isStoreIdNumeric() {

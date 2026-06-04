@@ -20,6 +20,6 @@ public class ReceiptUploadedEventHandler {
   @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
   public void handle(ReceiptUploadedEvent event) {
     log.info("[Async] Processing receipt: {}", event.receiptId());
-    receiptInPort.process(event.receiptId(), event.imageBytes());
+    receiptInPort.process(event.receiptId(), null);
   }
 }

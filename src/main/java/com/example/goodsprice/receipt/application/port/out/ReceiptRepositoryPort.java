@@ -16,4 +16,6 @@ public interface ReceiptRepositoryPort {
   boolean existsById(UUID id);
 
   void deleteById(UUID id);
+
+  void updateImageData(UUID id, byte[] imageData);
 }

@@ -41,7 +41,10 @@ Each bounded context is a separate service. In the current monorepo these are pa
 | **store** | Store directory, locations | `stores` |
 | **price** | Price records, trends, comparisons | `prices` |
 | **shopping** | Shopping optimization, route planning | none (reads only) |
-| **notification** | Alerts, price drops, push notifications | `alerts` |
+| **alert** | Price drop subscriptions, notifications | `alerts` |
+| **llm** | LLM/AI provider abstraction, receipt OCR | none (facade) |
+| **system** | System health, metrics, admin operations | none (management) |
+| **activity** | Audit logging for all CRUD operations | `activity_logs` |
 
 ### Communication Rules
 
@@ -93,10 +96,13 @@ Driven:  XxxEventOutPort   ← EventAdapter (impl)       ← DomainService (cons
 ```
 src/main/java/com/example/goodsprice/
 ├── common/
-│   ├── constant/           # AppConstants, ErrorCodes
-│   ├── event/              # Event schemas (POJOs, no infra deps)
-│   ├── exception/          # Shared exceptions
-│   └── util/               # ObjectUtils, NumberUtils, JsonUtils
+│   ├── constant/           # AppConstants, ErrorCodes, ErrorMessageConstants
+│   ├── dto/                # PageRequestDto, PageResponse
+│   ├── exception/          # NotFoundException (unified static factories)
+│   ├── persistence/        # PaginationHelper
+│   ├── repository/         # AbstractRepositoryAdapter, GenericRepositoryPort
+│   ├── service/            # AbstractGenericService
+│   └── util/               # ObjectUtils, NumberUtils, JsonUtils, SpecificationBuilder
 │
 ├── receipt/                # (same hexagonal structure for each service)
 ├── product/
@@ -104,7 +110,10 @@ src/main/java/com/example/goodsprice/
 ├── store/
 ├── llm/
 ├── shopping/
-└── alert/
+├── alert/
+├── system/
+├── activity/
+└── feedbackquestion/
 ```
 
 Each service follows the same hexagonal structure — see `receipt` as the reference implementation.

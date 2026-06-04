@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -21,6 +22,7 @@ import com.example.goodsprice.product.application.port.out.ProductRepositoryPort
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,8 +44,9 @@ class PriceSummaryBatchServiceTest {
 
   @BeforeEach
   void setUp() {
-    batchService =
-        new PriceSummaryBatchService(priceRepository, priceSummaryRepository, productRepository);
+    var batchProcessor =
+        new PriceBatchProcessor(priceRepository, priceSummaryRepository, productRepository);
+    batchService = new PriceSummaryBatchService(batchProcessor, productRepository);
     ReflectionTestUtils.setField(batchService, "batchSize", 100);
   }
 
@@ -72,21 +75,22 @@ class PriceSummaryBatchServiceTest {
             .price(15.0)
             .dateRecorded(today.minusDays(30))
             .build();
-    when(priceRepository.findByProductId(1L)).thenReturn(List.of(price1, price2));
+    when(priceRepository.findAllByProductIds(List.of(1L))).thenReturn(List.of(price1, price2));
 
     batchService.updateSummaries();
 
     ArgumentCaptor<List<ProductPriceSummary>> summaryCaptor = ArgumentCaptor.forClass(List.class);
     verify(priceSummaryRepository, times(1)).saveAll(summaryCaptor.capture());
 
-    ProductPriceSummary summary = summaryCaptor.getValue().get(0);
+    ProductPriceSummary summary = summaryCaptor.getValue().getFirst();
     assertEquals(1L, summary.getProductId());
     assertEquals(new BigDecimal("12.50"), summary.getAvgPrice());
     assertEquals(new BigDecimal("10.00"), summary.getMinPrice());
     assertEquals(new BigDecimal("15.00"), summary.getMaxPrice());
     assertEquals(2, summary.getPriceCount());
 
-    verify(productRepository).updateSummaryLastCalculated(eq(1L), any(LocalDateTime.class));
+    verify(productRepository)
+        .updateSummaryLastCalculated(eq(List.of(1L)), any(LocalDateTime.class));
   }
 
   @Test
@@ -97,7 +101,7 @@ class PriceSummaryBatchServiceTest {
     batchService.updateSummaries();
 
     verify(priceSummaryRepository, never()).saveAll(any());
-    verify(productRepository, never()).updateSummaryLastCalculated(any(), any());
+    verify(productRepository, never()).updateSummaryLastCalculated(anyList(), any());
   }
 
   @Test
@@ -107,14 +111,14 @@ class PriceSummaryBatchServiceTest {
     when(productRepository.findProductsNeedingSummaryUpdate(anyInt()))
         .thenReturn(List.of(product))
         .thenReturn(List.of());
-    when(priceRepository.findByProductId(1L)).thenReturn(List.of());
+    when(priceRepository.findAllByProductIds(List.of(1L))).thenReturn(List.of());
 
     batchService.updateSummaries();
 
     ArgumentCaptor<List<ProductPriceSummary>> summaryCaptor = ArgumentCaptor.forClass(List.class);
     verify(priceSummaryRepository).saveAll(summaryCaptor.capture());
 
-    ProductPriceSummary summary = summaryCaptor.getValue().get(0);
+    ProductPriceSummary summary = summaryCaptor.getValue().getFirst();
     assertEquals(1L, summary.getProductId());
     assertNull(summary.getAvgPrice());
     assertNotNull(summary.getLastCalculatedAt());
@@ -146,14 +150,15 @@ class PriceSummaryBatchServiceTest {
             .dateRecorded(today.minusDays(100))
             .build();
 
-    when(priceRepository.findByProductId(1L)).thenReturn(List.of(recentPrice, oldPrice));
+    when(priceRepository.findAllByProductIds(List.of(1L)))
+        .thenReturn(List.of(recentPrice, oldPrice));
 
     batchService.updateSummaries();
 
     ArgumentCaptor<List<ProductPriceSummary>> summaryCaptor = ArgumentCaptor.forClass(List.class);
     verify(priceSummaryRepository).saveAll(summaryCaptor.capture());
 
-    ProductPriceSummary summary = summaryCaptor.getValue().get(0);
+    ProductPriceSummary summary = summaryCaptor.getValue().getFirst();
     assertEquals(new BigDecimal("15.00"), summary.getAvgPrice());
     assertEquals(2, summary.getPriceCount());
   }
@@ -183,14 +188,15 @@ class PriceSummaryBatchServiceTest {
             .dateRecorded(LocalDate.now())
             .build();
 
-    when(priceRepository.findByProductId(1L)).thenReturn(List.of(priceWithNull, validPrice));
+    when(priceRepository.findAllByProductIds(List.of(1L)))
+        .thenReturn(List.of(priceWithNull, validPrice));
 
     batchService.updateSummaries();
 
     ArgumentCaptor<List<ProductPriceSummary>> summaryCaptor = ArgumentCaptor.forClass(List.class);
     verify(priceSummaryRepository).saveAll(summaryCaptor.capture());
 
-    ProductPriceSummary summary = summaryCaptor.getValue().get(0);
+    ProductPriceSummary summary = summaryCaptor.getValue().getFirst();
     assertEquals(new BigDecimal("10.00"), summary.getAvgPrice());
     assertEquals(2, summary.getPriceCount());
   }
@@ -229,14 +235,15 @@ class PriceSummaryBatchServiceTest {
             .dateRecorded(today)
             .build();
 
-    when(priceRepository.findByProductId(1L)).thenReturn(List.of(price1, price2, price3));
+    when(priceRepository.findAllByProductIds(List.of(1L)))
+        .thenReturn(List.of(price1, price2, price3));
 
     batchService.updateSummaries();
 
     ArgumentCaptor<List<ProductPriceSummary>> summaryCaptor = ArgumentCaptor.forClass(List.class);
     verify(priceSummaryRepository).saveAll(summaryCaptor.capture());
 
-    ProductPriceSummary summary = summaryCaptor.getValue().get(0);
+    ProductPriceSummary summary = summaryCaptor.getValue().getFirst();
     assertEquals(2, summary.getStoreCount());
     assertEquals(3, summary.getPriceCount());
   }
@@ -245,13 +252,13 @@ class PriceSummaryBatchServiceTest {
   @DisplayName("Should handle multiple batches")
   void shouldHandleMultipleBatches() {
     ProductDomain product = ProductDomain.builder().id(1L).name("Test Product").build();
-    List<ProductDomain> firstBatch = java.util.Collections.nCopies(100, product);
+    List<ProductDomain> firstBatch = Collections.nCopies(100, product);
 
     when(productRepository.findProductsNeedingSummaryUpdate(100))
         .thenReturn(firstBatch)
         .thenReturn(List.of());
 
-    when(priceRepository.findByProductId(any())).thenReturn(List.of());
+    when(priceRepository.findAllByProductIds(anyList())).thenReturn(List.of());
 
     batchService.updateSummaries();
 
@@ -268,13 +275,13 @@ class PriceSummaryBatchServiceTest {
         .thenReturn(List.of(product1, product2))
         .thenReturn(List.of());
 
-    when(priceRepository.findByProductId(1L)).thenThrow(new RuntimeException("Database error"));
-    when(priceRepository.findByProductId(2L)).thenReturn(List.of());
+    when(priceRepository.findAllByProductIds(List.of(1L, 2L))).thenReturn(List.of());
 
     assertDoesNotThrow(() -> batchService.updateSummaries());
 
     verify(priceSummaryRepository, times(1)).saveAll(any());
-    verify(productRepository).updateSummaryLastCalculated(eq(2L), any(LocalDateTime.class));
+    verify(productRepository)
+        .updateSummaryLastCalculated(eq(List.of(1L, 2L)), any(LocalDateTime.class));
   }
 
   @Test
@@ -311,14 +318,15 @@ class PriceSummaryBatchServiceTest {
             .dateRecorded(today.minusDays(20))
             .build();
 
-    when(priceRepository.findByProductId(1L)).thenReturn(List.of(price1, price2, price3));
+    when(priceRepository.findAllByProductIds(List.of(1L)))
+        .thenReturn(List.of(price1, price2, price3));
 
     batchService.updateSummaries();
 
     ArgumentCaptor<List<ProductPriceSummary>> summaryCaptor = ArgumentCaptor.forClass(List.class);
     verify(priceSummaryRepository).saveAll(summaryCaptor.capture());
 
-    ProductPriceSummary summary = summaryCaptor.getValue().get(0);
+    ProductPriceSummary summary = summaryCaptor.getValue().getFirst();
     assertEquals(today.minusDays(5), summary.getLastPriceDate());
   }
 }

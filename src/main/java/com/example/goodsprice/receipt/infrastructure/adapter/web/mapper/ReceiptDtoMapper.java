@@ -14,6 +14,8 @@ import com.example.goodsprice.receipt.application.domain.model.ReceiptItemDomain
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
@@ -59,11 +61,18 @@ public class ReceiptDtoMapper {
 
   public ReceiptCreateDomain toCreateDomain(ReceiptCreateRequest request) {
     if (Objects.isNull(request)) return null;
+    List<ReceiptItemDomain> items;
+    if (Objects.isNull(request.getItems())) {
+      items = Collections.emptyList();
+    } else {
+      items = request.getItems().stream().map(this::toItemDomain).toList();
+    }
     return ReceiptCreateDomain.builder()
         .receiptDate(DateUtils.format(request.getDate(), DateUtils.ISO_DATE))
-        .items(request.getItems().stream().map(this::toItemDomain).toList())
+        .items(items)
         .storeName(request.getStoreName())
-        .totalAmount(BigDecimal.valueOf(request.getTotalAmount()))
+        .storeLocation(request.getStoreLocation())
+        .totalAmount(ObjectUtils.getOrNull(request.getTotalAmount(), BigDecimal::valueOf))
         .build();
   }
 

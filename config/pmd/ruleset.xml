@@ -8,15 +8,13 @@
 
     <!-- ===== Best Practices ===== -->
     <rule ref="category/java/bestpractices.xml">
-        <!-- Lombok @Builder replaces constructors -->
-        <exclude name="AtLeastOneConstructor"/>
         <!-- Spring beans use field injection intentionally (constructor via Lombok) -->
         <exclude name="AccessorMethodGeneration"/>
         <!-- JUnit: comprehensive assertions are encouraged -->
-        <exclude name="JUnitTestContainsTooManyAsserts"/>
-        <exclude name="JUnitAssertionsShouldIncludeMessage"/>
+        <exclude name="UnitTestContainsTooManyAsserts"/>
+        <exclude name="UnitTestAssertionsShouldIncludeMessage"/>
         <!-- Test helpers often use abstractions not worth naming -->
-        <exclude name="JUnitTestsShouldIncludeAssert"/>
+        <exclude name="UnitTestShouldIncludeAssert"/>
         <!-- Guarded log statements: SLF4J parameterized logging is sufficient -->
         <exclude name="GuardLogStatement"/>
         <!-- Array can be reused across callers -->
@@ -25,16 +23,12 @@
 
     <!-- ===== Error Prone ===== -->
     <rule ref="category/java/errorprone.xml">
+        <!-- GeminiLlmProvider: Google GenAI Client lifecycle is managed by the library -->
+        <exclude name="CloseResource"/>
         <!-- Spring @Configuration beans are not true singletons in the DataFlowAnalysis sense -->
         <exclude name="SingletonClassReturningNewInstance"/>
         <!-- Null checks via Optional or Spring's Assert are preferred -->
         <exclude name="NullAssignment"/>
-        <!-- Lombok-generated code triggers these -->
-        <exclude name="BeanMembersShouldSerialize"/>
-        <!-- Records / DTOs catch broad exceptions at boundaries intentionally -->
-        <exclude name="AvoidCatchingGenericException"/>
-        <!-- Spring event handlers may re-throw -->
-        <exclude name="AvoidRethrowingException"/>
     </rule>
 
     <!-- ===== Security ===== -->
@@ -42,7 +36,7 @@
 
     <!-- ===== Multithreading ===== -->
     <rule ref="category/java/multithreading.xml">
-        <!-- Spring manages bean concurrency; DoNotUseThreads is too restrictive -->
+        <!-- Spring manages bean concurrency via thread pool executors -->
         <exclude name="DoNotUseThreads"/>
     </rule>
 

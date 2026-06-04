@@ -28,7 +28,7 @@ This project adheres to a code of conduct. By participating, you are expected to
 
 Before you begin, ensure you have:
 
-- **Java 17+** installed
+- **Java 21+** installed
 - **Maven 3.9+** installed
 - **PostgreSQL 14+** (for production profile)
 - **Git** configured
@@ -79,12 +79,13 @@ git checkout main
 git pull origin main
 
 # Create feature branch
-git checkout -b feature/your-feature-name
+git checkout -b feature/YYYYMMDD-your-feature-name
 ```
 
 **Branch naming conventions:**
-- `feature/description` - New features
-- `fix/description` - Bug fixes
+- `feature/YYYYMMDD-<short-description>` - New features
+- `bugfix/YYYYMMDD-<short-description>` - Bug fixes
+- `fix/description` - Bug fixes (alternative)
 - `docs/description` - Documentation updates
 - `refactor/description` - Code refactoring
 - `test/description` - Test additions/improvements
@@ -98,18 +99,26 @@ git checkout -b feature/your-feature-name
 
 ### 3. Test Your Changes
 
-Before submitting a PR, ensure all tests pass:
+Before submitting a PR, run all quality gates:
 
 ```bash
-# Run all tests
+# Fix formatting
+mvn spotless:apply
+
+# Run all tests + ArchUnit (7 rules)
 mvn clean test
 
-# Run with coverage
+# Full quality gates: SpotBugs + PMD CPD
 mvn clean verify
 
-# Check code quality
-mvn spotbugs:check
-mvn checkstyle:check
+# Convention checks
+./scripts/check-conventions.sh
+
+# SAST + dependency scan
+mvn verify -P security-check
+
+# Smoke tests (requires app running on localhost:8080)
+npx newman run "postman/Goods Price Comparison Service.postman_collection.json"
 ```
 
 ### 4. Commit Your Changes
@@ -138,13 +147,15 @@ gh pr create --title "feat: your feature title" --body "Description of changes"
 
 Ensure the following checks pass:
 
-- [ ] `mvn clean compile -q` - No compilation errors
-- [ ] `mvn clean test` - All tests pass (0 failures)
-- [ ] Code coverage ≥ 90% (100% for new code)
-- [ ] `mvn spotbugs:check` - No SpotBugs violations
-- [ ] `mvn checkstyle:check` - No Checkstyle violations
-- [ ] Documentation updated (if applicable)
-- [ ] CHANGELOG.md updated (if applicable)
+- [ ] `mvn spotless:apply` - Formatting is clean (Google Java Style)
+- [ ] `mvn clean test` - All tests pass (0 failures), ArchUnit (7 rules)
+- [ ] `mvn clean verify` - Full quality gates pass (SpotBugs, PMD CPD, JaCoCo ≥90% INSTRUCTION / ≥80% BRANCH)
+- [ ] `mvn verify -P security-check` - OWASP Dependency-Check passes (no CVSS >= 7)
+- [ ] `./scripts/check-conventions.sh` - Convention checks pass
+- [ ] `npx newman run "postman/Goods Price Comparison Service.postman_collection.json"` - Smoke tests pass (requires app running on localhost:8080)
+- [ ] New code has unit tests (100% coverage for new code)
+- [ ] Documentation updated (CHANGELOG.md, README.md, docs/ if applicable)
+- [ ] CHANGELOG.md updated under `[Unreleased]`
 
 ### PR Requirements
 
@@ -182,16 +193,28 @@ We follow the **Google Java Style Guide** with these specifics:
 
 ```
 src/main/java/com/example/goodsprice/
-├── config/          # Configuration classes
-├── controller/      # REST controllers
-├── dto/             # Data transfer objects
-├── exception/       # Custom exceptions
-├── model/           # Entity classes
-├── repository/      # JPA repositories
-├── service/         # Business logic
-│   ├── impl/       # Service implementations
-│   └── mapper/     # Object mappers
-└── util/           # Utility classes
+├── <service>/                  # 8 services: receipt, price, product, store, llm, shopping, alert, system
+│   ├── application/           # Pure Java, no Spring/JPA
+│   │   ├── domain/model/      # @Builder @Getter @Setter, zero JPA
+│   │   ├── domain/service/    # Implements *InPort
+│   │   ├── port/in/           # Driving ports (*InPort)
+│   │   ├── port/out/          # Driven ports (*RepositoryPort, *EventOutPort)
+│   │   └── exception/         # Domain exceptions
+│   └── infrastructure/        # Adapters
+│       ├── adapter/web/       # REST controllers, DTO mappers
+│       ├── adapter/persistence/ # JPA entities, repositories, entity mappers
+│       ├── adapter/event/     # Event publishers/listeners
+│       └── handler/event/     # @Async @TransactionalEventListener handlers
+├── common/                    # Shared code
+│   ├── constant/              # AppConstants, ErrorCodes, ErrorMessageConstants
+│   ├── dto/                   # PageRequestDto, PageResponse
+│   ├── exception/             # NotFoundException (unified static factories)
+│   ├── persistence/           # PaginationHelper
+│   ├── repository/            # AbstractRepositoryAdapter, GenericRepositoryPort
+│   ├── service/               # AbstractGenericService
+│   └── util/                  # ObjectUtils, SpecificationBuilder, etc.
+├── config/                    # Configuration classes
+└── Application.java           # Main entry point
 ```
 
 ### JavaDoc Requirements
@@ -263,23 +286,38 @@ See [`.ai/skills/TESTING.md`](.ai/skills/TESTING.md) for complete testing guide.
 
 ## Commit Message Guidelines
 
-### Keep It Simple and Clear
+### Format
 
-Your commit messages should be **meaningful, natural, and straightforward**. Write as if you're explaining the change to a teammate.
+```
+<type>(<scope>): <description>
+
+<optional body>
+```
+
+**Types**: `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, `style`
+
+**Examples**:
+```bash
+feat(price): add cheapest price comparison endpoint
+fix(receipt): handle null imageHash during create
+refactor(store): extract buildSpecification to SpecificationBuilder
+test(alert): add unit tests for AlertService
+docs: update CHANGELOG with ActivityLog criteria impl
+```
 
 ### Good Examples
 
 ```bash
 # Simple and clear - tells exactly what was done
-Add Store entity with JPA annotations
+feat: add Store entity with JPA annotations
 
-Fix null pointer exception in price calculation
+fix: null pointer exception in price calculation
 
-Update README with local development instructions
+docs: update README with local development instructions
 
-Remove deprecated OAuth configuration
+refactor: remove deprecated OAuth configuration
 
-Add unit tests for Product repository
+test: add unit tests for Product repository
 ```
 
 ### Bad Examples
@@ -349,20 +387,21 @@ Update documentation when you:
 
 - **README.md** - Main project documentation
 - **CHANGELOG.md** - Version history
-- **docs/API.md** - API documentation
-- **docs/ARCHITECTURE.md** - System design
-- **docs/DATABASE.md** - Schema documentation
-- **docs/TESTING.md** - Testing guide
-- **docs/DEPLOYMENT.md** - Deployment guide
+- **AGENTS.md** - AI agent guide and conventions
+- **PROJECT.md** - Project vision and scope
+- **STATE.md** - Current focus and active decisions
+- **docs/ARCHITECTURE_HYBRID.md** - System design
+- **docs/DEVELOPER_GUIDE.md** - Developer guide
+- **docs/USER_GUIDE.md** - User guide
+- **docs/ERD.md** - Entity relationship diagram
 
 ## Questions?
 
 If you have questions:
 
 1. Check existing [documentation](docs/)
-2. Check [AI guidelines](.ai/AGENTS.md)
-3. Open an issue for discussion
-4. Contact maintainer: rizkifaizalr@gmail.com
+2. Open an issue for discussion
+3. Contact maintainer: rizkifaizalr@gmail.com
 
 ## License
 
