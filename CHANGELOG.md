@@ -13,6 +13,11 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 ## [Unreleased]
 
 ### Added
+- **Project-wide test coverage**: Coverage increased from 13.9% to 91.5% instruction (80.6% branch) — 846 tests passing across all quality gates
+- **Zero-coverage classes eliminated**: All 40 previously uncovered classes now have ≥1 test
+- **Narrowed JaCoCo exclusions**: Removed infrastructure/**, common/**, job/**, config/** exclusions; kept only boilerplate (entity, dto, constant, exception, domain model, Application)
+- **Parallel test implementation**: 6 agents dispatched across 12 service domains — Common utilities, Config/Security, Store, Product, Category, Unit, Price, Receipt, Activity, Alert, Shopping, Admin/System, LLM
+- **Infrastructure test coverage**: Persistence adapters (@DataJpaTest), web adapters/controllers (Mockito), event handlers, DTO mappers, LLM providers, AOP aspect, jobs, abstract infrastructure — across all domains
 - **Application layer test coverage**: Added 32 new unit tests across 7 modules — SystemService (3), AdminService (3), AlertService (4), ActivityLogService (5), LlmService (7), UnitService (5), FeedbackQuestionService (2)
 - **AdminService null validation**: `triggerJob()` now throws `IllegalArgumentException` for null job names
 - **Lombok annotation processing fix**: Configured `maven-compiler-plugin` `test-compile` goal to apply annotation processors to test sources
