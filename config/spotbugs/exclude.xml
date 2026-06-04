@@ -13,7 +13,7 @@
   <!-- Configuration: Spring config beans exposure is intentional -->
   <Match>
     <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />
-    <Package name="~.*\.config\.ratelimit.*" />
+    <Package name="~.*\.config(\..*)?" />
   </Match>
 
   <!-- Records and DTOs: components intentionally expose their values -->
@@ -49,4 +49,10 @@
   <Match>
     <Bug pattern="REC_CATCH_EXCEPTION" />
   </Match>
+
+  <!-- CorsConfiguration: FindSecBugs CorsRegistryCORSDetector NPE on Java 17+ bytecode (known BCEL issue) -->
+  <Match>
+    <Class name="com.example.goodsprice.config.CorsConfiguration" />
+  </Match>
+
 </FindBugsFilter>

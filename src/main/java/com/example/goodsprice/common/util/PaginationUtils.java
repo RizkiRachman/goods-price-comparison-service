@@ -1,5 +1,6 @@
 package com.example.goodsprice.common.util;
 
+import com.example.goodsprice.common.constant.AppConstants;
 import com.example.goodsprice.common.dto.PageResponse;
 import java.util.Collections;
 import java.util.List;
@@ -40,5 +41,50 @@ public final class PaginationUtils {
 
   public static int normalizeSize(Integer size) {
     return normalizeSize(size, 20, 100);
+  }
+
+  /**
+   * Resolves a nullable page parameter to a non-null default.
+   *
+   * @param page nullable page number
+   * @param defaultPage default if null (typically 0 or 1)
+   * @return normalized page number
+   */
+  public static int resolvePage(Integer page, int defaultPage) {
+    return Objects.nonNull(page) && page >= 0 ? page : defaultPage;
+  }
+
+  /**
+   * Resolves a nullable page size parameter to a non-null default.
+   *
+   * @param size nullable page size
+   * @param defaultSize default if null or invalid
+   * @return normalized page size (clamped to reasonable max)
+   */
+  public static int resolveSize(Integer size, int defaultSize) {
+    if (Objects.isNull(size) || size <= 0) return defaultSize;
+    return Math.min(size, AppConstants.MAX_PAGE_SIZE);
+  }
+
+  /**
+   * Resolves a nullable sort-by parameter to a default.
+   *
+   * @param sortBy nullable sort field
+   * @param defaultSortBy fallback value
+   * @return non-null sort field
+   */
+  public static String resolveSortBy(String sortBy, String defaultSortBy) {
+    return Objects.nonNull(sortBy) && !sortBy.isBlank() ? sortBy : defaultSortBy;
+  }
+
+  /**
+   * Resolves a nullable sort direction parameter to a default.
+   *
+   * @param sortOrder nullable sort direction
+   * @param defaultSortOrder fallback value (e.g. "asc" or "desc")
+   * @return non-null sort direction
+   */
+  public static String resolveSortOrder(String sortOrder, String defaultSortOrder) {
+    return Objects.nonNull(sortOrder) && !sortOrder.isBlank() ? sortOrder : defaultSortOrder;
   }
 }

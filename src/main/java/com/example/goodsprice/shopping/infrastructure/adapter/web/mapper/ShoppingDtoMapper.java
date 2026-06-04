@@ -7,47 +7,30 @@ import com.example.goodsprice.shopping.application.domain.model.ShoppingItemDoma
 import com.example.goodsprice.shopping.application.domain.model.ShoppingSavingsDomain;
 import com.example.goodsprice.shopping.application.domain.model.StoreVisitDomain;
 import java.util.List;
-import java.util.Objects;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.NullValueMappingStrategy;
+import org.mapstruct.ReportingPolicy;
 
-@Component
-public class ShoppingDtoMapper {
+@Mapper(
+    componentModel = "spring",
+    nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL,
+    unmappedSourcePolicy = ReportingPolicy.IGNORE,
+    unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public interface ShoppingDtoMapper {
 
-  public StoreVisit toStoreVisit(StoreVisitDomain domain) {
-    var result = new StoreVisit();
-    result.setStoreId(domain.getStoreId());
-    result.setStoreName(domain.getStoreName());
-    result.setStoreLocation(domain.getStoreLocation());
-    result.setItems(toShoppingItems(domain.getItems()));
-    result.setSubtotal(domain.getSubtotal());
-    result.setEstimatedTime(domain.getEstimatedTime());
-    return result;
-  }
+  StoreVisit toStoreVisit(StoreVisitDomain domain);
 
-  public List<StoreVisit> toStoreVisits(List<StoreVisitDomain> domains) {
-    if (Objects.isNull(domains)) return List.of();
+  default List<StoreVisit> toStoreVisits(List<StoreVisitDomain> domains) {
+    if (domains == null) return List.of();
     return domains.stream().map(this::toStoreVisit).toList();
   }
 
-  public ShoppingItem toShoppingItem(ShoppingItemDomain domain) {
-    var result = new ShoppingItem();
-    result.setProductName(domain.getProductName());
-    result.setPrice(domain.getPrice());
-    result.setQuantity(domain.getQuantity());
-    result.setUnit(domain.getUnit());
-    return result;
-  }
+  ShoppingItem toShoppingItem(ShoppingItemDomain domain);
 
-  public List<ShoppingItem> toShoppingItems(List<ShoppingItemDomain> domains) {
-    if (Objects.isNull(domains)) return List.of();
+  default List<ShoppingItem> toShoppingItems(List<ShoppingItemDomain> domains) {
+    if (domains == null) return List.of();
     return domains.stream().map(this::toShoppingItem).toList();
   }
 
-  public ShoppingSavings toShoppingSavings(ShoppingSavingsDomain domain) {
-    if (Objects.isNull(domain)) return null;
-    var result = new ShoppingSavings();
-    result.setComparedToSingleStore(domain.getComparedToSingleStore());
-    result.setPercentage(domain.getPercentage());
-    return result;
-  }
+  ShoppingSavings toShoppingSavings(ShoppingSavingsDomain domain);
 }

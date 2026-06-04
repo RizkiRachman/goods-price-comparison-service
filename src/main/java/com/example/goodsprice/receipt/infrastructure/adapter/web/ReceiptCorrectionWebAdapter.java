@@ -1,6 +1,7 @@
 package com.example.goodsprice.receipt.infrastructure.adapter.web;
 
 import com.example.goodsprice.api.model.ReceiptCorrectRequest;
+import com.example.goodsprice.api.model.ReceiptItem;
 import com.example.goodsprice.api.model.ReceiptResultResponse;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCorrectionDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptItemCorrectionDomain;
@@ -49,8 +50,7 @@ public class ReceiptCorrectionWebAdapter {
         .build();
   }
 
-  private ReceiptItemCorrectionDomain toItemDomain(
-      com.example.goodsprice.api.model.ReceiptItem item) {
+  private ReceiptItemCorrectionDomain toItemDomain(ReceiptItem item) {
     return ReceiptItemCorrectionDomain.builder()
         .productName(item.getProductName())
         .category(item.getCategory())
