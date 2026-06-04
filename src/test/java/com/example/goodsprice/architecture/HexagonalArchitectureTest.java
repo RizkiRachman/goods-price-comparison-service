@@ -4,7 +4,10 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.example.goodsprice.Application;
+import com.example.goodsprice.llm.infrastructure.config.LlmProperties;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -22,6 +25,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 class HexagonalArchitectureTest {
 
@@ -122,9 +127,7 @@ class HexagonalArchitectureTest {
         .mayOnlyBeAccessedByLayers("Domain", "Infrastructure", "Common")
         .whereLayer("Infrastructure")
         .mayNotBeAccessedByAnyLayer()
-        .ignoreDependency(
-            com.example.goodsprice.Application.class,
-            com.example.goodsprice.llm.infrastructure.config.LlmProperties.class)
+        .ignoreDependency(Application.class, LlmProperties.class)
         .because("Hexagonal architecture: domain is innermost, infrastructure depends on ports")
         .check(classes);
   }
@@ -137,7 +140,7 @@ class HexagonalArchitectureTest {
         .and()
         .haveSimpleNameEndingWith("Service")
         .should()
-        .beAnnotatedWith(org.springframework.stereotype.Service.class)
+        .beAnnotatedWith(Service.class)
         .because("Domain services must be @Service annotated")
         .check(classes);
   }
@@ -152,7 +155,7 @@ class HexagonalArchitectureTest {
             .map(m -> m.getName())
             .filter(n -> !n.equals("<init>"))
             .collect(Collectors.toSet());
-    org.junit.jupiter.api.Assertions.assertTrue(
+    assertTrue(
         allowed.containsAll(actual) && actual.containsAll(allowed),
         "ObjectUtils is sealed — no new methods. Found: " + actual);
   }
@@ -163,7 +166,7 @@ class HexagonalArchitectureTest {
         .that()
         .haveSimpleNameEndingWith("RepositoryAdapter")
         .should()
-        .beAnnotatedWith(org.springframework.stereotype.Component.class)
+        .beAnnotatedWith(Component.class)
         .because("Repository adapters must be @Component annotated")
         .check(classes);
   }

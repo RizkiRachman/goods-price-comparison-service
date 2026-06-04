@@ -12,7 +12,16 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 
 ## [Unreleased]
 
+### Changed
+- **FQN inline usages refactored**: All 51 Fully Qualified Name references across 21 files (8 main + 13 test) replaced with proper imports per AGENTS.md §6.3. Only 1 intentional exception: `CorsConfiguration.java` where `org.springframework.web.cors.CorsConfiguration` clashes with the project's own class (§6.2 naming conflict rule)
+
 ### Added
+- **Smoke test data cleanup**: New `Cleanup` folder in Postman collection deletes test-created entities (Price → Product → Store) in reverse dependency order after all tests complete, preventing dirty data in production
+- **Project-wide test coverage**: Coverage increased from 13.9% to 91.5% instruction (80.6% branch) — 846 tests passing across all quality gates
+- **Zero-coverage classes eliminated**: All 40 previously uncovered classes now have ≥1 test
+- **Narrowed JaCoCo exclusions**: Removed infrastructure/**, common/**, job/**, config/** exclusions; kept only boilerplate (entity, dto, constant, exception, domain model, Application)
+- **Parallel test implementation**: 6 agents dispatched across 12 service domains — Common utilities, Config/Security, Store, Product, Category, Unit, Price, Receipt, Activity, Alert, Shopping, Admin/System, LLM
+- **Infrastructure test coverage**: Persistence adapters (@DataJpaTest), web adapters/controllers (Mockito), event handlers, DTO mappers, LLM providers, AOP aspect, jobs, abstract infrastructure — across all domains
 - **Application layer test coverage**: Added 32 new unit tests across 7 modules — SystemService (3), AdminService (3), AlertService (4), ActivityLogService (5), LlmService (7), UnitService (5), FeedbackQuestionService (2)
 - **AdminService null validation**: `triggerJob()` now throws `IllegalArgumentException` for null job names
 - **Lombok annotation processing fix**: Configured `maven-compiler-plugin` `test-compile` goal to apply annotation processors to test sources

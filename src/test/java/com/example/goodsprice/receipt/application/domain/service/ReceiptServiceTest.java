@@ -9,7 +9,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.util.JsonUtils;
+import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptItemDomain;
@@ -36,7 +38,7 @@ class ReceiptServiceTest {
 
   @Mock private ReceiptRepositoryPort receiptRepository;
   @Mock private ReceiptEventOutPort eventOutPort;
-  @Mock private com.example.goodsprice.llm.application.port.out.LlmProviderPort llmProvider;
+  @Mock private LlmProviderPort llmProvider;
   @Mock private ObjectMapper objectMapper;
 
   @InjectMocks private ReceiptService receiptService;
@@ -212,9 +214,7 @@ class ReceiptServiceTest {
     var id = UUID.randomUUID();
     when(receiptRepository.findById(id)).thenReturn(null);
 
-    assertThrows(
-        com.example.goodsprice.common.exception.NotFoundException.class,
-        () -> receiptService.findById(id));
+    assertThrows(NotFoundException.class, () -> receiptService.findById(id));
   }
 
   @Test
@@ -233,9 +233,7 @@ class ReceiptServiceTest {
     var id = UUID.randomUUID();
     when(receiptRepository.findById(id)).thenReturn(null);
 
-    assertThrows(
-        com.example.goodsprice.common.exception.NotFoundException.class,
-        () -> receiptService.getStatus(id));
+    assertThrows(NotFoundException.class, () -> receiptService.getStatus(id));
   }
 
   @Test
@@ -348,6 +346,44 @@ class ReceiptServiceTest {
 
     verify(receiptRepository, times(2)).save(any(ReceiptDomain.class));
     verify(eventOutPort, never()).publishReceiptProcessed(any());
+  }
+
+  @Test
+  void shouldRetryUploadWhenExistingReceiptIsFailed() {
+    var imageBytes = "retry-image".getBytes();
+    var failedReceipt =
+        ReceiptDomain.builder().id(UUID.randomUUID()).status(ReceiptStatus.FAILED).build();
+    when(receiptRepository.findByImageHash(any())).thenReturn(failedReceipt);
+    var newReceipt =
+        ReceiptDomain.builder().id(UUID.randomUUID()).status(ReceiptStatus.PENDING).build();
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(newReceipt);
+
+    var result = receiptService.upload(imageBytes, "retry.jpg");
+
+    assertNotNull(result);
+    assertEquals(ReceiptStatus.PENDING, result.getStatus());
+    verify(receiptRepository).deleteById(failedReceipt.getId());
+    verify(receiptRepository).save(any(ReceiptDomain.class));
+    verify(eventOutPort).publishReceiptUploaded(any());
+  }
+
+  @Test
+  void shouldUploadWithEmptyImageBytes() {
+    var imageBytes = new byte[0];
+    when(receiptRepository.findByImageHash(any())).thenReturn(null);
+    when(receiptRepository.save(any(ReceiptDomain.class)))
+        .thenAnswer(
+            invocation -> {
+              var r = invocation.<ReceiptDomain>getArgument(0);
+              r.setId(UUID.randomUUID());
+              return r;
+            });
+
+    var result = receiptService.upload(imageBytes, "empty.jpg");
+
+    assertNotNull(result);
+    assertEquals(ReceiptStatus.PENDING, result.getStatus());
+    verify(receiptRepository, never()).updateImageData(any(), any());
   }
 
   private void mockSaveWithStore() {
