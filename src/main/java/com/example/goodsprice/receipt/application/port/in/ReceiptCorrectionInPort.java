@@ -4,6 +4,7 @@ import com.example.goodsprice.receipt.application.domain.model.ReceiptCorrection
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import java.util.UUID;
 
+@FunctionalInterface
 public interface ReceiptCorrectionInPort {
 
   ReceiptDomain correct(UUID receiptId, ReceiptCorrectionDomain correction);

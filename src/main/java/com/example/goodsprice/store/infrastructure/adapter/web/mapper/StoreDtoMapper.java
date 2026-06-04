@@ -14,6 +14,7 @@ import org.mapstruct.ReportingPolicy;
     nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL,
     unmappedSourcePolicy = ReportingPolicy.IGNORE,
     unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@SuppressWarnings("PMD.ImplicitFunctionalInterface")
 public interface StoreDtoMapper {
 
   @Mapping(target = "status", qualifiedByName = "mapStatus")
