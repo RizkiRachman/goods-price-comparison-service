@@ -2,6 +2,7 @@ package com.example.goodsprice.alert.application.domain.service;
 
 import com.example.goodsprice.alert.application.domain.model.AlertSubscription;
 import com.example.goodsprice.alert.application.port.in.AlertInPort;
+import com.example.goodsprice.alert.application.port.out.AlertRepositoryPort;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
 import java.util.Objects;
@@ -18,6 +19,7 @@ public class AlertService implements AlertInPort {
 
   private final ProductInPort productInPort;
   private final PriceInPort priceInPort;
+  private final AlertRepositoryPort alertRepository;
 
   @Override
   @Transactional
@@ -39,11 +41,13 @@ public class AlertService implements AlertInPort {
             .status("ACTIVE")
             .build();
 
+    var saved = alertRepository.save(subscription);
+
     log.info(
         "Alert subscription created: product={}, targetPrice={}, method={}",
         productId,
         targetPrice,
         notificationMethod);
-    return subscription;
+    return saved;
   }
 }

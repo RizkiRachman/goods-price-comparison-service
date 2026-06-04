@@ -7,6 +7,7 @@ import com.example.goodsprice.api.model.ListProducts200Response;
 import com.example.goodsprice.api.model.Product;
 import com.example.goodsprice.api.model.ProductTrendResponse;
 import com.example.goodsprice.api.model.UpdateProductRequest;
+import jakarta.validation.Valid;
 import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +20,7 @@ public class ProductController implements ProductsApi {
   private final ProductWebAdapter adapter;
 
   @Override
-  public ResponseEntity<Product> createProduct(CreateProductRequest request) {
+  public ResponseEntity<Product> createProduct(@Valid CreateProductRequest request) {
     var product = adapter.create(request);
     return ResponseEntity.ok(product);
   }
@@ -69,7 +70,7 @@ public class ProductController implements ProductsApi {
   }
 
   @Override
-  public ResponseEntity<Product> updateProduct(Long id, UpdateProductRequest request) {
+  public ResponseEntity<Product> updateProduct(Long id, @Valid UpdateProductRequest request) {
     var product = adapter.update(id, request);
     return ResponseEntity.ok(product);
   }

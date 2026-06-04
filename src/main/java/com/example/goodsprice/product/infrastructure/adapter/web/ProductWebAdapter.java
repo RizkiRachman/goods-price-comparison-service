@@ -1,5 +1,7 @@
 package com.example.goodsprice.product.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.util.JsonNullableUtils.resolveNullable;
+
 import com.example.goodsprice.api.model.CreateProductRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.ListProducts200Response;
@@ -7,15 +9,23 @@ import com.example.goodsprice.api.model.Product;
 import com.example.goodsprice.api.model.ProductListResponse;
 import com.example.goodsprice.api.model.ProductTrendResponse;
 import com.example.goodsprice.api.model.UpdateProductRequest;
+import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.util.ObjectUtils;
+import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
+import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
+import com.example.goodsprice.product.application.port.in.PriceSummaryInPort;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
 import com.example.goodsprice.product.infrastructure.adapter.web.mapper.ProductDtoMapper;
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.openapitools.jackson.nullable.JsonNullable;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -24,6 +34,7 @@ import org.springframework.stereotype.Component;
 public class ProductWebAdapter {
 
   private final ProductInPort productInPort;
+  private final PriceSummaryInPort priceSummaryInPort;
   private final ProductDtoMapper mapper;
 
   public Product create(CreateProductRequest request) {
@@ -63,13 +74,14 @@ public class ProductWebAdapter {
             .storeId(storeId)
             .build();
 
-    boolean shouldIncludePrice = Boolean.TRUE.equals(includePrice);
-    var pageResponse = productInPort.search(criteria, shouldIncludePrice);
+    var pageResponse = productInPort.search(criteria);
+
+    Map<Long, ProductPriceSummary> summaryMap = buildSummaryMap(includePrice, pageResponse);
 
     var response = new ProductListResponse();
     response.setData(
         pageResponse.content().stream()
-            .map(product -> mapper.toApiProduct(product, shouldIncludePrice))
+            .map(product -> mapper.toApiProduct(product, summaryMap.get(product.getId())))
             .toList());
     response.setPagination(pageResponse.toPagination());
     return response;
@@ -99,8 +111,25 @@ public class ProductWebAdapter {
     return response;
   }
 
-  private <T> T resolveNullable(JsonNullable<T> nullable) {
-    if (Objects.isNull(nullable)) return null;
-    return nullable.orElse(null);
+  private Map<Long, ProductPriceSummary> buildSummaryMap(
+      Boolean includePrice, PageResponse<ProductDomain> pageResponse) {
+    if (!Boolean.TRUE.equals(includePrice) || pageResponse.content().isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    Set<Long> productIds =
+        pageResponse.content().stream()
+            .map(ProductDomain::getId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+
+    var summaries = priceSummaryInPort.findByProductIds(productIds);
+    if (Objects.isNull(summaries)) {
+      return Collections.emptyMap();
+    }
+
+    return summaries.stream()
+        .filter(s -> Objects.nonNull(s.getProductId()))
+        .collect(Collectors.toMap(ProductPriceSummary::getProductId, Function.identity()));
   }
 }

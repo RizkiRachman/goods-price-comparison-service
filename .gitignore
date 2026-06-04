@@ -74,6 +74,8 @@ application-dev.properties
 
 # Test generated files
 test-output/
+postman/smoke-test-report.json
+postman/SMOKE_TEST_REPORT.md
 
 # Coverage reports
 target/site/jacoco/
@@ -185,6 +187,8 @@ LEAN-CTX.md
 # Other AI Agents
 .opencode/
 opencode.json
+PROJECT.md
+STATE.md
 .cursor/
 .copilot/
 .aider/
@@ -201,3 +205,19 @@ scripts/session-keepalive.sh
 # Planning documents (local dev artifacts)
 planning/
 opencode-backup.json
+
+# Graphify (knowledge graph)
+graphify-out/
+.graphify_*
+
+# GitNexus (code intelligence index)
+.gitnexus/
+
+# Release plans (development artifacts — keep in PR body, not in repo)
+docs/release-plans/
+
+# Superpowers planning docs (development artifacts)
+docs/superpowers/
+
+# AI agent CI workflows
+.github/workflows/pr-agent-context.yml

@@ -1,9 +1,10 @@
 package com.example.goodsprice.receipt.application.domain.service;
 
+import com.example.goodsprice.activity.application.annotation.ActivityLog;
+import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCorrectionDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptItemCorrectionDomain;
-import com.example.goodsprice.receipt.application.exception.ReceiptNotFoundException;
 import com.example.goodsprice.receipt.application.port.in.ReceiptCorrectionInPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptEventOutPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptRepositoryPort;
@@ -29,9 +30,10 @@ public class ReceiptCorrectionService implements ReceiptCorrectionInPort {
 
   @Override
   @Transactional
+  @ActivityLog
   public ReceiptDomain correct(UUID receiptId, ReceiptCorrectionDomain correction) {
     var receipt = receiptRepository.findById(receiptId);
-    if (Objects.isNull(receipt)) throw new ReceiptNotFoundException(receiptId);
+    if (Objects.isNull(receipt)) throw NotFoundException.receipt(receiptId);
 
     if (Objects.nonNull(correction.getStoreName())) receipt.setStoreName(correction.getStoreName());
     if (Objects.nonNull(correction.getStoreLocation()))

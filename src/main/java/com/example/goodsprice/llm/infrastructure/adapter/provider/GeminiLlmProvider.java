@@ -9,6 +9,7 @@ import static com.example.goodsprice.llm.infrastructure.config.LlmConstants.PROV
 
 import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
 import com.example.goodsprice.llm.infrastructure.config.LlmProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.Client;
 import com.google.genai.types.Blob;
 import com.google.genai.types.Content;
@@ -16,6 +17,7 @@ import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.Part;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -96,7 +98,7 @@ OUTPUT FORMAT (raw JSON, no markdown):
           Content.builder()
               .role("user")
               .parts(
-                  java.util.List.of(
+                  List.of(
                       Part.builder().text(prompt).build(),
                       Part.builder()
                           .inlineData(
@@ -141,7 +143,7 @@ OUTPUT FORMAT (raw JSON, no markdown):
     }
 
     try {
-      var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+      var mapper = new ObjectMapper();
       return mapper.readValue(jsonText, Map.class);
     } catch (Exception e) {
       log.warn("Could not parse response as JSON, returning raw text");

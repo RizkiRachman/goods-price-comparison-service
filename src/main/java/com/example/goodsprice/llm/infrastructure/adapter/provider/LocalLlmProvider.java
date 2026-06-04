@@ -16,6 +16,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class LocalLlmProvider implements LlmProviderPort {
 
+  private static final String MOCK_STORE = "Mock Store";
+  private static final String MOCK_DATE = "2024-01-01";
+  private static final String MOCK_PRODUCT_MILK = "Milk";
+  private static final String MOCK_PRODUCT_BREAD = "Bread";
+
   private final LlmProperties llmProperties;
 
   @Override
@@ -23,13 +28,13 @@ public class LocalLlmProvider implements LlmProviderPort {
     log.debug("Extracting receipt using local Ollama model");
 
     var result = new HashMap<String, Object>();
-    result.put("store", "Mock Store");
-    result.put("date", "2024-01-01");
+    result.put("store", MOCK_STORE);
+    result.put("date", MOCK_DATE);
     result.put(
         "items",
         List.of(
-            Map.of("name", "Milk", "price", 5000, "quantity", 1),
-            Map.of("name", "Bread", "price", 3000, "quantity", 2)));
+            Map.of("name", MOCK_PRODUCT_MILK, "price", 5000, "quantity", 1),
+            Map.of("name", MOCK_PRODUCT_BREAD, "price", 3000, "quantity", 2)));
     result.put("total", 11000);
 
     return result;
