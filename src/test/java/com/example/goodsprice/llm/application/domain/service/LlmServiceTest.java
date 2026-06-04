@@ -116,4 +116,54 @@ class LlmServiceTest {
     assertFalse(available);
     verify(llmProvider, times(1)).isAvailable();
   }
+
+  @Test
+  @DisplayName("Should extract receipt with realistic base64 image input")
+  void extractReceiptWithRealBase64Input() {
+    String realImageBase64 =
+        "/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAAgEBAQFBQUFBQUFBQUFBQUFBQUFBQ"
+            + "UJCQcFBQUKCQoMEBAKCQoJCRITCQkKCgoKCg0NDQ0NDQ0NDQ3/2wBDAQkJCQkJCQoJCQoN"
+            + "CgoKDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0N";
+    Map<String, Object> expectedReceiptData = Collections.singletonMap("storeName", "TOKO MAJU");
+    when(llmProvider.isAvailable()).thenReturn(true);
+    when(llmProvider.extractReceiptData(realImageBase64)).thenReturn(expectedReceiptData);
+
+    Map<String, Object> actualReceiptData = llmService.extractReceipt(realImageBase64);
+
+    assertNotNull(actualReceiptData);
+    assertEquals(expectedReceiptData, actualReceiptData);
+    assertEquals("TOKO MAJU", actualReceiptData.get("storeName"));
+    verify(llmProvider, times(1)).extractReceiptData(realImageBase64);
+  }
+
+  @Test
+  @DisplayName("Should return empty result when provider returns empty map for empty image")
+  void extractReceiptWithEmptyImage() {
+    String emptyImage = "";
+    when(llmProvider.isAvailable()).thenReturn(true);
+    when(llmProvider.extractReceiptData(emptyImage)).thenReturn(Collections.emptyMap());
+
+    Map<String, Object> result = llmService.extractReceipt(emptyImage);
+
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  @DisplayName("Should generate 64-char hex hash for any input")
+  void generateImageHashLength() {
+    String hash = llmService.generateImageHash("any-image-data");
+
+    assertNotNull(hash);
+    assertEquals(64, hash.length());
+  }
+
+  @Test
+  @DisplayName("Should generate hash for empty string input")
+  void generateImageHashEmptyString() {
+    String hash = llmService.generateImageHash("");
+
+    assertNotNull(hash);
+    assertFalse(hash.isEmpty());
+  }
 }
