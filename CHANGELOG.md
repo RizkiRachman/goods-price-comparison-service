@@ -13,6 +13,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 ## [Unreleased]
 
 ### Added
+- **Smoke test data cleanup**: New `Cleanup` folder in Postman collection deletes test-created entities (Price → Product → Store) in reverse dependency order after all tests complete, preventing dirty data in production
 - **Project-wide test coverage**: Coverage increased from 13.9% to 91.5% instruction (80.6% branch) — 846 tests passing across all quality gates
 - **Zero-coverage classes eliminated**: All 40 previously uncovered classes now have ≥1 test
 - **Narrowed JaCoCo exclusions**: Removed infrastructure/**, common/**, job/**, config/** exclusions; kept only boilerplate (entity, dto, constant, exception, domain model, Application)

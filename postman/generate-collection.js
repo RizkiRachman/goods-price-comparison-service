@@ -144,6 +144,14 @@ rc.item.push(reqStatus("Approve - Non-Existent","POST","/v1/receipts/00000000-00
 rc.item.push(reqStatus("Reject - Non-Existent","DELETE","/v1/receipts/00000000-0000-0000-0000-000000000000/reject",null,404));
 collection.item.push(rc);
 
+// Cleanup: Delete test-created entities in reverse dependency order
+// Note: Category (TEST_CAT), Unit (KG), and Feedback Question have no DELETE endpoints in the API spec
+const cleanup = folder("Cleanup");
+cleanup.item.push(req("Delete Price", "DELETE", "/v1/prices/{{priceId}}", null, ["console.log('Cleaned up price: {{priceId}}');"], false));
+cleanup.item.push(req("Delete Product", "DELETE", "/v1/products/{{productId}}", null, ["console.log('Cleaned up product: {{productId}}');"], false));
+cleanup.item.push(req("Delete Store", "DELETE", "/v1/stores/{{storeId}}", null, ["console.log('Cleaned up store: {{storeId}}');"], false));
+collection.item.push(cleanup);
+
 // Write
 fs.writeFileSync(path.join(__dirname, 'Goods Price Comparison Service.postman_collection.json'), JSON.stringify(collection, null, 2));
 console.log("Generated! All endpoints check 2xx success only.");
