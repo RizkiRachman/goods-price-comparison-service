@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -17,7 +18,7 @@ public class LenientOffsetDateTimeDeserializer extends JsonDeserializer<OffsetDa
   @Override
   public OffsetDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
     var text = p.getText();
-    if (text == null || text.isBlank()) return null;
+    if (Objects.isNull(text) || text.isBlank()) return null;
 
     try {
       return OffsetDateTime.parse(text, DateTimeFormatter.ISO_OFFSET_DATE_TIME);

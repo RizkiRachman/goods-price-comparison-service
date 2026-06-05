@@ -21,12 +21,11 @@ public class ShoppingWebAdapter {
     var items = Objects.nonNull(request) ? request.getItems() : null;
     var result = shoppingInPort.optimizeShoppingRoute(items);
 
-    var response = new ShoppingOptimizeResponse();
-    response.setTotalItems(result.getTotalItems());
-    response.setTotalCost(result.getTotalCost());
-    response.setStoresToVisit(result.getStoresToVisit());
-    response.setRoute(mapper.toStoreVisits(result.getRoute()));
-    response.setSavings(mapper.toShoppingSavings(result.getSavings()));
-    return response;
+    return new ShoppingOptimizeResponse().
+            totalItems(result.getTotalItems()).
+            totalCost(result.getTotalCost()).
+            storesToVisit(result.getStoresToVisit()).
+            route(mapper.toStoreVisits(result.getRoute())).
+            savings(mapper.toShoppingSavings(result.getSavings()));
   }
 }

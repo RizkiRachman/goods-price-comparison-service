@@ -78,7 +78,7 @@ public class ActivityLogWebAdapter {
   }
 
   private static String sanitizeForLog(String value) {
-    if (value == null) return null;
+    if (Objects.isNull(value)) return null;
     var normalized = value.replaceAll("[^A-Za-z0-9._-]", "_");
     return normalized.length() > 100 ? normalized.substring(0, 100) : normalized;
   }

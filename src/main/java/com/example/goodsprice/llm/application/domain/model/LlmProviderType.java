@@ -1,6 +1,7 @@
 package com.example.goodsprice.llm.application.domain.model;
 
 import java.util.Locale;
+import java.util.Objects;
 
 public enum LlmProviderType {
   LOCAL,
@@ -11,7 +12,7 @@ public enum LlmProviderType {
   SUMOPOD;
 
   public static LlmProviderType fromValue(String value) {
-    if (value == null || value.isBlank()) return LOCAL;
+    if (Objects.isNull(value) || value.isBlank()) return LOCAL;
     return switch (value.toLowerCase(Locale.ROOT)) {
       case "openai" -> OPENAI;
       case "anthropic" -> ANTHROPIC;

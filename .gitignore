@@ -89,6 +89,7 @@ yarn-error.log*
 # Docker
 .dockerignore
 docker-compose.override.yml
+docker-compose-memory.yml
 
 # Temporary files
 *.tmp

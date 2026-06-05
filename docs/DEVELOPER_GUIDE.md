@@ -171,10 +171,24 @@ Optional<Product> findById(Long id);
 
 ### Null Handling
 
-Use project utilities instead of raw checks:
+Use `Objects.isNull()` / `Objects.nonNull()` instead of raw `x == null` / `x != null` comparisons. Always import `java.util.Objects`.
+
+```java
+// Preferred: Objects helper methods
+if (Objects.isNull(product))       // instead of product == null
+if (Objects.nonNull(product))      // instead of product != null
+
+// Combined with other checks
+if (Objects.isNull(items) || items.isEmpty())
+  return Objects.nonNull(storeId) ? String.valueOf(storeId) : null;
+```
+
+Use project utilities for more complex null-safe operations:
 
 ```java
 ObjectUtils.getOrNull(obj, Parent::getChild)
+ObjectUtils.defaultIfNull(obj, fallback)
+ObjectUtils.getOrDefault(obj, Parent::getChild, fallback)
 ValidationUtils.requireNonNull(value, "fieldName")
 NumberUtils.toDouble(obj)
 StringUtils.isBlank(str)

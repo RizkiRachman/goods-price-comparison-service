@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.util.Objects;
+
 @Component
 @RequiredArgsConstructor
 public class RateLimitInterceptor implements HandlerInterceptor {
@@ -51,11 +53,11 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
   private long resolveLimit(HandlerMethod method, String endpoint) {
     RateLimit annotation = method.getMethodAnnotation(RateLimit.class);
-    if (annotation != null && annotation.limit() > 0) {
+    if (Objects.nonNull(annotation) && annotation.limit() > 0) {
       return annotation.limit();
     }
     RateLimitProperties.EndpointConfig config = properties.getEndpoints().get(endpoint);
-    if (config != null && config.getLimit() > 0) {
+    if (Objects.nonNull(config) && config.getLimit() > 0) {
       return config.getLimit();
     }
     return properties.getLimit();
@@ -63,11 +65,11 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
   private long resolveWindowSeconds(HandlerMethod method, String endpoint) {
     RateLimit annotation = method.getMethodAnnotation(RateLimit.class);
-    if (annotation != null && annotation.windowSeconds() > 0) {
+    if (Objects.nonNull(annotation) && annotation.windowSeconds() > 0) {
       return annotation.windowSeconds();
     }
     RateLimitProperties.EndpointConfig config = properties.getEndpoints().get(endpoint);
-    if (config != null && config.getWindowSeconds() > 0) {
+    if (Objects.nonNull(config) && config.getWindowSeconds() > 0) {
       return config.getWindowSeconds();
     }
     return properties.getWindowSeconds();
@@ -75,7 +77,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
   private String extractClientIp(HttpServletRequest request) {
     String forwarded = request.getHeader(HttpHeaderConstants.X_FORWARDED_FOR);
-    if (forwarded != null && !forwarded.isBlank()) {
+    if (Objects.nonNull(forwarded) && !forwarded.isBlank()) {
       return forwarded.split(",")[0].trim();
     }
     return request.getRemoteAddr();

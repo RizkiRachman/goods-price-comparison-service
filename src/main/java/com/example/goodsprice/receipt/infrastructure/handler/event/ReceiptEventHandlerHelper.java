@@ -72,7 +72,7 @@ public class ReceiptEventHandlerHelper {
 
   public void processProductsAndPrices(
       List<Map<String, Object>> items, StoreDomain store, LocalDate date) {
-    if (items == null || items.isEmpty()) return;
+    if (Objects.isNull(items) || items.isEmpty()) return;
 
     // Batch create/find products
     var productItems =
@@ -88,7 +88,7 @@ public class ReceiptEventHandlerHelper {
     var productMap = productInPort.createIfNotExistBatch(productItems);
 
     // Batch create prices
-    if (store != null && store.getId() != null) {
+    if (Objects.nonNull(store) && Objects.nonNull(store.getId())) {
       var priceItems =
           items.stream()
               .map(
@@ -97,7 +97,7 @@ public class ReceiptEventHandlerHelper {
                         ProductNameUtils.cleanProductName(
                             (String) item.get("productName"), (String) item.get("unitType"));
                     var product = productMap.get(cleanedName);
-                    if (product == null || product.getId() == null) return null;
+                    if (Objects.isNull(product) || Objects.isNull(product.getId())) return null;
                     return new PriceCreateItem(
                         product.getId(),
                         store.getId(),

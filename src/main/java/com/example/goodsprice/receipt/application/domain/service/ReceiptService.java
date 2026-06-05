@@ -109,7 +109,7 @@ public class ReceiptService implements ReceiptInPort {
 
     try {
       byte[] bytesToProcess = imageBytes;
-      if (bytesToProcess == null || bytesToProcess.length == 0) {
+      if (Objects.isNull(bytesToProcess) || bytesToProcess.length == 0) {
         bytesToProcess = receiptRepository.findById(id).getImageData();
       }
       var base64Image = Base64.getEncoder().encodeToString(bytesToProcess);

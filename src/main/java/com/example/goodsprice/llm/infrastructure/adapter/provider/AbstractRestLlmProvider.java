@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -89,7 +90,7 @@ public abstract class AbstractRestLlmProvider implements LlmProviderPort {
       var entity = new HttpEntity<>(requestBody, headers);
 
       ResponseEntity<Map> response = restTemplate.postForEntity(getApiUrl(), entity, Map.class);
-      if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+      if (!response.getStatusCode().is2xxSuccessful() || Objects.isNull(response.getBody())) {
         throw new RuntimeException(
             "%s API returned error: %s".formatted(getProviderName(), response.getStatusCode()));
       }
@@ -186,14 +187,14 @@ OUTPUT FORMAT (raw JSON, no markdown):
   private Map<String, Object> parseResponse(Map<String, Object> responseBody) {
     try {
       var choices = (List<Map<String, Object>>) responseBody.get(GENERAL_CHOICES);
-      if (choices == null || choices.isEmpty()) {
+      if (Objects.isNull(choices) || choices.isEmpty()) {
         throw new RuntimeException("Empty response from %s API".formatted(getProviderName()));
       }
 
       var message = (Map<String, Object>) choices.get(0).get(GENERAL_MESSAGE);
       var content = (String) message.get(GENERAL_CONTENT);
 
-      if (content == null || content.isBlank()) {
+      if (Objects.isNull(content) || content.isBlank()) {
         throw new RuntimeException("Empty content in %s response".formatted(getProviderName()));
       }
 
@@ -219,7 +220,7 @@ OUTPUT FORMAT (raw JSON, no markdown):
    * @return a sanitized string safe for log output
    */
   private String sanitizeForLog(Object value) {
-    if (value == null) {
+    if (Objects.isNull(value)) {
       return "null";
     }
     return value
@@ -237,6 +238,6 @@ OUTPUT FORMAT (raw JSON, no markdown):
   @Override
   public boolean isAvailable() {
     var config = getConfig();
-    return config.getApiKey() != null && !config.getApiKey().isBlank() && config.isEnabled();
+    return Objects.nonNull(config.getApiKey()) && !config.getApiKey().isBlank() && config.isEnabled();
   }
 }

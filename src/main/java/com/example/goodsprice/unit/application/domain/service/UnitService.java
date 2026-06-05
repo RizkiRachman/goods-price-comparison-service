@@ -10,6 +10,7 @@ import com.example.goodsprice.unit.application.port.in.UnitInPort;
 import com.example.goodsprice.unit.application.port.in.dto.UnitCriteria;
 import com.example.goodsprice.unit.application.port.out.UnitRepositoryPort;
 import java.util.Locale;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +60,7 @@ public class UnitService extends AbstractGenericService<UnitDomain, String> impl
     var existing = findById(id);
     existing.setName(name);
     existing.setSymbol(symbol);
-    if (type != null) {
+    if (Objects.nonNull(type)) {
       existing.setType(UnitType.valueOf(type.toUpperCase(Locale.ROOT)));
     }
     existing.setDescription(description);

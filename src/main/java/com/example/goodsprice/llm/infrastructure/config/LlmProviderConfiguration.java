@@ -15,6 +15,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Objects;
+
 @Slf4j
 @Configuration
 public class LlmProviderConfiguration {
@@ -65,7 +67,7 @@ public class LlmProviderConfiguration {
       case GROQ -> groqProvider;
       case SUMOPOD -> sumopodProvider;
       default -> {
-        if (type == LlmProviderType.LOCAL && llmProperties.getProvider() != null) {
+        if (type == LlmProviderType.LOCAL && Objects.nonNull(llmProperties.getProvider())) {
           log.warn("Unknown provider '{}', falling back to local", llmProperties.getProvider());
         }
         yield localProvider;

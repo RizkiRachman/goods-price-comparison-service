@@ -123,7 +123,7 @@ public class ShoppingOptimizer {
 
     for (ProductDomain product : ctx.products) {
       PriceDomain bestPrice = ctx.bestPricesByProductId.get(product.getId());
-      if (bestPrice == null) continue;
+      if (Objects.isNull(bestPrice)) continue;
       if (!ctx.storeById.containsKey(bestPrice.getStoreId())) continue;
 
       validProducts.put(product.getId(), product);

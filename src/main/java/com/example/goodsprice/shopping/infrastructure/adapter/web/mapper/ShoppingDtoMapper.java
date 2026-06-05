@@ -7,6 +7,8 @@ import com.example.goodsprice.shopping.application.domain.model.ShoppingItemDoma
 import com.example.goodsprice.shopping.application.domain.model.ShoppingSavingsDomain;
 import com.example.goodsprice.shopping.application.domain.model.StoreVisitDomain;
 import java.util.List;
+import java.util.Objects;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.ReportingPolicy;
@@ -21,14 +23,14 @@ public interface ShoppingDtoMapper {
   StoreVisit toStoreVisit(StoreVisitDomain domain);
 
   default List<StoreVisit> toStoreVisits(List<StoreVisitDomain> domains) {
-    if (domains == null) return List.of();
+    if (Objects.isNull(domains)) return List.of();
     return domains.stream().map(this::toStoreVisit).toList();
   }
 
   ShoppingItem toShoppingItem(ShoppingItemDomain domain);
 
   default List<ShoppingItem> toShoppingItems(List<ShoppingItemDomain> domains) {
-    if (domains == null) return List.of();
+    if (Objects.isNull(domains)) return List.of();
     return domains.stream().map(this::toShoppingItem).toList();
   }
 

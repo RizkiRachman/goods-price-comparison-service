@@ -9,6 +9,8 @@ import org.mapstruct.Named;
 import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.ReportingPolicy;
 
+import java.util.Objects;
+
 @Mapper(
     componentModel = "spring",
     nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL,
@@ -22,7 +24,7 @@ public interface StoreDtoMapper {
 
   @Named("mapStatus")
   default EntityStatus mapStatus(String status) {
-    if (status == null) return null;
+    if (Objects.isNull(status)) return null;
     return EntityStatus.fromValue(status);
   }
 }

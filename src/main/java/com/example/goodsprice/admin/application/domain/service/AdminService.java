@@ -5,6 +5,7 @@ import com.example.goodsprice.admin.job.JobRegistry;
 import com.example.goodsprice.api.model.AdminJobTriggerResponse;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,11 +19,11 @@ public class AdminService implements AdminInPort {
 
   @Override
   public AdminJobTriggerResponse triggerJob(String jobName) {
-    if (jobName == null) {
+    if (Objects.isNull(jobName)) {
       throw new IllegalArgumentException("Job name cannot be null");
     }
     var executor = jobRegistry.get(jobName);
-    if (executor == null) {
+    if (Objects.isNull(executor)) {
       log.warn("Unknown job requested: {}", jobName);
       return new AdminJobTriggerResponse()
           .jobName(jobName)

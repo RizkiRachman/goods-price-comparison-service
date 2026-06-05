@@ -9,6 +9,7 @@ import com.example.goodsprice.api.model.ProductTrendResponse;
 import com.example.goodsprice.api.model.UpdateProductRequest;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -65,7 +66,7 @@ public class ProductController implements ProductsApi {
             category,
             brand,
             includePrice,
-            storeId != null ? String.valueOf(storeId) : null);
+            Objects.nonNull(storeId) ? String.valueOf(storeId) : null);
     return ResponseEntity.ok(response);
   }
 
