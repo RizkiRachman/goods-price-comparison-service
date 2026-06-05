@@ -1,8 +1,10 @@
 package com.example.goodsprice.price.application.domain.service;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
+import com.example.goodsprice.common.constant.ErrorCodes;
 import com.example.goodsprice.common.dto.PageResponse;
-import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.repository.GenericRepositoryPort;
+import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
@@ -17,18 +19,27 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
-public class PriceService implements PriceInPort {
+public class PriceService extends AbstractGenericService<PriceDomain, Long> implements PriceInPort {
 
   private final PriceRepositoryPort priceRepository;
   private final ProductInPort productInPort;
+
+  public PriceService(PriceRepositoryPort priceRepository, ProductInPort productInPort) {
+    super("Price", ErrorCodes.PRICE_NOT_FOUND);
+    this.priceRepository = priceRepository;
+    this.productInPort = productInPort;
+  }
+
+  @Override
+  protected GenericRepositoryPort<PriceDomain, Long> getRepository() {
+    return priceRepository;
+  }
 
   @Override
   @Transactional
@@ -49,19 +60,12 @@ public class PriceService implements PriceInPort {
             .dateRecorded(dateRecorded)
             .isPromo(isPromo)
             .build();
-    priceRecord = priceRepository.save(priceRecord);
+    priceRecord = save(priceRecord);
 
     productInPort.updateLastPriceUpdate(productId, LocalDateTime.now());
 
     log.info("Price created: product={}, store={}, price={}", productId, storeId, price);
     return priceRecord;
-  }
-
-  @Override
-  public PriceDomain findById(Long id) {
-    var price = priceRepository.findById(id);
-    if (Objects.isNull(price)) throw NotFoundException.price(id);
-    return price;
   }
 
   @Override
@@ -135,10 +139,7 @@ public class PriceService implements PriceInPort {
   @Transactional
   @ActivityLog
   public void deleteById(Long id) {
-    var price = priceRepository.findById(id);
-    if (Objects.isNull(price)) throw NotFoundException.price(id);
-    priceRepository.deleteById(id);
-    log.info("Price deleted: id={}", id);
+    super.deleteById(id);
   }
 
   @Override
@@ -146,15 +147,14 @@ public class PriceService implements PriceInPort {
   @ActivityLog
   public PriceDomain update(
       Long id, Double price, Double unitPrice, LocalDate dateRecorded, Boolean isPromo) {
-    var existing = priceRepository.findById(id);
-    if (Objects.isNull(existing)) throw NotFoundException.price(id);
+    var existing = findById(id);
 
     existing.setPrice(ObjectUtils.defaultIfNull(price, existing.getPrice()));
     existing.setUnitPrice(ObjectUtils.defaultIfNull(unitPrice, existing.getUnitPrice()));
     existing.setDateRecorded(ObjectUtils.defaultIfNull(dateRecorded, existing.getDateRecorded()));
     existing.setIsPromo(ObjectUtils.defaultIfNull(isPromo, Boolean.FALSE));
 
-    existing = priceRepository.save(existing);
+    existing = save(existing);
 
     productInPort.updateLastPriceUpdate(existing.getProductId(), LocalDateTime.now());
 

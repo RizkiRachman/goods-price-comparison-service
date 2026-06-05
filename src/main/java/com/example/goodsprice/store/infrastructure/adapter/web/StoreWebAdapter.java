@@ -11,6 +11,7 @@ import com.example.goodsprice.api.model.StoreListResponse;
 import com.example.goodsprice.api.model.UpdateStoreRequest;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.util.ObjectUtils;
+import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.in.StoreInPort;
 import com.example.goodsprice.store.application.port.in.dto.CreateStoreCriteria;
@@ -24,7 +25,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class StoreWebAdapter {
+public class StoreWebAdapter extends AbstractCrudWebAdapter {
 
   private final StoreInPort storeInPort;
   private final StoreDtoMapper mapper;
@@ -67,7 +68,7 @@ public class StoreWebAdapter {
         new StoreCriteria(
             pageRequest,
             ObjectUtils.getOrNull(search, s -> s),
-            ObjectUtils.getOrNull(status, EntityStatus::getValue),
+            resolveStatus(status),
             ObjectUtils.getOrNull(chain, s -> s),
             ObjectUtils.getOrNull(location, s -> s));
 

@@ -13,6 +13,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 ## [Unreleased]
 
 ### Changed
+- **Generic service abstraction (Phase 1A)**: `StoreService` and `PriceService` now extend `AbstractGenericService<StoreDomain, Long>` / `AbstractGenericService<PriceDomain, Long>` — eliminating duplicate `findById()`, `save()`, and `deleteById()` boilerplate. `StoreWebAdapter` and `PriceWebAdapter` now extend `AbstractCrudWebAdapter` for shared pagination/status resolution helpers. Product, Receipt, Alert, and PriceSummary intentionally excluded (domain complexity exceeds CRUD abstraction value).
 - **Null convention enforced project-wide**: All 34 raw `x == null` / `x != null` comparisons replaced with `Objects.isNull(x)` / `Objects.nonNull(x)` across 17 files — enforces the project null handling convention consistently
 - **Generic repository port pattern enforced**: 6 port interfaces now extend `GenericRepositoryPort<T, ID>` with typed domain/ID parameters instead of declaring duplicate CRUD methods. `AbstractRepositoryAdapter` gained a `findAll(PageRequestDto, String, String)` default implementation. Applies to Product, Store, Price, Alert, Receipt, PriceSummary. ReceiptItem skipped (no standalone ID).
 
