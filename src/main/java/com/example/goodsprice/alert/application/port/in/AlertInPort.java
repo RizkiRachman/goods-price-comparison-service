@@ -2,7 +2,7 @@ package com.example.goodsprice.alert.application.port.in;
 
 import com.example.goodsprice.alert.application.domain.model.AlertSubscription;
 
-@FunctionalInterface
+@SuppressWarnings("PMD.ImplicitFunctionalInterface")
 public interface AlertInPort {
 
   AlertSubscription subscribe(
