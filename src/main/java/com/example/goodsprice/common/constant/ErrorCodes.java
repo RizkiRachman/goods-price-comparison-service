@@ -18,4 +18,5 @@ public final class ErrorCodes {
   public static final String INTERNAL_ERROR = "INTERNAL_ERROR";
   public static final String ACTIVITY_LOG_NOT_FOUND = "ACTIVITY_LOG_NOT_FOUND";
   public static final String FEEDBACK_QUESTION_NOT_FOUND = "FEEDBACK_QUESTION_NOT_FOUND";
+  public static final String ALERT_NOT_FOUND = "ALERT_NOT_FOUND";
 }

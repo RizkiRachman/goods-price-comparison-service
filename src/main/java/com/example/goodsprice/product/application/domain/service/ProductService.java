@@ -1,8 +1,10 @@
 package com.example.goodsprice.product.application.domain.service;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
+import com.example.goodsprice.common.constant.ErrorCodes;
 import com.example.goodsprice.common.dto.PageResponse;
-import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.repository.GenericRepositoryPort;
+import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.common.util.ProductNameUtils;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
@@ -18,19 +20,33 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
-public class ProductService implements ProductInPort {
+public class ProductService extends AbstractGenericService<ProductDomain, Long>
+    implements ProductInPort {
 
   private final ProductRepositoryPort productRepository;
   private final ProductPriceQueryInPort productPriceQueryInPort;
   private final StoreLookupInPort storeLookupInPort;
+
+  public ProductService(
+      ProductRepositoryPort productRepository,
+      ProductPriceQueryInPort productPriceQueryInPort,
+      StoreLookupInPort storeLookupInPort) {
+    super("Product", ErrorCodes.PRODUCT_NOT_FOUND);
+    this.productRepository = productRepository;
+    this.productPriceQueryInPort = productPriceQueryInPort;
+    this.storeLookupInPort = storeLookupInPort;
+  }
+
+  @Override
+  protected GenericRepositoryPort<ProductDomain, Long> getRepository() {
+    return productRepository;
+  }
 
   @Override
   @Transactional
@@ -38,7 +54,7 @@ public class ProductService implements ProductInPort {
   public ProductDomain create(String name, String category, String brand, String unit) {
     var product =
         ProductDomain.builder().name(name).category(category).brand(brand).unit(unit).build();
-    product = productRepository.save(product);
+    product = save(product);
     log.info("Product created: {} (id: {})", name, product.getId());
     return product;
   }
@@ -54,7 +70,7 @@ public class ProductService implements ProductInPort {
     }
 
     var product = ProductDomain.builder().name(name).category(category).unit(unit).build();
-    product = productRepository.save(product);
+    product = save(product);
     log.info("Product created: {} (id: {})", name, product.getId());
     return product;
   }
@@ -95,20 +111,13 @@ public class ProductService implements ProductInPort {
 
     if (!productsToSave.isEmpty()) {
       for (var product : productsToSave) {
-        var saved = productRepository.save(product);
+        var saved = save(product);
         result.put(saved.getName(), saved);
       }
       log.info("Created {} new products in batch", productsToSave.size());
     }
 
     return result;
-  }
-
-  @Override
-  public ProductDomain findById(Long id) {
-    var product = productRepository.findById(id);
-    if (Objects.isNull(product)) throw NotFoundException.product(id);
-    return product;
   }
 
   @Override
@@ -163,13 +172,12 @@ public class ProductService implements ProductInPort {
   @Transactional
   @ActivityLog
   public ProductDomain update(Long id, String name, String category, String brand, String unit) {
-    var existing = productRepository.findById(id);
-    if (Objects.isNull(existing)) throw NotFoundException.product(id);
+    var existing = findById(id);
     existing.setName(name);
     existing.setCategory(category);
     existing.setBrand(brand);
     existing.setUnit(unit);
-    existing = productRepository.save(existing);
+    existing = save(existing);
     log.info("Product updated: {} (id: {})", existing.getName(), id);
     return existing;
   }
@@ -183,9 +191,6 @@ public class ProductService implements ProductInPort {
   @Transactional
   @ActivityLog
   public void deleteById(Long id) {
-    var product = productRepository.findById(id);
-    if (Objects.isNull(product)) throw NotFoundException.product(id);
-    productRepository.deleteById(id);
-    log.info("Product deleted: (id: {})", id);
+    super.deleteById(id);
   }
 }

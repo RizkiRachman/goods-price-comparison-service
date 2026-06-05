@@ -3,7 +3,9 @@ package com.example.goodsprice.receipt.application.domain.service;
 import static com.example.goodsprice.common.constant.ErrorMessageConstants.ITEMS_NOT_EMPTY_MSG;
 
 import com.example.goodsprice.activity.application.annotation.ActivityLog;
-import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.constant.ErrorCodes;
+import com.example.goodsprice.common.repository.GenericRepositoryPort;
+import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.common.util.HashUtils;
 import com.example.goodsprice.common.util.JsonUtils;
 import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
@@ -21,21 +23,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
-public class ReceiptService implements ReceiptInPort {
+public class ReceiptService extends AbstractGenericService<ReceiptDomain, UUID>
+    implements ReceiptInPort {
 
   private final ReceiptRepositoryPort receiptRepository;
   private final ReceiptEventOutPort eventOutPort;
   private final LlmProviderPort llmProvider;
   private final ObjectMapper objectMapper;
   private final ReceiptApprovalInPort receiptApprovalInPort;
+
+  public ReceiptService(
+      ReceiptRepositoryPort receiptRepository,
+      ReceiptEventOutPort eventOutPort,
+      LlmProviderPort llmProvider,
+      ObjectMapper objectMapper,
+      ReceiptApprovalInPort receiptApprovalInPort) {
+    super("Receipt", ErrorCodes.RECEIPT_NOT_FOUND);
+    this.receiptRepository = receiptRepository;
+    this.eventOutPort = eventOutPort;
+    this.llmProvider = llmProvider;
+    this.objectMapper = objectMapper;
+    this.receiptApprovalInPort = receiptApprovalInPort;
+  }
+
+  @Override
+  protected GenericRepositoryPort<ReceiptDomain, UUID> getRepository() {
+    return receiptRepository;
+  }
 
   @Override
   @Transactional
@@ -61,7 +81,7 @@ public class ReceiptService implements ReceiptInPort {
             .originalFilename(originalFilename)
             .status(ReceiptStatus.PENDING)
             .build();
-    receipt = receiptRepository.save(receipt);
+    receipt = save(receipt);
     log.info("Receipt created: {}", receipt.getId());
 
     // Store image data before firing event to avoid byte[] in memory
@@ -74,17 +94,8 @@ public class ReceiptService implements ReceiptInPort {
   }
 
   @Override
-  public ReceiptDomain findById(UUID id) {
-    var receipt = receiptRepository.findById(id);
-    if (Objects.isNull(receipt)) throw NotFoundException.receipt(id);
-    return receipt;
-  }
-
-  @Override
   public ReceiptStatus getStatus(UUID id) {
-    var receipt = receiptRepository.findById(id);
-    if (Objects.isNull(receipt)) throw NotFoundException.receipt(id);
-    return receipt.getStatus();
+    return findById(id).getStatus();
   }
 
   @Override
@@ -96,7 +107,7 @@ public class ReceiptService implements ReceiptInPort {
   public void reject(UUID id) {
     var receipt = findById(id);
     receipt.markAsRejected();
-    receiptRepository.save(receipt);
+    save(receipt);
     log.info("Receipt rejected: {}", id);
   }
 
@@ -104,7 +115,7 @@ public class ReceiptService implements ReceiptInPort {
   public void process(UUID id, byte[] imageBytes) {
     var receipt = findById(id);
     receipt.markAsProcessing();
-    receiptRepository.save(receipt);
+    save(receipt);
     log.info("Receipt processing started: {}", id);
 
     try {
@@ -126,7 +137,7 @@ public class ReceiptService implements ReceiptInPort {
       var totalAmount = extractTotalAmount(extractedData.get("totalAmount"));
 
       receipt.markAsCompleted(storeName, storeLocation, date, totalAmount, extractedDataJson);
-      receiptRepository.save(receipt);
+      save(receipt);
 
       eventOutPort.publishReceiptProcessed(receipt);
       log.info("Receipt processing completed: {}", id);
@@ -134,7 +145,7 @@ public class ReceiptService implements ReceiptInPort {
     } catch (Exception e) {
       log.error("Receipt processing failed: {}", id, e);
       receipt.markAsFailed(e.getMessage());
-      receiptRepository.save(receipt);
+      save(receipt);
     }
   }
 
@@ -145,7 +156,7 @@ public class ReceiptService implements ReceiptInPort {
       throw new IllegalArgumentException(ITEMS_NOT_EMPTY_MSG);
     }
     receipt.markAsCompleted(null, null, null, null, null);
-    receiptRepository.save(receipt);
+    save(receipt);
     log.info("Receipt items inserted: {}", id);
   }
 
@@ -165,7 +176,7 @@ public class ReceiptService implements ReceiptInPort {
             .storeLocation(request.getStoreLocation())
             .receiptDate(request.getReceiptDate())
             .build();
-    receipt = receiptRepository.save(receipt);
+    receipt = save(receipt);
     receiptApprovalInPort.approve(receipt.getId());
     return this.findById(receipt.getId());
   }

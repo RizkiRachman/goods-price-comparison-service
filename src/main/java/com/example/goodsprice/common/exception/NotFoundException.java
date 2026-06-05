@@ -1,9 +1,11 @@
 package com.example.goodsprice.common.exception;
 
+import static com.example.goodsprice.common.constant.ErrorCodes.ALERT_NOT_FOUND;
 import static com.example.goodsprice.common.constant.ErrorCodes.PRICE_NOT_FOUND;
 import static com.example.goodsprice.common.constant.ErrorCodes.PRODUCT_NOT_FOUND;
 import static com.example.goodsprice.common.constant.ErrorCodes.RECEIPT_NOT_FOUND;
 import static com.example.goodsprice.common.constant.ErrorCodes.STORE_NOT_FOUND;
+import static com.example.goodsprice.common.constant.ErrorMessageConstants.ALERT_NOT_FOUND_MSG;
 import static com.example.goodsprice.common.constant.ErrorMessageConstants.PRICE_NOT_FOUND_MSG;
 import static com.example.goodsprice.common.constant.ErrorMessageConstants.PRODUCT_NOT_FOUND_ID_MSG;
 import static com.example.goodsprice.common.constant.ErrorMessageConstants.PRODUCT_NOT_FOUND_NAME_MSG;
@@ -41,6 +43,10 @@ public class NotFoundException extends RuntimeException {
 
   public static NotFoundException store(Long id) {
     return new NotFoundException(STORE_NOT_FOUND, STORE_NOT_FOUND_MSG.formatted(id));
+  }
+
+  public static NotFoundException alert(String id) {
+    return new NotFoundException(ALERT_NOT_FOUND, ALERT_NOT_FOUND_MSG.formatted(id));
   }
 
   public String getErrorCode() {
