@@ -14,6 +14,7 @@ import com.example.goodsprice.api.model.UpdatePriceRecordRequest;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.util.ObjectUtils;
+import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
 import com.example.goodsprice.price.application.port.in.dto.PriceCriteria;
@@ -35,7 +36,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PriceWebAdapter {
+public class PriceWebAdapter extends AbstractCrudWebAdapter {
 
   private final PriceInPort priceInPort;
   private final ProductInPort productInPort;
