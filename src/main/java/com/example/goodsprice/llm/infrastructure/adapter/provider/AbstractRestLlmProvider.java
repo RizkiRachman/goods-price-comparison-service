@@ -238,6 +238,8 @@ OUTPUT FORMAT (raw JSON, no markdown):
   @Override
   public boolean isAvailable() {
     var config = getConfig();
-    return Objects.nonNull(config.getApiKey()) && !config.getApiKey().isBlank() && config.isEnabled();
+    return Objects.nonNull(config.getApiKey())
+        && !config.getApiKey().isBlank()
+        && config.isEnabled();
   }
 }

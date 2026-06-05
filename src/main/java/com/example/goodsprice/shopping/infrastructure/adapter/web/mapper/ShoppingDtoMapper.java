@@ -8,7 +8,6 @@ import com.example.goodsprice.shopping.application.domain.model.ShoppingSavingsD
 import com.example.goodsprice.shopping.application.domain.model.StoreVisitDomain;
 import java.util.List;
 import java.util.Objects;
-
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.ReportingPolicy;

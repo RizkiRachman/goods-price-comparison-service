@@ -4,9 +4,8 @@ import com.example.goodsprice.alert.application.domain.model.AlertSubscription;
 import com.example.goodsprice.api.model.AlertSubscriptionResponse;
 import com.example.goodsprice.api.model.AlertSubscriptionResponse.StatusEnum;
 import com.example.goodsprice.common.util.ObjectUtils;
-import org.springframework.stereotype.Component;
-
 import java.util.Objects;
+import org.springframework.stereotype.Component;
 
 @Component
 public class AlertDtoMapper {

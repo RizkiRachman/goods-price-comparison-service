@@ -3,13 +3,12 @@ package com.example.goodsprice.store.infrastructure.adapter.web.mapper;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Store;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
+import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.NullValueMappingStrategy;
 import org.mapstruct.ReportingPolicy;
-
-import java.util.Objects;
 
 @Mapper(
     componentModel = "spring",
