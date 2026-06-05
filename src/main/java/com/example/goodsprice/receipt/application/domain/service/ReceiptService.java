@@ -68,7 +68,7 @@ public class ReceiptService extends AbstractGenericService<ReceiptDomain, UUID>
     if (Objects.nonNull(existing)) {
       if (existing.isRetryable()) {
         log.info("Removing previous failed receipt: {}", existing.getId());
-        super.deleteById(existing.getId());
+        receiptRepository.deleteById(existing.getId());
       } else {
         log.info("Receipt already exists ({}): {}", existing.getStatus(), existing.getId());
         return existing;
