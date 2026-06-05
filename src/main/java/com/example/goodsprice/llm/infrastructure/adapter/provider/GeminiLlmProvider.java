@@ -19,6 +19,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -35,7 +36,7 @@ public class GeminiLlmProvider implements LlmProviderPort {
     log.info("Extracting receipt data using Google Gemini SDK");
 
     var apiKey = llmProperties.getGemini().getApiKey();
-    if (apiKey == null || apiKey.isEmpty()) {
+    if (Objects.isNull(apiKey) || apiKey.isEmpty()) {
       throw new IllegalStateException(
           "Gemini API key not configured. Set GEMINI_API_KEY environment variable.");
     }
@@ -122,7 +123,7 @@ OUTPUT FORMAT (raw JSON, no markdown):
 
   private Map<String, Object> parseResponse(String text) {
     var result = new HashMap<String, Object>();
-    if (text == null || text.isEmpty()) {
+    if (Objects.isNull(text) || text.isEmpty()) {
       result.put(KEY_ERROR, "Empty response from Gemini");
       return result;
     }
@@ -164,6 +165,6 @@ OUTPUT FORMAT (raw JSON, no markdown):
       return false;
     }
     var apiKey = llmProperties.getGemini().getApiKey();
-    return apiKey != null && !apiKey.isEmpty();
+    return Objects.nonNull(apiKey) && !apiKey.isEmpty();
   }
 }

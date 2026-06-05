@@ -98,11 +98,11 @@ public class PriceService implements PriceInPort {
   @Transactional
   @ActivityLog
   public void createBatch(List<PriceCreateItem> items) {
-    if (items == null || items.isEmpty()) return;
+    if (Objects.isNull(items) || items.isEmpty()) return;
 
     var prices =
         items.stream()
-            .filter(item -> item.productId() != null && item.storeId() != null)
+            .filter(item -> Objects.nonNull(item.productId()) && Objects.nonNull(item.storeId()))
             .map(
                 item ->
                     PriceDomain.builder()

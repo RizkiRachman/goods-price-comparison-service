@@ -4,6 +4,7 @@ import com.example.goodsprice.alert.application.domain.model.AlertSubscription;
 import com.example.goodsprice.api.model.AlertSubscriptionResponse;
 import com.example.goodsprice.api.model.AlertSubscriptionResponse.StatusEnum;
 import com.example.goodsprice.common.util.ObjectUtils;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -23,7 +24,7 @@ public class AlertDtoMapper {
   }
 
   public static StatusEnum mapStatus(String status) {
-    if (status == null) return StatusEnum.ACTIVE;
+    if (Objects.isNull(status)) return StatusEnum.ACTIVE;
     return switch (status) {
       case "PAUSED" -> StatusEnum.PAUSED;
       case "EXPIRED" -> StatusEnum.EXPIRED;

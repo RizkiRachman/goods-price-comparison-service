@@ -3,6 +3,7 @@ package com.example.goodsprice.store.infrastructure.adapter.web.mapper;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Store;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
+import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -22,7 +23,7 @@ public interface StoreDtoMapper {
 
   @Named("mapStatus")
   default EntityStatus mapStatus(String status) {
-    if (status == null) return null;
+    if (Objects.isNull(status)) return null;
     return EntityStatus.fromValue(status);
   }
 }

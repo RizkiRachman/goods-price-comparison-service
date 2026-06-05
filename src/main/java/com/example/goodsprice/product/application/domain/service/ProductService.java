@@ -63,7 +63,7 @@ public class ProductService implements ProductInPort {
   @Transactional
   @ActivityLog
   public Map<String, ProductDomain> createIfNotExistBatch(List<ProductCreateItem> items) {
-    if (items == null || items.isEmpty()) return Map.of();
+    if (Objects.isNull(items) || items.isEmpty()) return Map.of();
 
     // Collect unique cleaned names with their category/unit info
     var nameToInfo = new LinkedHashMap<String, ProductCreateItem>();

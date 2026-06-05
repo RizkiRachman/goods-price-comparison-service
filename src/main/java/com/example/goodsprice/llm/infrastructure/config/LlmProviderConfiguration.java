@@ -7,6 +7,7 @@ import com.example.goodsprice.llm.infrastructure.adapter.provider.GroqLlmProvide
 import com.example.goodsprice.llm.infrastructure.adapter.provider.LocalLlmProvider;
 import com.example.goodsprice.llm.infrastructure.adapter.provider.SumopodLlmProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
@@ -65,7 +66,7 @@ public class LlmProviderConfiguration {
       case GROQ -> groqProvider;
       case SUMOPOD -> sumopodProvider;
       default -> {
-        if (type == LlmProviderType.LOCAL && llmProperties.getProvider() != null) {
+        if (type == LlmProviderType.LOCAL && Objects.nonNull(llmProperties.getProvider())) {
           log.warn("Unknown provider '{}', falling back to local", llmProperties.getProvider());
         }
         yield localProvider;
