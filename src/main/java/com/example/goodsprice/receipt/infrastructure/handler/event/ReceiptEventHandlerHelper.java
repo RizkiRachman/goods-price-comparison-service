@@ -33,7 +33,7 @@ public class ReceiptEventHandlerHelper {
   public StoreDomain resolveStore(String storeName) {
     if (Objects.isNull(storeName)) return null;
     var stores = storeRepository.findByName(storeName);
-    if (!stores.isEmpty()) return stores.get(0);
+    if (!stores.isEmpty()) return stores.getFirst();
     var store = StoreDomain.builder().name(storeName).build();
     return storeRepository.save(store);
   }

@@ -26,7 +26,7 @@ class PriceSummaryUpdateRequestedEventHandlerTest {
     UUID receiptId = UUID.randomUUID();
     var event = new PriceSummaryUpdateRequestedEvent(receiptId);
 
-    handler.handle(event);
+    handler.handleEvent(event);
 
     verify(batchService).updateSummaries();
   }
@@ -38,7 +38,7 @@ class PriceSummaryUpdateRequestedEventHandlerTest {
     var event = new PriceSummaryUpdateRequestedEvent(receiptId);
     doThrow(new RuntimeException("Batch failed")).when(batchService).updateSummaries();
 
-    handler.handle(event);
+    handler.handleEvent(event);
 
     verify(batchService).updateSummaries();
   }

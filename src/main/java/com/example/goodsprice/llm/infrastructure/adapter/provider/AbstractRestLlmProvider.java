@@ -192,7 +192,7 @@ OUTPUT FORMAT (raw JSON, no markdown):
         throw new RuntimeException("Empty response from %s API".formatted(getProviderName()));
       }
 
-      var message = (Map<String, Object>) choices.get(0).get(GENERAL_MESSAGE);
+      var message = (Map<String, Object>) choices.getFirst().get(GENERAL_MESSAGE);
       var content = (String) message.get(GENERAL_CONTENT);
 
       if (Objects.isNull(content) || content.isBlank()) {

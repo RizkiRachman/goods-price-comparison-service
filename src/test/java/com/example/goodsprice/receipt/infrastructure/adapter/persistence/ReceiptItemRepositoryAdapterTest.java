@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.goodsprice.receipt.application.domain.model.ReceiptItemDomain;
 import com.example.goodsprice.receipt.infrastructure.adapter.persistence.entity.ReceiptItemEntity;
 import java.util.List;
 import java.util.UUID;

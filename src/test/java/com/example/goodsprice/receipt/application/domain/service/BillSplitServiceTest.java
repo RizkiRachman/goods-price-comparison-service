@@ -12,8 +12,9 @@ import com.example.goodsprice.receipt.application.domain.model.BillSplitRequestD
 import com.example.goodsprice.receipt.application.domain.model.BillSplitRequestOrderDomain;
 import com.example.goodsprice.receipt.application.domain.model.BillSplitType;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
+import com.example.goodsprice.receipt.application.domain.model.ReceiptItemDomain;
 import com.example.goodsprice.receipt.application.port.in.ReceiptInPort;
-import com.example.goodsprice.receipt.application.port.out.ReceiptItemDomainRepositoryPort;
+import com.example.goodsprice.receipt.application.port.out.ReceiptItemRepositoryPort;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;

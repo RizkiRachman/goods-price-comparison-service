@@ -92,7 +92,15 @@ public class PriceWebAdapter extends AbstractCrudWebAdapter {
 
     var pageResponse = priceInPort.searchByProduct(criteria);
 
-    var storeMap = StoreMapBuilder.buildFromPrices(pageResponse.content(), storeInPort::findAllById);
+    var storeMap =
+        StoreMapBuilder.buildFromIds(
+            pageResponse.content().stream()
+                .map(PriceDomain::getStoreId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList(),
+            storeInPort::findAllById,
+            StoreDomain::getId);
     var records =
         pageResponse.content().stream()
             .map(p -> mapper.toPriceRecord(p, storeMap.get(p.getStoreId())))
@@ -125,7 +133,15 @@ public class PriceWebAdapter extends AbstractCrudWebAdapter {
   }
 
   private PriceSearchResponse doSearchV1(SearchContext ctx) {
-    var storeMap = StoreMapBuilder.buildFromPrices(ctx.prices, storeInPort::findAllById);
+    var storeMap =
+        StoreMapBuilder.buildFromIds(
+            ctx.prices.stream()
+                .map(PriceDomain::getStoreId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList(),
+            storeInPort::findAllById,
+            StoreDomain::getId);
 
     var results =
         ctx.prices.stream().map(p -> mapper.toResult(p, storeMap.get(p.getStoreId()))).toList();
@@ -138,7 +154,15 @@ public class PriceWebAdapter extends AbstractCrudWebAdapter {
   }
 
   private PriceSearchResponseV2 doSearchV2(SearchContext ctx) {
-    var storeMap = StoreMapBuilder.buildFromPrices(ctx.prices, storeInPort::findAllById);
+    var storeMap =
+        StoreMapBuilder.buildFromIds(
+            ctx.prices.stream()
+                .map(PriceDomain::getStoreId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList(),
+            storeInPort::findAllById,
+            StoreDomain::getId);
 
     var results =
         ctx.prices.stream().map(p -> mapper.toResultV2(p, storeMap.get(p.getStoreId()))).toList();

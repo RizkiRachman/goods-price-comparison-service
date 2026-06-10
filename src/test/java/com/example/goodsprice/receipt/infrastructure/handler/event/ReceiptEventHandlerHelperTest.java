@@ -17,7 +17,8 @@ import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
-import com.example.goodsprice.receipt.application.port.out.ReceiptItemDomainRepositoryPort;
+import com.example.goodsprice.receipt.application.domain.model.ReceiptItemDomain;
+import com.example.goodsprice.receipt.application.port.out.ReceiptItemRepositoryPort;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
 import java.time.LocalDate;
@@ -120,7 +121,7 @@ class ReceiptEventHandlerHelperTest {
     assertEquals(today, result);
   }
 
-  // --- buildReceiptItemDomains ---
+  // --- buildReceiptItems ---
 
   @Test
   void shouldBuildReceiptItemDomainsSuccessfully() {
@@ -153,7 +154,7 @@ class ReceiptEventHandlerHelperTest {
                 "totalPrice",
                 15.0));
 
-    var result = helper.buildReceiptItemDomains(receiptId, items);
+    var result = helper.buildReceiptItems(receiptId, items);
 
     assertEquals(2, result.size());
 
@@ -178,7 +179,7 @@ class ReceiptEventHandlerHelperTest {
 
   @Test
   void shouldReturnEmptyListWhenItemsIsEmpty() {
-    var result = helper.buildReceiptItemDomains(receiptId, Collections.emptyList());
+    var result = helper.buildReceiptItems(receiptId, Collections.emptyList());
     assertTrue(result.isEmpty());
   }
 
@@ -193,7 +194,7 @@ class ReceiptEventHandlerHelperTest {
     itemMap.put("totalPrice", null);
     var items = List.of(itemMap);
 
-    var result = helper.buildReceiptItemDomains(receiptId, items);
+    var result = helper.buildReceiptItems(receiptId, items);
 
     assertEquals(1, result.size());
     var item = result.get(0);
@@ -206,14 +207,14 @@ class ReceiptEventHandlerHelperTest {
     assertNull(item.getTotalPrice());
   }
 
-  // --- saveReceiptItemDomains ---
+  // --- saveReceiptItems ---
 
   @Test
   void shouldSaveReceiptItemDomains() {
     var items =
         List.of(ReceiptItemDomain.builder().receiptId(receiptId).productName("Apple").build());
 
-    helper.saveReceiptItemDomains(items);
+    helper.saveReceiptItems(items);
 
     verify(receiptItemRepository).saveAll(items);
   }
@@ -222,7 +223,7 @@ class ReceiptEventHandlerHelperTest {
   void shouldSaveEmptyReceiptItemDomains() {
     var items = Collections.<ReceiptItemDomain>emptyList();
 
-    helper.saveReceiptItemDomains(items);
+    helper.saveReceiptItems(items);
 
     verify(receiptItemRepository).saveAll(items);
   }

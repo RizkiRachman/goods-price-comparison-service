@@ -5,6 +5,7 @@ import com.example.goodsprice.common.constant.ErrorCodes;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.repository.GenericRepositoryPort;
 import com.example.goodsprice.common.service.AbstractGenericService;
+import com.example.goodsprice.common.util.CollectorUtils;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
@@ -17,7 +18,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -90,7 +90,7 @@ public class PriceService extends AbstractGenericService<PriceDomain, Long> impl
   @Override
   public Map<Long, PriceDomain> findCheapestByProducts(List<Long> productIds) {
     return priceRepository.findCheapestByProductIds(productIds).stream()
-        .collect(Collectors.toMap(PriceDomain::getProductId, Function.identity(), (a, b) -> a));
+        .collect(CollectorUtils.toIdentityMap(PriceDomain::getProductId, (a, b) -> a));
   }
 
   @Override

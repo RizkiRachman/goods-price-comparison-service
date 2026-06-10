@@ -1,6 +1,7 @@
 package com.example.goodsprice.shopping.application.domain.service.optimize;
 
 import com.example.goodsprice.common.constant.UnitConstants;
+import com.example.goodsprice.common.util.CollectorUtils;
 import com.example.goodsprice.common.util.Pipeline;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
@@ -54,7 +55,8 @@ public class ShoppingOptimizer {
   private ShoppingContext resolveProducts(ShoppingContext ctx) {
     ctx.products = productInPort.findAllByNames(ctx.itemNames);
 
-    ctx.productById = ctx.products.stream().collect(Collectors.toMap(ProductDomain::getId, p -> p));
+    ctx.productById =
+        ctx.products.stream().collect(CollectorUtils.toIdentityMap(ProductDomain::getId));
     return ctx;
   }
 
@@ -112,8 +114,7 @@ public class ShoppingOptimizer {
             .collect(Collectors.toCollection(LinkedHashSet::new));
 
     List<StoreDomain> stores = storeRepository.findAllById(new ArrayList<>(storeIdSet));
-    ctx.storeById =
-        stores.stream().collect(Collectors.toMap(StoreDomain::getId, storeDomain -> storeDomain));
+    ctx.storeById = stores.stream().collect(CollectorUtils.toIdentityMap(StoreDomain::getId));
     return ctx;
   }
 
