@@ -11,7 +11,6 @@ import com.example.goodsprice.product.infrastructure.adapter.persistence.entity.
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -24,23 +23,9 @@ public class ProductRepositoryAdapter
   private final ProductMapper mapper;
 
   public ProductRepositoryAdapter(JpaProductRepository jpaRepo, ProductMapper mapper) {
+    super(jpaRepo, mapper::toEntity, mapper::toDomain);
     this.jpaRepo = jpaRepo;
     this.mapper = mapper;
-  }
-
-  @Override
-  protected JpaRepository<ProductEntity, Long> getJpaRepository() {
-    return jpaRepo;
-  }
-
-  @Override
-  protected ProductEntity toEntity(ProductDomain domain) {
-    return mapper.toEntity(domain);
-  }
-
-  @Override
-  protected ProductDomain toDomain(ProductEntity entity) {
-    return mapper.toDomain(entity);
   }
 
   @Override

@@ -6,12 +6,9 @@ import com.example.goodsprice.receipt.application.port.out.ReceiptRepositoryPort
 import com.example.goodsprice.receipt.infrastructure.adapter.persistence.entity.ReceiptEntity;
 import java.util.Objects;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
-@RequiredArgsConstructor
 public class ReceiptRepositoryAdapter
     extends AbstractRepositoryAdapter<ReceiptDomain, UUID, ReceiptEntity>
     implements ReceiptRepositoryPort {
@@ -19,19 +16,10 @@ public class ReceiptRepositoryAdapter
   private final JpaReceiptRepository jpaRepo;
   private final ReceiptMapper mapper;
 
-  @Override
-  protected JpaRepository<ReceiptEntity, UUID> getJpaRepository() {
-    return jpaRepo;
-  }
-
-  @Override
-  protected ReceiptEntity toEntity(ReceiptDomain domain) {
-    return mapper.toEntity(domain);
-  }
-
-  @Override
-  protected ReceiptDomain toDomain(ReceiptEntity entity) {
-    return mapper.toDomain(entity);
+  public ReceiptRepositoryAdapter(JpaReceiptRepository jpaRepo, ReceiptMapper mapper) {
+    super(jpaRepo, mapper::toEntity, mapper::toDomain);
+    this.jpaRepo = jpaRepo;
+    this.mapper = mapper;
   }
 
   @Override

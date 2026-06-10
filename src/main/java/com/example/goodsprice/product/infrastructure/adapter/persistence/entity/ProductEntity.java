@@ -1,5 +1,6 @@
 package com.example.goodsprice.product.infrastructure.adapter.persistence.entity;
 
+import com.example.goodsprice.common.persistence.BaseTimestampEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -9,16 +10,16 @@ import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "products")
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductEntity {
+@Table(name = "products")
+public class ProductEntity extends BaseTimestampEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,14 +40,6 @@ public class ProductEntity {
 
   @Column(name = "status")
   private String status;
-
-  @CreationTimestamp
-  @Column(name = "created_at", updatable = false)
-  private LocalDateTime createdAt;
-
-  @UpdateTimestamp
-  @Column(name = "updated_at")
-  private LocalDateTime updatedAt;
 
   @Column(name = "last_price_update")
   private LocalDateTime lastPriceUpdate;

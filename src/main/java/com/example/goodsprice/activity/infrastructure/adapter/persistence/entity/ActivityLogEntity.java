@@ -2,6 +2,7 @@ package com.example.goodsprice.activity.infrastructure.adapter.persistence.entit
 
 import com.example.goodsprice.activity.application.domain.model.ActivityLogAction;
 import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
+import com.example.goodsprice.common.persistence.BaseTimestampEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,20 +11,19 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "activity_logs")
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ActivityLogEntity {
+@Table(name = "activity_logs")
+public class ActivityLogEntity extends BaseTimestampEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -39,12 +39,4 @@ public class ActivityLogEntity {
 
   @Column(name = "description", columnDefinition = "TEXT")
   private String description;
-
-  @CreationTimestamp
-  @Column(name = "created_at", nullable = false, updatable = false)
-  private LocalDateTime createdAt;
-
-  @UpdateTimestamp
-  @Column(name = "updated_at", nullable = false)
-  private LocalDateTime updatedAt;
 }

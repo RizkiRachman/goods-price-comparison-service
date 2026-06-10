@@ -4,13 +4,14 @@ import com.example.goodsprice.alert.application.domain.model.AlertSubscription;
 import com.example.goodsprice.api.model.AlertSubscriptionResponse;
 import com.example.goodsprice.api.model.AlertSubscriptionResponse.StatusEnum;
 import com.example.goodsprice.common.util.ObjectUtils;
+import com.example.goodsprice.common.web.mapper.DtoMapperSupport;
 import java.util.Objects;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
 
-@Component
-public class AlertDtoMapper {
+@Mapper(componentModel = "spring")
+public interface AlertDtoMapper extends DtoMapperSupport {
 
-  public AlertSubscriptionResponse toResponse(AlertSubscription subscription, String message) {
+  default AlertSubscriptionResponse toResponse(AlertSubscription subscription, String message) {
     var response = new AlertSubscriptionResponse();
     response.setSubscriptionId(subscription.getId());
     response.setStatus(
@@ -23,7 +24,7 @@ public class AlertDtoMapper {
     return response;
   }
 
-  public static StatusEnum mapStatus(String status) {
+  static StatusEnum mapStatus(String status) {
     if (Objects.isNull(status)) return StatusEnum.ACTIVE;
     return switch (status) {
       case "PAUSED" -> StatusEnum.PAUSED;

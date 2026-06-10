@@ -9,12 +9,12 @@ import com.example.goodsprice.api.model.ActivityLog.TypeEnum;
 import com.example.goodsprice.common.web.mapper.DtoMapperSupport;
 import java.time.ZoneOffset;
 import java.util.Objects;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
 
-@Component
-public class ActivityLogDtoMapper implements DtoMapperSupport {
+@Mapper(componentModel = "spring")
+public interface ActivityLogDtoMapper extends DtoMapperSupport {
 
-  public ActivityLog toApiModel(ActivityLogDomain domain) {
+  default ActivityLog toApiModel(ActivityLogDomain domain) {
     return mapIfNotNull(
         domain,
         d -> {

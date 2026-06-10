@@ -10,14 +10,12 @@ import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import java.time.ZoneOffset;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
 
-@Component
-@RequiredArgsConstructor
-public class PriceDtoMapper {
+@Mapper(componentModel = "spring")
+public interface PriceDtoMapper {
 
-  public PriceRecord toPriceRecord(PriceDomain price, StoreDomain store) {
+  default PriceRecord toPriceRecord(PriceDomain price, StoreDomain store) {
     var record = new PriceRecord();
     record.setId(price.getId());
     record.setProductId(price.getProductId());
@@ -34,7 +32,7 @@ public class PriceDtoMapper {
     return record;
   }
 
-  public PriceResult toResult(PriceDomain price, StoreDomain store) {
+  default PriceResult toResult(PriceDomain price, StoreDomain store) {
     var result = new PriceResult();
     result.setStoreId(price.getStoreId());
     result.setStoreName(ObjectUtils.getOrNull(store, StoreDomain::getName));
@@ -46,7 +44,7 @@ public class PriceDtoMapper {
     return result;
   }
 
-  public PriceResultV2 toResultV2(PriceDomain price, StoreDomain store) {
+  default PriceResultV2 toResultV2(PriceDomain price, StoreDomain store) {
     var result = new PriceResultV2();
     result.setStoreId(price.getStoreId());
     result.setStoreName(ObjectUtils.getOrNull(store, StoreDomain::getName));
@@ -59,7 +57,7 @@ public class PriceDtoMapper {
     return result;
   }
 
-  public CheapestPrice toCheapestPrice(PriceDomain cheapest, StoreDomain store) {
+  default CheapestPrice toCheapestPrice(PriceDomain cheapest, StoreDomain store) {
     var result = new CheapestPrice();
     result.setStoreName(ObjectUtils.getOrNull(store, StoreDomain::getName));
     result.setPrice(cheapest.getPrice());

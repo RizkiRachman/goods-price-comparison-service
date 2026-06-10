@@ -10,11 +10,12 @@ import com.example.goodsprice.api.model.ActivityLog.TypeEnum;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 @SuppressWarnings("checkstyle:MethodName")
 class ActivityLogDtoMapperTest {
 
-  private final ActivityLogDtoMapper mapper = new ActivityLogDtoMapper();
+  private final ActivityLogDtoMapper mapper = Mappers.getMapper(ActivityLogDtoMapper.class);
 
   @Test
   void shouldMapToApiModel() {

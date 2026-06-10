@@ -1,5 +1,6 @@
 package com.example.goodsprice.unit.infrastructure.adapter.persistence.entity;
 
+import com.example.goodsprice.common.persistence.BaseTimestampEntity;
 import com.example.goodsprice.unit.application.domain.model.UnitType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,19 +8,18 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "units")
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class UnitEntity {
+@Table(name = "units")
+public class UnitEntity extends BaseTimestampEntity {
 
   @Id
   @Column(name = "id", length = 50)
@@ -40,12 +40,4 @@ public class UnitEntity {
 
   @Column(name = "status", length = 50)
   private String status;
-
-  @CreationTimestamp
-  @Column(name = "created_at", updatable = false)
-  private LocalDateTime createdAt;
-
-  @UpdateTimestamp
-  @Column(name = "updated_at")
-  private LocalDateTime updatedAt;
 }

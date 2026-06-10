@@ -1,5 +1,6 @@
 package com.example.goodsprice.receipt.infrastructure.adapter.persistence.entity;
 
+import com.example.goodsprice.common.persistence.BaseTimestampEntity;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,16 +14,16 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "receipts")
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReceiptEntity {
+@Table(name = "receipts")
+public class ReceiptEntity extends BaseTimestampEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -56,14 +57,6 @@ public class ReceiptEntity {
 
   @Column(name = "extracted_data", columnDefinition = "TEXT")
   private String extractedDataJson;
-
-  @CreationTimestamp
-  @Column(name = "created_at", updatable = false)
-  private LocalDateTime createdAt;
-
-  @UpdateTimestamp
-  @Column(name = "updated_at")
-  private LocalDateTime updatedAt;
 
   @Column(name = "image_data", columnDefinition = "BYTEA")
   private byte[] imageData;

@@ -10,10 +10,11 @@ import com.example.goodsprice.receipt.infrastructure.adapter.persistence.entity.
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 class ReceiptMapperTest {
 
-  private final ReceiptMapper mapper = new ReceiptMapper();
+  private final ReceiptMapper mapper = Mappers.getMapper(ReceiptMapper.class);
 
   @Test
   void shouldMapDomainToEntity() {

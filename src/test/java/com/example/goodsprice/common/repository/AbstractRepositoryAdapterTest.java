@@ -76,25 +76,8 @@ class AbstractRepositoryAdapterTest {
   private static final class TestRepositoryAdapter
       extends AbstractRepositoryAdapter<String, Long, String> {
 
-    private final JpaRepository<String, Long> repository;
-
     TestRepositoryAdapter(JpaRepository<String, Long> repository) {
-      this.repository = repository;
-    }
-
-    @Override
-    protected JpaRepository<String, Long> getJpaRepository() {
-      return repository;
-    }
-
-    @Override
-    protected String toEntity(String domain) {
-      return "entity";
-    }
-
-    @Override
-    protected String toDomain(String entity) {
-      return "MAPPED(" + entity + ")";
+      super(repository, domain -> "entity", entity -> "MAPPED(" + entity + ")");
     }
   }
 }

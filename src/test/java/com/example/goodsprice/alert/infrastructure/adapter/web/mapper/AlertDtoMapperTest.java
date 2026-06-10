@@ -5,11 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.example.goodsprice.alert.application.domain.model.AlertSubscription;
 import com.example.goodsprice.api.model.AlertSubscriptionResponse.StatusEnum;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 @SuppressWarnings("checkstyle:MethodName")
 class AlertDtoMapperTest {
 
-  private final AlertDtoMapper mapper = new AlertDtoMapper();
+  private final AlertDtoMapper mapper = Mappers.getMapper(AlertDtoMapper.class);
 
   @Test
   void shouldMapToResponse() {

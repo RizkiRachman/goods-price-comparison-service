@@ -11,7 +11,6 @@ import com.example.goodsprice.feedbackquestion.infrastructure.adapter.persistenc
 import java.util.UUID;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -24,23 +23,9 @@ public class FeedbackQuestionRepositoryAdapter
 
   public FeedbackQuestionRepositoryAdapter(
       JpaFeedbackQuestionRepository jpaRepo, FeedbackQuestionMapper mapper) {
+    super(jpaRepo, mapper::toEntity, mapper::toDomain);
     this.jpaRepo = jpaRepo;
     this.mapper = mapper;
-  }
-
-  @Override
-  protected JpaRepository<FeedbackQuestionEntity, UUID> getJpaRepository() {
-    return jpaRepo;
-  }
-
-  @Override
-  protected FeedbackQuestionEntity toEntity(FeedbackQuestionDomain domain) {
-    return mapper.toEntity(domain);
-  }
-
-  @Override
-  protected FeedbackQuestionDomain toDomain(FeedbackQuestionEntity entity) {
-    return mapper.toDomain(entity);
   }
 
   @Override
