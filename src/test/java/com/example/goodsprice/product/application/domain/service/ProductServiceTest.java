@@ -136,7 +136,7 @@ class ProductServiceTest {
   void shouldFindAll() {
     when(productRepository.findAll()).thenReturn(List.of(product));
 
-    var result = productService.findAll();
+    var result = productService.findAllProducts();
 
     assertEquals(1, result.size());
   }

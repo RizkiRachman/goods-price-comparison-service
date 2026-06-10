@@ -136,7 +136,7 @@ public class ProductService extends AbstractGenericService<ProductDomain, Long>
   }
 
   @Override
-  public List<ProductDomain> findAll() {
+  public List<ProductDomain> findAllProducts() {
     return productRepository.findAll();
   }
 
