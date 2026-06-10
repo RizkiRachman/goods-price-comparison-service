@@ -6,6 +6,7 @@ import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.repository.GenericRepositoryPort;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 public abstract class AbstractGenericService<T, ID> {
@@ -39,6 +40,7 @@ public abstract class AbstractGenericService<T, ID> {
     return getRepository().findAll(pageRequest, search, status);
   }
 
+  @Transactional
   public void deleteById(ID id) {
     findById(id); // throws NotFoundException if not found
     getRepository().deleteById(id);

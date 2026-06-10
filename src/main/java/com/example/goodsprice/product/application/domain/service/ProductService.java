@@ -186,11 +186,4 @@ public class ProductService extends AbstractGenericService<ProductDomain, Long>
   public void updateLastPriceUpdate(Long productId, LocalDateTime lastPriceUpdate) {
     productRepository.updateLastPriceUpdate(productId, lastPriceUpdate);
   }
-
-  @Override
-  @Transactional
-  @ActivityLog
-  public void deleteById(Long id) {
-    super.deleteById(id);
-  }
 }

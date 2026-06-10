@@ -78,11 +78,4 @@ public class StoreService extends AbstractGenericService<StoreDomain, Long> impl
   public List<StoreDomain> findAllById(List<Long> ids) {
     return storeRepository.findAllById(ids);
   }
-
-  @Override
-  @Transactional
-  @ActivityLog
-  public void deleteById(Long id) {
-    super.deleteById(id);
-  }
 }

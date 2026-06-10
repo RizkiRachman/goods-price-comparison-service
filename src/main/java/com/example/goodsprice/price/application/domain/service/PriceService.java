@@ -138,13 +138,6 @@ public class PriceService extends AbstractGenericService<PriceDomain, Long> impl
   @Override
   @Transactional
   @ActivityLog
-  public void deleteById(Long id) {
-    super.deleteById(id);
-  }
-
-  @Override
-  @Transactional
-  @ActivityLog
   public PriceDomain update(
       Long id, Double price, Double unitPrice, LocalDate dateRecorded, Boolean isPromo) {
     var existing = findById(id);
