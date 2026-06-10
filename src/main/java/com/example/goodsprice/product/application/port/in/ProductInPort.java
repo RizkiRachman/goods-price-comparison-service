@@ -21,7 +21,7 @@ public interface ProductInPort {
 
   List<ProductDomain> findAllByNames(List<String> names);
 
-  List<ProductDomain> findAll();
+  List<ProductDomain> findAllProducts();
 
   PageResponse<ProductDomain> search(ProductSearchCriteria criteria);
 

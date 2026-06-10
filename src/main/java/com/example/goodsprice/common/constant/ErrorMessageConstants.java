@@ -18,5 +18,4 @@ public final class ErrorMessageConstants {
   public static final String UNIT_NOT_FOUND_MSG = "Unit not found with id: %s";
   public static final String FEEDBACK_QUESTION_NOT_FOUND_MSG =
       "Feedback question not found with id: %s";
-  public static final String ALERT_NOT_FOUND_MSG = "Alert subscription not found with id: %s";
 }

@@ -136,7 +136,7 @@ public class ProductService extends AbstractGenericService<ProductDomain, Long>
   }
 
   @Override
-  public List<ProductDomain> findAll() {
+  public List<ProductDomain> findAllProducts() {
     return productRepository.findAll();
   }
 
@@ -185,12 +185,5 @@ public class ProductService extends AbstractGenericService<ProductDomain, Long>
   @Override
   public void updateLastPriceUpdate(Long productId, LocalDateTime lastPriceUpdate) {
     productRepository.updateLastPriceUpdate(productId, lastPriceUpdate);
-  }
-
-  @Override
-  @Transactional
-  @ActivityLog
-  public void deleteById(Long id) {
-    super.deleteById(id);
   }
 }
