@@ -1,22 +1,22 @@
 package com.example.goodsprice.category.infrastructure.adapter.persistence.entity;
 
+import com.example.goodsprice.common.persistence.BaseTimestampEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "categories")
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class CategoryEntity {
+@Table(name = "categories")
+public class CategoryEntity extends BaseTimestampEntity {
 
   @Id
   @Column(name = "id", length = 50)
@@ -30,12 +30,4 @@ public class CategoryEntity {
 
   @Column(name = "status", length = 50)
   private String status;
-
-  @CreationTimestamp
-  @Column(name = "created_at", updatable = false)
-  private LocalDateTime createdAt;
-
-  @UpdateTimestamp
-  @Column(name = "updated_at")
-  private LocalDateTime updatedAt;
 }

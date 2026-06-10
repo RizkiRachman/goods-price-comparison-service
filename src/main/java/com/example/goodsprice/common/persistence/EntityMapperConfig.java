@@ -2,6 +2,7 @@ package com.example.goodsprice.common.persistence;
 
 import org.mapstruct.MapperConfig;
 import org.mapstruct.NullValueMappingStrategy;
+import org.mapstruct.ReportingPolicy;
 
 /**
  * Shared MapStruct mapper configuration for all persistence mappers (Entity ↔ Domain).
@@ -11,5 +12,6 @@ import org.mapstruct.NullValueMappingStrategy;
  */
 @MapperConfig(
     componentModel = "spring",
-    nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL)
+    nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL,
+    unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface EntityMapperConfig {}

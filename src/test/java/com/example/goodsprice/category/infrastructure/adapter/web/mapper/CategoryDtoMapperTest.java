@@ -5,11 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.example.goodsprice.api.model.Category;
 import com.example.goodsprice.category.application.domain.model.CategoryDomain;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 @SuppressWarnings("checkstyle:MethodName")
 class CategoryDtoMapperTest {
 
-  private final CategoryDtoMapper mapper = new CategoryDtoMapper();
+  private final CategoryDtoMapper mapper = Mappers.getMapper(CategoryDtoMapper.class);
 
   @Test
   void shouldMapToApiCategory() {

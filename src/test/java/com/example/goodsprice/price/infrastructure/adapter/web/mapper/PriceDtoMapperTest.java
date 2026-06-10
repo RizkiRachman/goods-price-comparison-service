@@ -15,6 +15,7 @@ import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 class PriceDtoMapperTest {
 
@@ -25,7 +26,7 @@ class PriceDtoMapperTest {
 
   @BeforeEach
   void setUp() {
-    mapper = new PriceDtoMapper();
+    mapper = Mappers.getMapper(PriceDtoMapper.class);
     price =
         PriceDomain.builder()
             .id(1L)

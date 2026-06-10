@@ -5,11 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.example.goodsprice.alert.application.domain.model.AlertSubscription;
 import com.example.goodsprice.alert.infrastructure.adapter.persistence.entity.AlertSubscriptionEntity;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 @SuppressWarnings("checkstyle:MethodName")
 class AlertMapperTest {
 
-  private final AlertMapper mapper = new AlertMapper();
+  private final AlertMapper mapper = Mappers.getMapper(AlertMapper.class);
 
   @Test
   void shouldMapDomainToEntity() {

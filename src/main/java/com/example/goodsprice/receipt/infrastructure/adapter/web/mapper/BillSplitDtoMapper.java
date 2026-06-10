@@ -6,6 +6,7 @@ import com.example.goodsprice.api.model.BillSplitOrderDetail;
 import com.example.goodsprice.api.model.BillSplitParticipant;
 import com.example.goodsprice.api.model.BillSplitRequest;
 import com.example.goodsprice.api.model.BillSplitResponse;
+import com.example.goodsprice.common.web.mapper.DtoMapperSupport;
 import com.example.goodsprice.receipt.application.domain.model.BillSplitItemDomain;
 import com.example.goodsprice.receipt.application.domain.model.BillSplitOrderDetailDomain;
 import com.example.goodsprice.receipt.application.domain.model.BillSplitParticipantDomain;
@@ -19,26 +20,30 @@ import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BillSplitDtoMapper {
+public class BillSplitDtoMapper implements DtoMapperSupport {
 
   public BillSplitRequestDomain toRequestDomain(BillSplitRequest request) {
-    if (Objects.isNull(request)) return null;
-    return BillSplitRequestDomain.builder()
-        .type(toDomainType(request.getType()))
-        .numberOfParticipants(request.getNumberOfParticipants())
-        .orders(toOrderDomain(request.getOrders()))
-        .build();
+    return mapIfNotNull(
+        request,
+        req ->
+            BillSplitRequestDomain.builder()
+                .type(toDomainType(req.getType()))
+                .numberOfParticipants(req.getNumberOfParticipants())
+                .orders(toOrderDomain(req.getOrders()))
+                .build());
   }
 
   public BillSplitResponse toResponseDto(BillSplitResponseDomain domain) {
-    if (Objects.isNull(domain)) return null;
-    return new BillSplitResponse()
-        .receiptId(domain.getReceiptId())
-        .type(toSpecType(domain.getType()))
-        .numberOfParticipants(domain.getNumberOfParticipants())
-        .totalAmount(domain.getTotalAmount())
-        .participants(toParticipantDtos(domain.getParticipants()))
-        .unassignedTotal(domain.getUnassignedTotal());
+    return mapIfNotNull(
+        domain,
+        d ->
+            new BillSplitResponse()
+                .receiptId(d.getReceiptId())
+                .type(toSpecType(d.getType()))
+                .numberOfParticipants(d.getNumberOfParticipants())
+                .totalAmount(d.getTotalAmount())
+                .participants(toParticipantDtos(d.getParticipants()))
+                .unassignedTotal(d.getUnassignedTotal()));
   }
 
   private BillSplitType toDomainType(BillSplitRequest.TypeEnum type) {
@@ -82,11 +87,13 @@ public class BillSplitDtoMapper {
   }
 
   private BillSplitParticipant toParticipantDto(BillSplitParticipantDomain participant) {
-    if (Objects.isNull(participant)) return null;
-    return new BillSplitParticipant()
-        .name(participant.getName())
-        .items(toItemDtos(participant.getItems()))
-        .subtotal(participant.getSubtotal());
+    return mapIfNotNull(
+        participant,
+        p ->
+            new BillSplitParticipant()
+                .name(p.getName())
+                .items(toItemDtos(p.getItems()))
+                .subtotal(p.getSubtotal()));
   }
 
   private List<BillSplitItem> toItemDtos(List<BillSplitItemDomain> items) {
@@ -95,12 +102,14 @@ public class BillSplitDtoMapper {
   }
 
   private BillSplitItem toItemDto(BillSplitItemDomain item) {
-    if (Objects.isNull(item)) return null;
-    return new BillSplitItem()
-        .productId(item.getProductId())
-        .productName(item.getProductName())
-        .quantity(item.getQuantity())
-        .unitPrice(item.getUnitPrice())
-        .subtotal(item.getSubtotal());
+    return mapIfNotNull(
+        item,
+        i ->
+            new BillSplitItem()
+                .productId(i.getProductId())
+                .productName(i.getProductName())
+                .quantity(i.getQuantity())
+                .unitPrice(i.getUnitPrice())
+                .subtotal(i.getSubtotal()));
   }
 }

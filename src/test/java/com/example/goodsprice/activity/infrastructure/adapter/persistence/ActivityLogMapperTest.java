@@ -9,11 +9,12 @@ import com.example.goodsprice.activity.infrastructure.adapter.persistence.entity
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 @SuppressWarnings("checkstyle:MethodName")
 class ActivityLogMapperTest {
 
-  private final ActivityLogMapper mapper = new ActivityLogMapper();
+  private final ActivityLogMapper mapper = Mappers.getMapper(ActivityLogMapper.class);
 
   @Test
   void shouldMapDomainToEntity() {

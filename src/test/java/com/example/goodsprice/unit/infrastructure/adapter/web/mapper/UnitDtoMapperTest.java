@@ -6,11 +6,12 @@ import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.unit.application.domain.model.UnitDomain;
 import com.example.goodsprice.unit.application.domain.model.UnitType;
 import org.junit.jupiter.api.Test;
+import org.mapstruct.factory.Mappers;
 
 @SuppressWarnings("checkstyle:MethodName")
 class UnitDtoMapperTest {
 
-  private final UnitDtoMapper mapper = new UnitDtoMapper();
+  private final UnitDtoMapper mapper = Mappers.getMapper(UnitDtoMapper.class);
 
   @Test
   void shouldMapToApiUnit() {

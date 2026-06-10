@@ -8,6 +8,7 @@ import com.example.goodsprice.common.util.DateUtils;
 import com.example.goodsprice.common.util.JsonUtils;
 import com.example.goodsprice.common.util.NumberUtils;
 import com.example.goodsprice.common.util.ObjectUtils;
+import com.example.goodsprice.common.web.mapper.DtoMapperSupport;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptItemDomain;
@@ -21,7 +22,7 @@ import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ReceiptDtoMapper {
+public class ReceiptDtoMapper implements DtoMapperSupport {
 
   public Status toStatus(ReceiptStatus domainStatus) {
     if (Objects.isNull(domainStatus)) return Status.PENDING;
@@ -47,45 +48,53 @@ public class ReceiptDtoMapper {
   }
 
   public ReceiptResultResponse toResultResponse(ReceiptDomain receipt) {
-    if (Objects.isNull(receipt)) return null;
-    var response = new ReceiptResultResponse();
-    response.setReceiptId(receipt.getId());
-    response.setStoreName(receipt.getStoreName());
-    response.setStoreLocation(receipt.getStoreLocation());
-    response.setTotalAmount(ObjectUtils.getOrNull(receipt.getTotalAmount(), d -> d.doubleValue()));
-    response.setDate(parseDate(receipt.getReceiptDate()));
-    var rawItems = JsonUtils.extractItems(receipt.getExtractedDataJson());
-    response.setItems(rawItems.stream().map(this::toItem).filter(Objects::nonNull).toList());
-    return response;
+    return mapIfNotNull(
+        receipt,
+        r -> {
+          var response = new ReceiptResultResponse();
+          response.setReceiptId(r.getId());
+          response.setStoreName(r.getStoreName());
+          response.setStoreLocation(r.getStoreLocation());
+          response.setTotalAmount(ObjectUtils.getOrNull(r.getTotalAmount(), d -> d.doubleValue()));
+          response.setDate(parseDate(r.getReceiptDate()));
+          var rawItems = JsonUtils.extractItems(r.getExtractedDataJson());
+          response.setItems(rawItems.stream().map(this::toItem).filter(Objects::nonNull).toList());
+          return response;
+        });
   }
 
   public ReceiptCreateDomain toCreateDomain(ReceiptCreateRequest request) {
-    if (Objects.isNull(request)) return null;
-    List<ReceiptItemDomain> items;
-    if (Objects.isNull(request.getItems())) {
-      items = Collections.emptyList();
-    } else {
-      items = request.getItems().stream().map(this::toItemDomain).toList();
-    }
-    return ReceiptCreateDomain.builder()
-        .receiptDate(DateUtils.format(request.getDate(), DateUtils.ISO_DATE))
-        .items(items)
-        .storeName(request.getStoreName())
-        .storeLocation(request.getStoreLocation())
-        .totalAmount(ObjectUtils.getOrNull(request.getTotalAmount(), BigDecimal::valueOf))
-        .build();
+    return mapIfNotNull(
+        request,
+        req -> {
+          List<ReceiptItemDomain> items;
+          if (Objects.isNull(req.getItems())) {
+            items = Collections.emptyList();
+          } else {
+            items = req.getItems().stream().map(this::toItemDomain).toList();
+          }
+          return ReceiptCreateDomain.builder()
+              .receiptDate(DateUtils.format(req.getDate(), DateUtils.ISO_DATE))
+              .items(items)
+              .storeName(req.getStoreName())
+              .storeLocation(req.getStoreLocation())
+              .totalAmount(ObjectUtils.getOrNull(req.getTotalAmount(), BigDecimal::valueOf))
+              .build();
+        });
   }
 
   public ReceiptItemDomain toItemDomain(ReceiptItem item) {
-    if (Objects.isNull(item)) return null;
-    return ReceiptItemDomain.builder()
-        .productName(item.getProductName())
-        .unitPrice(item.getUnitPrice())
-        .unit(item.getUnit())
-        .totalPrice(item.getTotalPrice())
-        .quantity(item.getQuantity())
-        .category(item.getCategory())
-        .build();
+    return mapIfNotNull(
+        item,
+        i ->
+            ReceiptItemDomain.builder()
+                .productName(i.getProductName())
+                .unitPrice(i.getUnitPrice())
+                .unit(i.getUnit())
+                .totalPrice(i.getTotalPrice())
+                .quantity(i.getQuantity())
+                .category(i.getCategory())
+                .build());
   }
 
   private LocalDate parseDate(String dateStr) {

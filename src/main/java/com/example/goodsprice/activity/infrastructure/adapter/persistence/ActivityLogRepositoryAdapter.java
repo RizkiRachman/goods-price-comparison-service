@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,23 +30,9 @@ public class ActivityLogRepositoryAdapter
 
   public ActivityLogRepositoryAdapter(
       JpaActivityLogRepository jpaRepository, ActivityLogMapper mapper) {
+    super(jpaRepository, mapper::toEntity, mapper::toDomain);
     this.jpaRepository = jpaRepository;
     this.mapper = mapper;
-  }
-
-  @Override
-  protected JpaRepository<ActivityLogEntity, UUID> getJpaRepository() {
-    return jpaRepository;
-  }
-
-  @Override
-  protected ActivityLogEntity toEntity(ActivityLogDomain domain) {
-    return mapper.toEntity(domain);
-  }
-
-  @Override
-  protected ActivityLogDomain toDomain(ActivityLogEntity entity) {
-    return mapper.toDomain(entity);
   }
 
   @Override

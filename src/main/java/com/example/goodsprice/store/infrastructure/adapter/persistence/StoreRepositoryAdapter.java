@@ -15,7 +15,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -27,23 +26,9 @@ public class StoreRepositoryAdapter
   private final StoreMapper mapper;
 
   public StoreRepositoryAdapter(JpaStoreRepository jpaRepo, StoreMapper mapper) {
+    super(jpaRepo, mapper::toEntity, mapper::toDomain);
     this.jpaRepo = jpaRepo;
     this.mapper = mapper;
-  }
-
-  @Override
-  protected JpaRepository<StoreEntity, Long> getJpaRepository() {
-    return jpaRepo;
-  }
-
-  @Override
-  protected StoreEntity toEntity(StoreDomain domain) {
-    return mapper.toEntity(domain);
-  }
-
-  @Override
-  protected StoreDomain toDomain(StoreEntity entity) {
-    return mapper.toDomain(entity);
   }
 
   @Override

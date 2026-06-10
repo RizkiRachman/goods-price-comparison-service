@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -27,23 +26,9 @@ public class CategoryRepositoryAdapter
   private final CategoryMapper mapper;
 
   public CategoryRepositoryAdapter(JpaCategoryRepository jpaRepo, CategoryMapper mapper) {
+    super(jpaRepo, mapper::toEntity, mapper::toDomain);
     this.jpaRepo = jpaRepo;
     this.mapper = mapper;
-  }
-
-  @Override
-  protected JpaRepository<CategoryEntity, String> getJpaRepository() {
-    return jpaRepo;
-  }
-
-  @Override
-  protected CategoryEntity toEntity(CategoryDomain domain) {
-    return mapper.toEntity(domain);
-  }
-
-  @Override
-  protected CategoryDomain toDomain(CategoryEntity entity) {
-    return mapper.toDomain(entity);
   }
 
   @Override

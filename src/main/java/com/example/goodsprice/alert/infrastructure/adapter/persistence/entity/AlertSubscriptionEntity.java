@@ -1,22 +1,22 @@
 package com.example.goodsprice.alert.infrastructure.adapter.persistence.entity;
 
+import com.example.goodsprice.common.persistence.BaseTimestampEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-@Table(name = "alert_subscriptions")
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class AlertSubscriptionEntity {
+@Table(name = "alert_subscriptions")
+public class AlertSubscriptionEntity extends BaseTimestampEntity {
 
   @Id
   @Column(name = "id", length = 36)
@@ -42,12 +42,4 @@ public class AlertSubscriptionEntity {
 
   @Column(name = "status", length = 20, nullable = false)
   private String status;
-
-  @CreationTimestamp
-  @Column(name = "created_at", updatable = false)
-  private LocalDateTime createdAt;
-
-  @UpdateTimestamp
-  @Column(name = "updated_at")
-  private LocalDateTime updatedAt;
 }

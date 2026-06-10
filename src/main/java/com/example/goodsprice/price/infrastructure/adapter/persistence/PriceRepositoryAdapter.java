@@ -12,7 +12,6 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -25,23 +24,9 @@ public class PriceRepositoryAdapter
   private final PriceMapper mapper;
 
   public PriceRepositoryAdapter(JpaPriceRepository jpaRepo, PriceMapper mapper) {
+    super(jpaRepo, mapper::toEntity, mapper::toDomain);
     this.jpaRepo = jpaRepo;
     this.mapper = mapper;
-  }
-
-  @Override
-  protected JpaRepository<PriceEntity, Long> getJpaRepository() {
-    return jpaRepo;
-  }
-
-  @Override
-  protected PriceEntity toEntity(PriceDomain domain) {
-    return mapper.toEntity(domain);
-  }
-
-  @Override
-  protected PriceDomain toDomain(PriceEntity entity) {
-    return mapper.toDomain(entity);
   }
 
   @Override

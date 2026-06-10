@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,23 +24,9 @@ public class UnitRepositoryAdapter extends AbstractRepositoryAdapter<UnitDomain,
   private final UnitMapper mapper;
 
   public UnitRepositoryAdapter(JpaUnitRepository jpaRepo, UnitMapper mapper) {
+    super(jpaRepo, mapper::toEntity, mapper::toDomain);
     this.jpaRepo = jpaRepo;
     this.mapper = mapper;
-  }
-
-  @Override
-  protected JpaRepository<UnitEntity, String> getJpaRepository() {
-    return jpaRepo;
-  }
-
-  @Override
-  protected UnitEntity toEntity(UnitDomain domain) {
-    return mapper.toEntity(domain);
-  }
-
-  @Override
-  protected UnitDomain toDomain(UnitEntity entity) {
-    return mapper.toDomain(entity);
   }
 
   @Override

@@ -5,12 +5,12 @@ import com.example.goodsprice.api.model.Unit.TypeEnum;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.common.web.mapper.DtoMapperSupport;
 import com.example.goodsprice.unit.application.domain.model.UnitDomain;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
 
-@Component
-public class UnitDtoMapper implements DtoMapperSupport {
+@Mapper(componentModel = "spring")
+public interface UnitDtoMapper extends DtoMapperSupport {
 
-  public Unit toApiUnit(UnitDomain domain) {
+  default Unit toApiUnit(UnitDomain domain) {
     return mapIfNotNull(
         domain,
         d -> {

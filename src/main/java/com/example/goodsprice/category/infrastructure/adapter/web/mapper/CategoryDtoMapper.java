@@ -4,12 +4,12 @@ import com.example.goodsprice.api.model.Category;
 import com.example.goodsprice.category.application.domain.model.CategoryDomain;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.common.web.mapper.DtoMapperSupport;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
 
-@Component
-public class CategoryDtoMapper implements DtoMapperSupport {
+@Mapper(componentModel = "spring")
+public interface CategoryDtoMapper extends DtoMapperSupport {
 
-  public Category toApiCategory(CategoryDomain domain) {
+  default Category toApiCategory(CategoryDomain domain) {
     return mapIfNotNull(
         domain,
         d -> {
