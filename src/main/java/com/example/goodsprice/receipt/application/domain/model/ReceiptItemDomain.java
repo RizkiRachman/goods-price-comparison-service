@@ -1,5 +1,6 @@
 package com.example.goodsprice.receipt.application.domain.model;
 
+import java.util.UUID;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,6 +10,8 @@ import lombok.Setter;
 @Builder
 public class ReceiptItemDomain {
 
+  private Long id;
+  private UUID receiptId;
   private String productName;
   private String category;
   private Double quantity;

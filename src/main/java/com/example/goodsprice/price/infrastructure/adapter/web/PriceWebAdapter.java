@@ -14,6 +14,7 @@ import com.example.goodsprice.api.model.UpdatePriceRecordRequest;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.util.ObjectUtils;
+import com.example.goodsprice.common.util.StoreMapBuilder;
 import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
@@ -27,8 +28,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -79,12 +78,9 @@ public class PriceWebAdapter extends AbstractCrudWebAdapter {
       Integer size,
       String sortBy,
       String sortDirection) {
+    var params = resolvePagination(page, size, sortBy, sortDirection, "dateRecorded", "desc");
     var pageRequest =
-        new PageRequestDto(
-            ObjectUtils.getOrDefault(page, p -> p, 0),
-            ObjectUtils.getOrDefault(size, s -> s, 20),
-            ObjectUtils.getOrDefault(sortBy, s -> s, "dateRecorded"),
-            ObjectUtils.getOrDefault(sortDirection, s -> s, "desc"));
+        new PageRequestDto(params.page(), params.size(), params.sortBy(), params.sortOrder());
     var criteria =
         new PriceCriteria(
             productId,
@@ -96,7 +92,15 @@ public class PriceWebAdapter extends AbstractCrudWebAdapter {
 
     var pageResponse = priceInPort.searchByProduct(criteria);
 
-    var storeMap = fetchStoresMap(pageResponse.content());
+    var storeMap =
+        StoreMapBuilder.buildFromIds(
+            pageResponse.content().stream()
+                .map(PriceDomain::getStoreId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList(),
+            storeInPort::findAllById,
+            StoreDomain::getId);
     var records =
         pageResponse.content().stream()
             .map(p -> mapper.toPriceRecord(p, storeMap.get(p.getStoreId())))
@@ -120,32 +124,50 @@ public class PriceWebAdapter extends AbstractCrudWebAdapter {
 
   public PriceSearchResponse search(PriceSearchRequest request) {
     var ctx = resolveRequest(request.getProductName(), request.getDateRange());
-    return (PriceSearchResponse) doSearch(ctx, false);
+    return doSearchV1(ctx);
   }
 
   public PriceSearchResponseV2 searchV2(PriceSearchRequestV2 request) {
     var ctx = resolveRequest(request.getProductName(), request.getDateRange());
-    return (PriceSearchResponseV2) doSearch(ctx, true);
+    return doSearchV2(ctx);
   }
 
-  private Object doSearch(SearchContext ctx, boolean isV2) {
-    var storeMap = fetchStoresMap(ctx.prices);
-
-    if (isV2) {
-      var results =
-          ctx.prices.stream().map(p -> mapper.toResultV2(p, storeMap.get(p.getStoreId()))).toList();
-      var cheapest = buildCheapest(ctx.product.getId(), ctx.prices, storeMap, false);
-      var response = new PriceSearchResponseV2();
-      response.productName(ctx.product.getName());
-      response.setResults(results);
-      response.setCheapest(cheapest);
-      return response;
-    }
+  private PriceSearchResponse doSearchV1(SearchContext ctx) {
+    var storeMap =
+        StoreMapBuilder.buildFromIds(
+            ctx.prices.stream()
+                .map(PriceDomain::getStoreId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList(),
+            storeInPort::findAllById,
+            StoreDomain::getId);
 
     var results =
         ctx.prices.stream().map(p -> mapper.toResult(p, storeMap.get(p.getStoreId()))).toList();
     var cheapest = buildCheapest(ctx.product.getId(), ctx.prices, storeMap, true);
     var response = new PriceSearchResponse();
+    response.productName(ctx.product.getName());
+    response.setResults(results);
+    response.setCheapest(cheapest);
+    return response;
+  }
+
+  private PriceSearchResponseV2 doSearchV2(SearchContext ctx) {
+    var storeMap =
+        StoreMapBuilder.buildFromIds(
+            ctx.prices.stream()
+                .map(PriceDomain::getStoreId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList(),
+            storeInPort::findAllById,
+            StoreDomain::getId);
+
+    var results =
+        ctx.prices.stream().map(p -> mapper.toResultV2(p, storeMap.get(p.getStoreId()))).toList();
+    var cheapest = buildCheapest(ctx.product.getId(), ctx.prices, storeMap, false);
+    var response = new PriceSearchResponseV2();
     response.productName(ctx.product.getName());
     response.setResults(results);
     response.setCheapest(cheapest);
@@ -167,14 +189,6 @@ public class PriceWebAdapter extends AbstractCrudWebAdapter {
     var toDate = ObjectUtils.getOrNull(dateRange, DateRange::getTo);
     var prices = priceInPort.searchByProduct(product.getId(), fromDate, toDate);
     return new SearchContext(product, prices);
-  }
-
-  private Map<Long, StoreDomain> fetchStoresMap(List<PriceDomain> prices) {
-    var storeIds =
-        prices.stream().map(PriceDomain::getStoreId).filter(Objects::nonNull).distinct().toList();
-    if (storeIds.isEmpty()) return Map.of();
-    return storeInPort.findAllById(storeIds).stream()
-        .collect(Collectors.toMap(StoreDomain::getId, Function.identity()));
   }
 
   private CheapestPrice buildCheapest(

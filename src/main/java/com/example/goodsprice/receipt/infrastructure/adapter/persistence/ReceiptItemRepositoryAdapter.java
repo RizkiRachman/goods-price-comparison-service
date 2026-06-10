@@ -1,6 +1,6 @@
 package com.example.goodsprice.receipt.infrastructure.adapter.persistence;
 
-import com.example.goodsprice.receipt.application.domain.model.ReceiptItem;
+import com.example.goodsprice.receipt.application.domain.model.ReceiptItemDomain;
 import com.example.goodsprice.receipt.application.port.out.ReceiptItemRepositoryPort;
 import com.example.goodsprice.receipt.infrastructure.adapter.persistence.entity.ReceiptItemEntity;
 import java.util.List;
@@ -16,17 +16,17 @@ public class ReceiptItemRepositoryAdapter implements ReceiptItemRepositoryPort {
   private final JpaReceiptItemRepository jpaRepo;
 
   @Override
-  public void saveAll(List<ReceiptItem> items) {
+  public void saveAll(List<ReceiptItemDomain> items) {
     var entities = items.stream().map(this::toEntity).toList();
     jpaRepo.saveAll(entities);
   }
 
   @Override
-  public List<ReceiptItem> findByReceiptId(UUID receiptId) {
+  public List<ReceiptItemDomain> findByReceiptId(UUID receiptId) {
     return jpaRepo.findByReceiptId(receiptId).stream().map(this::toDomain).toList();
   }
 
-  private ReceiptItemEntity toEntity(ReceiptItem domain) {
+  private ReceiptItemEntity toEntity(ReceiptItemDomain domain) {
     if (Objects.isNull(domain)) return null;
     var entity = new ReceiptItemEntity();
     entity.setReceiptId(domain.getReceiptId());
@@ -39,9 +39,9 @@ public class ReceiptItemRepositoryAdapter implements ReceiptItemRepositoryPort {
     return entity;
   }
 
-  private ReceiptItem toDomain(ReceiptItemEntity entity) {
+  private ReceiptItemDomain toDomain(ReceiptItemEntity entity) {
     if (Objects.isNull(entity)) return null;
-    return ReceiptItem.builder()
+    return ReceiptItemDomain.builder()
         .id(entity.getId())
         .receiptId(entity.getReceiptId())
         .productName(entity.getProductName())

@@ -36,6 +36,7 @@ public abstract class AbstractGenericService<T, ID> {
     return saved;
   }
 
+  @Deprecated(forRemoval = true)
   public PageResponse<T> findAll(PageRequestDto pageRequest, String search, String status) {
     return getRepository().findAll(pageRequest, search, status);
   }

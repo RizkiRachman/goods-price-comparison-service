@@ -10,6 +10,7 @@ import com.example.goodsprice.api.model.ProductListResponse;
 import com.example.goodsprice.api.model.ProductTrendResponse;
 import com.example.goodsprice.api.model.UpdateProductRequest;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.util.CollectorUtils;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
@@ -22,7 +23,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -130,6 +130,6 @@ public class ProductWebAdapter {
 
     return summaries.stream()
         .filter(s -> Objects.nonNull(s.getProductId()))
-        .collect(Collectors.toMap(ProductPriceSummary::getProductId, Function.identity()));
+        .collect(CollectorUtils.toIdentityMap(ProductPriceSummary::getProductId));
   }
 }

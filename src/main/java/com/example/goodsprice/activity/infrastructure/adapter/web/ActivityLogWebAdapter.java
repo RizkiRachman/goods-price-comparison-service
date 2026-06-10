@@ -8,10 +8,10 @@ import com.example.goodsprice.activity.infrastructure.adapter.web.mapper.Activit
 import com.example.goodsprice.api.model.ActivityLog;
 import com.example.goodsprice.api.model.ActivityLogListResponse;
 import com.example.goodsprice.common.dto.PageRequestDto;
+import com.example.goodsprice.common.util.EnumParser;
+import com.example.goodsprice.common.util.LogSanitizer;
 import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
 import java.time.OffsetDateTime;
-import java.util.Locale;
-import java.util.Objects;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -56,28 +56,18 @@ public class ActivityLogWebAdapter extends AbstractCrudWebAdapter {
   }
 
   private static ActivityLogType parseType(String type) {
-    if (Objects.isNull(type) || type.isBlank()) return null;
-    try {
-      return ActivityLogType.valueOf(type.toUpperCase(Locale.ROOT));
-    } catch (IllegalArgumentException e) {
-      log.warn("Invalid activity log type filter: {}", sanitizeForLog(type));
-      return null;
-    }
+    return EnumParser.parse(
+        type,
+        ActivityLogType.class,
+        "activity log type",
+        msg -> log.warn("Invalid activity log type filter: {}", LogSanitizer.sanitize(msg, 100)));
   }
 
   private static ActivityLogAction parseAction(String action) {
-    if (Objects.isNull(action) || action.isBlank()) return null;
-    try {
-      return ActivityLogAction.valueOf(action.toUpperCase(Locale.ROOT));
-    } catch (IllegalArgumentException e) {
-      log.warn("Invalid activity log action filter: {}", sanitizeForLog(action));
-      return null;
-    }
-  }
-
-  private static String sanitizeForLog(String value) {
-    if (Objects.isNull(value)) return null;
-    var normalized = value.replaceAll("[^A-Za-z0-9._-]", "_");
-    return normalized.length() > 100 ? normalized.substring(0, 100) : normalized;
+    return EnumParser.parse(
+        action,
+        ActivityLogAction.class,
+        "activity log action",
+        msg -> log.warn("Invalid activity log action filter: {}", LogSanitizer.sanitize(msg, 100)));
   }
 }

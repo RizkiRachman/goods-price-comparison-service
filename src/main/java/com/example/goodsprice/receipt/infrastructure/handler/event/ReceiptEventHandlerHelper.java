@@ -6,7 +6,7 @@ import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
 import com.example.goodsprice.product.application.port.in.ProductInPort.ProductCreateItem;
-import com.example.goodsprice.receipt.application.domain.model.ReceiptItem;
+import com.example.goodsprice.receipt.application.domain.model.ReceiptItemDomain;
 import com.example.goodsprice.receipt.application.port.out.ReceiptItemRepositoryPort;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
@@ -33,7 +33,7 @@ public class ReceiptEventHandlerHelper {
   public StoreDomain resolveStore(String storeName) {
     if (Objects.isNull(storeName)) return null;
     var stores = storeRepository.findByName(storeName);
-    if (!stores.isEmpty()) return stores.get(0);
+    if (!stores.isEmpty()) return stores.getFirst();
     var store = StoreDomain.builder().name(storeName).build();
     return storeRepository.save(store);
   }
@@ -50,11 +50,12 @@ public class ReceiptEventHandlerHelper {
     return LocalDate.now();
   }
 
-  public List<ReceiptItem> buildReceiptItems(UUID receiptId, List<Map<String, Object>> items) {
+  public List<ReceiptItemDomain> buildReceiptItems(
+      UUID receiptId, List<Map<String, Object>> items) {
     return items.stream()
         .map(
             item ->
-                ReceiptItem.builder()
+                ReceiptItemDomain.builder()
                     .receiptId(receiptId)
                     .productName((String) item.get("productName"))
                     .category((String) item.get("category"))
@@ -66,7 +67,7 @@ public class ReceiptEventHandlerHelper {
         .toList();
   }
 
-  public void saveReceiptItems(List<ReceiptItem> items) {
+  public void saveReceiptItems(List<ReceiptItemDomain> items) {
     receiptItemRepository.saveAll(items);
   }
 

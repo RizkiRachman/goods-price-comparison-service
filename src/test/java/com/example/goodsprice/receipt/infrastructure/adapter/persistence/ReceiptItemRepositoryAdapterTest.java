@@ -6,7 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.goodsprice.receipt.application.domain.model.ReceiptItem;
+import com.example.goodsprice.receipt.application.domain.model.ReceiptItemDomain;
 import com.example.goodsprice.receipt.infrastructure.adapter.persistence.entity.ReceiptItemEntity;
 import java.util.List;
 import java.util.UUID;
@@ -27,7 +27,7 @@ class ReceiptItemRepositoryAdapterTest {
   void shouldSaveAllItems() {
     var items =
         List.of(
-            ReceiptItem.builder()
+            ReceiptItemDomain.builder()
                 .receiptId(UUID.randomUUID())
                 .productName("Apple")
                 .quantity(2.0)
@@ -83,8 +83,8 @@ class ReceiptItemRepositoryAdapterTest {
     var receiptId = UUID.randomUUID();
     var items =
         List.of(
-            ReceiptItem.builder().receiptId(receiptId).productName("Apple").build(),
-            ReceiptItem.builder().receiptId(receiptId).productName("Milk").build());
+            ReceiptItemDomain.builder().receiptId(receiptId).productName("Apple").build(),
+            ReceiptItemDomain.builder().receiptId(receiptId).productName("Milk").build());
 
     adapter.saveAll(items);
 

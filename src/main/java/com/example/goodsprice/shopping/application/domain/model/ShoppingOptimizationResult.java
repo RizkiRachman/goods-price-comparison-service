@@ -15,4 +15,13 @@ public class ShoppingOptimizationResult {
   private Integer storesToVisit;
   private List<StoreVisitDomain> route;
   private ShoppingSavingsDomain savings;
+
+  public static final ShoppingOptimizationResult EMPTY =
+      ShoppingOptimizationResult.builder()
+          .totalItems(0)
+          .totalCost(0.0)
+          .storesToVisit(0)
+          .route(List.of())
+          .savings(ShoppingSavingsDomain.ZERO)
+          .build();
 }

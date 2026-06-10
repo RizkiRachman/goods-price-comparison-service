@@ -7,6 +7,7 @@ import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,8 +22,6 @@ public class LlmService implements LlmInPort {
   private final LlmProviderPort llmProvider;
 
   private static final String LLM_RESPONSE_CACHE = "llm-responses";
-
-  private static final int HEX_PAD_LENGTH = 1;
 
   @Override
   @Cacheable(
@@ -46,11 +45,7 @@ public class LlmService implements LlmInPort {
     try {
       var digest = MessageDigest.getInstance("SHA-256");
       var hash = digest.digest(imageBase64.getBytes(StandardCharsets.UTF_8));
-      var hexString = new StringBuilder();
-      for (byte b : hash) {
-        hexString.append(String.format("%02x", b));
-      }
-      return hexString.toString();
+      return HexFormat.of().formatHex(hash);
     } catch (NoSuchAlgorithmException e) {
       log.warn("Failed to generate image hash, using fallback", e);
       return String.valueOf(imageBase64.hashCode());

@@ -12,15 +12,13 @@ import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
 import com.example.goodsprice.store.application.port.in.dto.UpdateStoreCriteria;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class StoreService extends AbstractGenericService<StoreDomain, Long> implements StoreInPort {
-
-  private static final Logger LOG = LoggerFactory.getLogger(StoreService.class);
 
   private final StoreRepositoryPort storeRepository;
 
@@ -48,7 +46,7 @@ public class StoreService extends AbstractGenericService<StoreDomain, Long> impl
             .longitude(criteria.getLongitude())
             .build();
     store = save(store);
-    LOG.info("Store created: {} (id: {})", criteria.getName(), store.getId());
+    log.info("Store created: {} (id: {})", criteria.getName(), store.getId());
     return store;
   }
 
@@ -70,7 +68,7 @@ public class StoreService extends AbstractGenericService<StoreDomain, Long> impl
     existing.setLongitude(criteria.getLongitude());
     existing.setStatus(criteria.getStatus());
     existing = save(existing);
-    LOG.info("Store updated: {} (id: {})", existing.getName(), criteria.getId());
+    log.info("Store updated: {} (id: {})", existing.getName(), criteria.getId());
     return existing;
   }
 

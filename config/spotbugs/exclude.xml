@@ -22,6 +22,12 @@
     <Class name="~.*\.dto\..*" />
   </Match>
 
+  <!-- Common web records: ListResponseData pagination field is generated fresh by PageResponse.toPagination() -->
+  <Match>
+    <Bug pattern="EI_EXPOSE_REP" />
+    <Class name="~.*\.common\.web\.AbstractCrudWebAdapter\$ListResponseData" />
+  </Match>
+
   <!-- Event records: byte[] exposure is intentional for async processing -->
   <Match>
     <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2" />

@@ -5,6 +5,7 @@ import com.example.goodsprice.common.constant.ErrorCodes;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.repository.GenericRepositoryPort;
 import com.example.goodsprice.common.service.AbstractGenericService;
+import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.common.util.ProductNameUtils;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
@@ -68,11 +69,7 @@ public class ProductService extends AbstractGenericService<ProductDomain, Long>
       log.debug("Product already exists: {} (id: {})", name, existing.getId());
       return existing;
     }
-
-    var product = ProductDomain.builder().name(name).category(category).unit(unit).build();
-    product = save(product);
-    log.info("Product created: {} (id: {})", name, product.getId());
-    return product;
+    return create(name, category, null, unit);
   }
 
   @Override
@@ -149,14 +146,14 @@ public class ProductService extends AbstractGenericService<ProductDomain, Long>
         storeIds = List.of(criteria.getStoreIdAsLong());
       } else {
         var foundIds = storeLookupInPort.findStoreIdsByName(criteria.getStoreId());
-        storeIds = Objects.nonNull(foundIds) ? foundIds : List.of();
+        storeIds = ObjectUtils.defaultIfNull(foundIds, List.of());
         if (storeIds.isEmpty()) {
           return PageResponse.of(List.of(), criteria.getPage(), criteria.getSize(), 0);
         }
       }
 
       var productIdsAtStore = productPriceQueryInPort.findProductIdsByStoreIds(storeIds);
-      var productIds = Objects.nonNull(productIdsAtStore) ? productIdsAtStore : List.<Long>of();
+      var productIds = ObjectUtils.defaultIfNull(productIdsAtStore, List.<Long>of());
 
       if (productIds.isEmpty()) {
         return PageResponse.of(List.of(), criteria.getPage(), criteria.getSize(), 0);

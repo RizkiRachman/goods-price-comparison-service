@@ -17,7 +17,6 @@ import com.example.goodsprice.receipt.application.port.in.ReceiptInPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptEventOutPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptRepositoryPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Base64;
 import java.util.List;
@@ -143,12 +142,8 @@ public class ReceiptService extends AbstractGenericService<ReceiptDomain, UUID>
       eventOutPort.publishReceiptProcessed(receipt);
       log.info("Receipt processing completed: {}", id);
 
-    } catch (IOException e) {
+    } catch (Exception e) {
       log.error("Receipt processing failed: {}", id, e);
-      receipt.markAsFailed("Processing error: " + e.getMessage());
-      save(receipt);
-    } catch (RuntimeException e) {
-      log.error("Error processing receipt {}: {}", id, e.getMessage(), e);
       receipt.markAsFailed("Processing error: " + e.getMessage());
       save(receipt);
     }

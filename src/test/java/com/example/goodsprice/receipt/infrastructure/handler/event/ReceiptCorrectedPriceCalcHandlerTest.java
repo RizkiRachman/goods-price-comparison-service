@@ -24,7 +24,7 @@ class ReceiptCorrectedPriceCalcHandlerTest {
     var receiptId = UUID.randomUUID();
     var event = new ReceiptCorrectedEvent(receiptId);
 
-    handler.handle(event);
+    handler.handleEvent(event);
 
     verify(priceSummaryEventOutPort).publishPriceSummaryUpdateRequested(receiptId);
   }
@@ -37,7 +37,7 @@ class ReceiptCorrectedPriceCalcHandlerTest {
         .when(priceSummaryEventOutPort)
         .publishPriceSummaryUpdateRequested(receiptId);
 
-    handler.handle(event);
+    handler.handleEvent(event);
     // Exception caught by try-catch, no rethrow
   }
 }
