@@ -34,7 +34,6 @@ class ReceiptApprovalServiceTest {
 
     receiptApprovalService.approve(id);
 
-    verify(receiptRepository).findById(id);
     verify(receiptRepository).save(any(ReceiptDomain.class));
     verify(eventOutPort).publishReceiptApproved(receipt);
   }

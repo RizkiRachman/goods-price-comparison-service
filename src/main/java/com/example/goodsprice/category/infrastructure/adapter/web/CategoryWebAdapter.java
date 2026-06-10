@@ -1,10 +1,6 @@
 package com.example.goodsprice.category.infrastructure.adapter.web;
 
 import static com.example.goodsprice.common.util.JsonNullableUtils.resolveNullable;
-import static com.example.goodsprice.common.util.PaginationUtils.resolvePage;
-import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
-import static com.example.goodsprice.common.util.PaginationUtils.resolveSortBy;
-import static com.example.goodsprice.common.util.PaginationUtils.resolveSortOrder;
 
 import com.example.goodsprice.api.model.Category;
 import com.example.goodsprice.api.model.CategoryListResponse;
@@ -14,7 +10,6 @@ import com.example.goodsprice.api.model.UpdateCategoryRequest;
 import com.example.goodsprice.category.application.port.in.CategoryInPort;
 import com.example.goodsprice.category.application.port.in.dto.CategoryCriteria;
 import com.example.goodsprice.category.infrastructure.adapter.web.mapper.CategoryDtoMapper;
-import com.example.goodsprice.common.constant.AppConstants;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
@@ -45,20 +40,18 @@ public class CategoryWebAdapter extends AbstractCrudWebAdapter {
       EntityStatus status,
       String sortBy,
       String sortOrder) {
+    var params = resolvePagination(page, pageSize, sortBy, sortOrder, "name", "asc");
     var pageRequest =
-        new PageRequestDto(
-            resolvePage(page, 1),
-            resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE),
-            resolveSortBy(sortBy, "name"),
-            resolveSortOrder(sortOrder, "asc"));
+        new PageRequestDto(params.page(), params.size(), params.sortBy(), params.sortOrder());
     var criteria =
         new CategoryCriteria(
             pageRequest, search, ObjectUtils.getOrNull(status, EntityStatus::getValue));
     var pageResponse = categoryInPort.findAll(criteria);
 
+    var dp = buildListResponse(pageResponse, mapper::toApiCategory);
     var response = new CategoryListResponse();
-    response.setData(pageResponse.content().stream().map(mapper::toApiCategory).toList());
-    response.setPagination(pageResponse.toPagination());
+    response.setData(dp.data());
+    response.setPagination(dp.pagination());
     return response;
   }
 

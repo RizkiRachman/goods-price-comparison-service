@@ -25,7 +25,10 @@ public class ReceiptApprovalService implements ReceiptApprovalInPort {
   @ActivityLog
   public void approve(UUID id) {
     var receipt = receiptRepository.findById(id);
-    if (Objects.isNull(receipt)) throw NotFoundException.receipt(id);
+
+    if (Objects.isNull(receipt)) {
+      throw NotFoundException.receipt(id);
+    }
 
     receipt.markAsApproved();
     receiptRepository.save(receipt);

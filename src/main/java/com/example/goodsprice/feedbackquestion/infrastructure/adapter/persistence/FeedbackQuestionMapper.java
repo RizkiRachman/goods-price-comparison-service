@@ -1,12 +1,12 @@
 package com.example.goodsprice.feedbackquestion.infrastructure.adapter.persistence;
 
+import com.example.goodsprice.common.persistence.EntityMapperConfig;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
 import com.example.goodsprice.feedbackquestion.infrastructure.adapter.persistence.entity.FeedbackQuestionEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.NullValueMappingStrategy;
 
-@Mapper(componentModel = "spring", nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL)
+@Mapper(config = EntityMapperConfig.class)
 public interface FeedbackQuestionMapper {
 
   @Mapping(target = "createdAt", ignore = true)
