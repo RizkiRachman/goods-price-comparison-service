@@ -21,6 +21,7 @@ public abstract class AbstractGenericService<T, ID> {
   protected abstract GenericRepositoryPort<T, ID> getRepository();
 
   public T findById(ID id) {
+    Objects.requireNonNull(id, "id must not be null");
     var entity = getRepository().findById(id);
     if (Objects.isNull(entity))
       throw new NotFoundException(
@@ -30,7 +31,7 @@ public abstract class AbstractGenericService<T, ID> {
 
   public T save(T entity) {
     var saved = getRepository().save(entity);
-    log.info("{} saved: {}", entityName, saved);
+    log.debug("{} saved", entityName);
     return saved;
   }
 
