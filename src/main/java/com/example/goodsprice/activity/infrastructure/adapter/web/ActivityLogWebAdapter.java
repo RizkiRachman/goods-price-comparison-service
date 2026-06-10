@@ -1,8 +1,5 @@
 package com.example.goodsprice.activity.infrastructure.adapter.web;
 
-import static com.example.goodsprice.common.util.PaginationUtils.resolvePage;
-import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
-
 import com.example.goodsprice.activity.application.domain.model.ActivityLogAction;
 import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
 import com.example.goodsprice.activity.application.port.in.ActivityLogInPort;
@@ -10,8 +7,8 @@ import com.example.goodsprice.activity.application.port.in.dto.ActivityLogCriter
 import com.example.goodsprice.activity.infrastructure.adapter.web.mapper.ActivityLogDtoMapper;
 import com.example.goodsprice.api.model.ActivityLog;
 import com.example.goodsprice.api.model.ActivityLogListResponse;
-import com.example.goodsprice.common.constant.AppConstants;
 import com.example.goodsprice.common.dto.PageRequestDto;
+import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
 import java.time.OffsetDateTime;
 import java.util.Locale;
 import java.util.Objects;
@@ -23,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ActivityLogWebAdapter {
+public class ActivityLogWebAdapter extends AbstractCrudWebAdapter {
 
   private final ActivityLogInPort activityLogInPort;
   private final ActivityLogDtoMapper mapper;
@@ -42,18 +39,19 @@ public class ActivityLogWebAdapter {
       String action,
       OffsetDateTime startDate,
       OffsetDateTime endDate) {
-    var pageValue = resolvePage(page, 1);
-    var sizeValue = resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE);
-    var pageRequest = new PageRequestDto(pageValue, sizeValue, sortBy, sortOrder);
+    var params = resolvePagination(page, pageSize, sortBy, sortOrder, "createdAt", "desc");
+    var pageRequest =
+        new PageRequestDto(params.page(), params.size(), params.sortBy(), params.sortOrder());
 
     var typeEnum = parseType(type);
     var actionEnum = parseAction(action);
     var criteria = new ActivityLogCriteria(pageRequest, typeEnum, actionEnum, startDate, endDate);
     var pageResponse = activityLogInPort.findAll(criteria);
 
+    var dp = buildListResponse(pageResponse, mapper::toApiModel);
     var response = new ActivityLogListResponse();
-    response.setData(pageResponse.content().stream().map(mapper::toApiModel).toList());
-    response.setPagination(pageResponse.toPagination());
+    response.setData(dp.data());
+    response.setPagination(dp.pagination());
     return response;
   }
 

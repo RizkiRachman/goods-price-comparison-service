@@ -6,8 +6,12 @@ import static com.example.goodsprice.common.util.PaginationUtils.resolveSortBy;
 import static com.example.goodsprice.common.util.PaginationUtils.resolveSortOrder;
 
 import com.example.goodsprice.api.model.EntityStatus;
+import com.example.goodsprice.api.model.Pagination;
 import com.example.goodsprice.common.constant.AppConstants;
+import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.util.ObjectUtils;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  * Utility base for web adapters reducing pagination and response boilerplate. Not fully generic due
@@ -16,28 +20,7 @@ import com.example.goodsprice.common.util.ObjectUtils;
 public class AbstractCrudWebAdapter {
 
   /**
-   * Resolves a standard pagination parameter tuple from nullable API inputs. Default sort order is
-   * "asc".
-   *
-   * @param page nullable page number
-   * @param pageSize nullable page size
-   * @param sortBy nullable sort field
-   * @param sortOrder nullable sort direction
-   * @param defaultSort fallback sort field
-   * @return resolved pagination parameters
-   */
-  protected PaginationParams resolvePagination(
-      Integer page, Integer pageSize, String sortBy, String sortOrder, String defaultSort) {
-    return new PaginationParams(
-        resolvePage(page, 1),
-        resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE),
-        resolveSortBy(sortBy, defaultSort),
-        resolveSortOrder(sortOrder, "asc"));
-  }
-
-  /**
-   * Resolves a standard pagination parameter tuple from nullable API inputs with a custom default
-   * sort order.
+   * Resolves a standard pagination parameter tuple from nullable API inputs.
    *
    * @param page nullable page number
    * @param pageSize nullable page size
@@ -80,4 +63,16 @@ public class AbstractCrudWebAdapter {
    * @param sortOrder resolved sort direction
    */
   protected record PaginationParams(int page, int size, String sortBy, String sortOrder) {}
+
+  protected record ListResponseData<R>(List<R> data, Pagination pagination) {
+    protected ListResponseData {
+      data = List.copyOf(data);
+    }
+  }
+
+  protected <D, R> ListResponseData<R> buildListResponse(
+      PageResponse<D> pageResponse, Function<D, R> mapper) {
+    var data = pageResponse.content().stream().map(mapper).toList();
+    return new ListResponseData<>(data, pageResponse.toPagination());
+  }
 }

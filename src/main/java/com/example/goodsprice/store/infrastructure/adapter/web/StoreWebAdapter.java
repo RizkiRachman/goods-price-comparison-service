@@ -74,9 +74,10 @@ public class StoreWebAdapter extends AbstractCrudWebAdapter {
 
     var pageResponse = storeInPort.findAll(criteria);
 
+    var dp = buildListResponse(pageResponse, mapper::toApiStore);
     var response = new StoreListResponse();
-    response.setData(pageResponse.content().stream().map(mapper::toApiStore).toList());
-    response.setPagination(pageResponse.toPagination());
+    response.setData(dp.data());
+    response.setPagination(dp.pagination());
     return response;
   }
 

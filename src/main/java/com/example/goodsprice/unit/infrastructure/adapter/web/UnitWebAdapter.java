@@ -1,19 +1,15 @@
 package com.example.goodsprice.unit.infrastructure.adapter.web;
 
 import static com.example.goodsprice.common.util.JsonNullableUtils.resolveNullable;
-import static com.example.goodsprice.common.util.PaginationUtils.resolvePage;
-import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
-import static com.example.goodsprice.common.util.PaginationUtils.resolveSortBy;
-import static com.example.goodsprice.common.util.PaginationUtils.resolveSortOrder;
 
 import com.example.goodsprice.api.model.CreateUnitRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Unit;
 import com.example.goodsprice.api.model.UnitListResponse;
 import com.example.goodsprice.api.model.UpdateUnitRequest;
-import com.example.goodsprice.common.constant.AppConstants;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.util.ObjectUtils;
+import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
 import com.example.goodsprice.unit.application.port.in.UnitInPort;
 import com.example.goodsprice.unit.application.port.in.dto.UnitCriteria;
 import com.example.goodsprice.unit.infrastructure.adapter.web.mapper.UnitDtoMapper;
@@ -22,7 +18,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class UnitWebAdapter {
+public class UnitWebAdapter extends AbstractCrudWebAdapter {
 
   private final UnitInPort unitInPort;
   private final UnitDtoMapper mapper;
@@ -50,21 +46,18 @@ public class UnitWebAdapter {
       EntityStatus status,
       String sortBy,
       String sortOrder) {
+    var params = resolvePagination(page, pageSize, sortBy, sortOrder, "name", "asc");
     var pageRequest =
-        new PageRequestDto(
-            resolvePage(page, 1),
-            resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE),
-            resolveSortBy(sortBy, "name"),
-            resolveSortOrder(sortOrder, "asc"));
+        new PageRequestDto(params.page(), params.size(), params.sortBy(), params.sortOrder());
     var criteria =
         new UnitCriteria(
             pageRequest, search, type, ObjectUtils.getOrNull(status, EntityStatus::getValue));
 
     var pageResponse = unitInPort.findAll(criteria);
-
+    var dp = buildListResponse(pageResponse, mapper::toApiUnit);
     var response = new UnitListResponse();
-    response.setData(pageResponse.content().stream().map(mapper::toApiUnit).toList());
-    response.setPagination(pageResponse.toPagination());
+    response.setData(dp.data());
+    response.setPagination(dp.pagination());
     return response;
   }
 

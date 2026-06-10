@@ -1,15 +1,10 @@
 package com.example.goodsprice.feedbackquestion.infrastructure.adapter.web;
 
-import static com.example.goodsprice.common.util.PaginationUtils.resolvePage;
-import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
-import static com.example.goodsprice.common.util.PaginationUtils.resolveSortBy;
-import static com.example.goodsprice.common.util.PaginationUtils.resolveSortOrder;
-
 import com.example.goodsprice.api.model.CreateFeedbackQuestionRequest;
 import com.example.goodsprice.api.model.FeedbackQuestion;
 import com.example.goodsprice.api.model.FeedbackQuestionListResponse;
-import com.example.goodsprice.common.constant.AppConstants;
 import com.example.goodsprice.common.dto.PageRequestDto;
+import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionType;
 import com.example.goodsprice.feedbackquestion.application.port.in.FeedbackQuestionInPort;
 import com.example.goodsprice.feedbackquestion.application.port.in.dto.FeedbackQuestionCriteria;
@@ -22,7 +17,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class FeedbackQuestionWebAdapter {
+public class FeedbackQuestionWebAdapter extends AbstractCrudWebAdapter {
 
   private final FeedbackQuestionInPort feedbackQuestionInPort;
   private final FeedbackQuestionDtoMapper mapper;
@@ -46,18 +41,16 @@ public class FeedbackQuestionWebAdapter {
 
   public FeedbackQuestionListResponse list(
       Integer page, Integer pageSize, String sortBy, String sortOrder) {
+    var params = resolvePagination(page, pageSize, sortBy, sortOrder, "createdAt", "desc");
     var pageRequest =
-        new PageRequestDto(
-            resolvePage(page, 1),
-            resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE),
-            resolveSortBy(sortBy, "createdAt"),
-            resolveSortOrder(sortOrder, "desc"));
+        new PageRequestDto(params.page(), params.size(), params.sortBy(), params.sortOrder());
     var criteria = new FeedbackQuestionCriteria(pageRequest, null, null);
     var pageResponse = feedbackQuestionInPort.findAll(criteria);
 
+    var dp = buildListResponse(pageResponse, mapper::toApiFeedbackQuestion);
     var response = new FeedbackQuestionListResponse();
-    response.setData(pageResponse.content().stream().map(mapper::toApiFeedbackQuestion).toList());
-    response.setPagination(pageResponse.toPagination());
+    response.setData(dp.data());
+    response.setPagination(dp.pagination());
     return response;
   }
 }

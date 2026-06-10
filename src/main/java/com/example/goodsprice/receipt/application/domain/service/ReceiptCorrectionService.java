@@ -33,7 +33,10 @@ public class ReceiptCorrectionService implements ReceiptCorrectionInPort {
   @ActivityLog
   public ReceiptDomain correct(UUID receiptId, ReceiptCorrectionDomain correction) {
     var receipt = receiptRepository.findById(receiptId);
-    if (Objects.isNull(receipt)) throw NotFoundException.receipt(receiptId);
+
+    if (Objects.isNull(receipt)) {
+      throw NotFoundException.receipt(receiptId);
+    }
 
     if (Objects.nonNull(correction.getStoreName())) receipt.setStoreName(correction.getStoreName());
     if (Objects.nonNull(correction.getStoreLocation()))

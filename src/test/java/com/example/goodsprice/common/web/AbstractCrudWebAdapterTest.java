@@ -18,7 +18,7 @@ class AbstractCrudWebAdapterTest {
 
   @Test
   void shouldResolvePaginationWithDefaults() {
-    var params = adapter.resolvePagination(null, null, null, null, "name");
+    var params = adapter.resolvePagination(null, null, null, null, "name", "asc");
 
     assertEquals(1, params.page());
     assertEquals(20, params.size());
@@ -28,7 +28,7 @@ class AbstractCrudWebAdapterTest {
 
   @Test
   void shouldResolvePaginationWithProvidedValues() {
-    var params = adapter.resolvePagination(3, 50, "price", "desc", "name");
+    var params = adapter.resolvePagination(3, 50, "price", "desc", "name", "asc");
 
     assertEquals(3, params.page());
     assertEquals(50, params.size());
@@ -38,7 +38,7 @@ class AbstractCrudWebAdapterTest {
 
   @Test
   void shouldResolvePaginationClampsSize() {
-    var params = adapter.resolvePagination(1, 500, "name", "asc", "name");
+    var params = adapter.resolvePagination(1, 500, "name", "asc", "name", "asc");
 
     assertEquals(100, params.size());
   }
@@ -55,7 +55,7 @@ class AbstractCrudWebAdapterTest {
 
   @Test
   void shouldResolvePaginationWithCustomDefaultSortOrder() {
-    var params = adapter.resolvePagination(2, 10, "price", "asc", "name");
+    var params = adapter.resolvePagination(2, 10, "price", "asc", "name", "asc");
 
     assertEquals(2, params.page());
     assertEquals(10, params.size());
@@ -80,26 +80,20 @@ class AbstractCrudWebAdapterTest {
 
   @Test
   void shouldResolvePaginationWithNegativePage() {
-    var params = adapter.resolvePagination(-1, 20, "name", "asc", "name");
+    var params = adapter.resolvePagination(-1, 20, "name", "asc", "name", "asc");
 
     assertEquals(1, params.page());
   }
 
   @Test
   void shouldResolvePaginationWithZeroSize() {
-    var params = adapter.resolvePagination(1, 0, "name", "asc", "name");
+    var params = adapter.resolvePagination(1, 0, "name", "asc", "name", "asc");
 
     assertEquals(20, params.size());
   }
 
   private static final class TestCrudWebAdapter extends AbstractCrudWebAdapter {
     // Exposes protected methods for testing
-    @Override
-    public PaginationParams resolvePagination(
-        Integer page, Integer pageSize, String sortBy, String sortOrder, String defaultSort) {
-      return super.resolvePagination(page, pageSize, sortBy, sortOrder, defaultSort);
-    }
-
     @Override
     public PaginationParams resolvePagination(
         Integer page,

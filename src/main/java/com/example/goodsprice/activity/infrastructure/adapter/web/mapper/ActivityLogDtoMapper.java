@@ -6,27 +6,31 @@ import com.example.goodsprice.activity.application.domain.model.ActivityLogType;
 import com.example.goodsprice.api.model.ActivityLog;
 import com.example.goodsprice.api.model.ActivityLog.ActionEnum;
 import com.example.goodsprice.api.model.ActivityLog.TypeEnum;
+import com.example.goodsprice.common.web.mapper.DtoMapperSupport;
 import java.time.ZoneOffset;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ActivityLogDtoMapper {
+public class ActivityLogDtoMapper implements DtoMapperSupport {
 
   public ActivityLog toApiModel(ActivityLogDomain domain) {
-    if (Objects.isNull(domain)) return null;
-    var result = new ActivityLog();
-    result.setId(domain.getId());
-    result.setType(toApiType(domain.getType()));
-    result.setAction(toApiAction(domain.getAction()));
-    result.setDescription(domain.getDescription());
-    if (Objects.nonNull(domain.getCreatedAt())) {
-      result.setCreatedAt(domain.getCreatedAt().atOffset(ZoneOffset.UTC));
-    }
-    if (Objects.nonNull(domain.getUpdatedAt())) {
-      result.setUpdatedAt(domain.getUpdatedAt().atOffset(ZoneOffset.UTC));
-    }
-    return result;
+    return mapIfNotNull(
+        domain,
+        d -> {
+          var result = new ActivityLog();
+          result.setId(d.getId());
+          result.setType(toApiType(d.getType()));
+          result.setAction(toApiAction(d.getAction()));
+          result.setDescription(d.getDescription());
+          if (Objects.nonNull(d.getCreatedAt())) {
+            result.setCreatedAt(d.getCreatedAt().atOffset(ZoneOffset.UTC));
+          }
+          if (Objects.nonNull(d.getUpdatedAt())) {
+            result.setUpdatedAt(d.getUpdatedAt().atOffset(ZoneOffset.UTC));
+          }
+          return result;
+        });
   }
 
   private static TypeEnum toApiType(ActivityLogType type) {
