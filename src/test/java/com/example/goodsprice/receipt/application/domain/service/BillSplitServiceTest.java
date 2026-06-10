@@ -12,9 +12,8 @@ import com.example.goodsprice.receipt.application.domain.model.BillSplitRequestD
 import com.example.goodsprice.receipt.application.domain.model.BillSplitRequestOrderDomain;
 import com.example.goodsprice.receipt.application.domain.model.BillSplitType;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptDomain;
-import com.example.goodsprice.receipt.application.domain.model.ReceiptItem;
 import com.example.goodsprice.receipt.application.port.in.ReceiptInPort;
-import com.example.goodsprice.receipt.application.port.out.ReceiptItemRepositoryPort;
+import com.example.goodsprice.receipt.application.port.out.ReceiptItemDomainRepositoryPort;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
@@ -146,8 +145,16 @@ class BillSplitServiceTest {
       when(receiptItemRepository.findByReceiptId(receiptId))
           .thenReturn(
               List.of(
-                  ReceiptItem.builder().productName("Apple").unitPrice(10.0).quantity(2.0).build(),
-                  ReceiptItem.builder().productName("Milk").unitPrice(5.0).quantity(1.0).build()));
+                  ReceiptItemDomain.builder()
+                      .productName("Apple")
+                      .unitPrice(10.0)
+                      .quantity(2.0)
+                      .build(),
+                  ReceiptItemDomain.builder()
+                      .productName("Milk")
+                      .unitPrice(5.0)
+                      .quantity(1.0)
+                      .build()));
 
       var request =
           BillSplitRequestDomain.builder()
@@ -213,7 +220,7 @@ class BillSplitServiceTest {
       when(receiptItemRepository.findByReceiptId(receiptId))
           .thenReturn(
               List.of(
-                  ReceiptItem.builder()
+                  ReceiptItemDomain.builder()
                       .productName("Apple")
                       .unitPrice(10.0)
                       .quantity(2.0)
@@ -295,7 +302,7 @@ class BillSplitServiceTest {
       when(receiptItemRepository.findByReceiptId(receiptId))
           .thenReturn(
               List.of(
-                  ReceiptItem.builder()
+                  ReceiptItemDomain.builder()
                       .productName("Apple")
                       .unitPrice(10.0)
                       .quantity(2.0)
@@ -334,7 +341,7 @@ class BillSplitServiceTest {
       when(receiptItemRepository.findByReceiptId(receiptId))
           .thenReturn(
               List.of(
-                  ReceiptItem.builder()
+                  ReceiptItemDomain.builder()
                       .productName("Apple")
                       .unitPrice(10.0)
                       .quantity(2.0)

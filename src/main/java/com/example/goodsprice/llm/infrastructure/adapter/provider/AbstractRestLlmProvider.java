@@ -18,6 +18,7 @@ import static com.example.goodsprice.llm.infrastructure.config.LlmConstants.GENE
 import static com.example.goodsprice.llm.infrastructure.config.LlmConstants.KEY_ERROR;
 import static com.example.goodsprice.llm.infrastructure.config.LlmConstants.KEY_RAW_TEXT;
 
+import com.example.goodsprice.common.util.LogSanitizer;
 import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
 import com.example.goodsprice.llm.infrastructure.config.LlmProperties;
 import com.example.goodsprice.llm.infrastructure.config.LlmProperties.ProviderConfig;
@@ -205,29 +206,15 @@ OUTPUT FORMAT (raw JSON, no markdown):
 
     } catch (Exception e) {
       log.error(
-          "Failed to parse {} response: {}", getProviderName(), sanitizeForLog(responseBody), e);
+          "Failed to parse {} response: {}",
+          getProviderName(),
+          LogSanitizer.sanitize(responseBody),
+          e);
       var fallback = new HashMap<String, Object>();
       fallback.put(KEY_RAW_TEXT, responseBody.toString());
       fallback.put(KEY_ERROR, "Failed to parse structured response: " + e.getMessage());
       return fallback;
     }
-  }
-
-  /**
-   * Sanitizes an object's string representation for safe logging by removing control characters.
-   *
-   * @param value the value to sanitize
-   * @return a sanitized string safe for log output
-   */
-  private String sanitizeForLog(Object value) {
-    if (Objects.isNull(value)) {
-      return "null";
-    }
-    return value
-        .toString()
-        .replace('\r', ' ')
-        .replace('\n', ' ')
-        .replaceAll("[\\p{Cntrl}&&[^\t]]", "");
   }
 
   @Override
