@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,21 +23,18 @@ public class ProductController implements ProductsApi {
 
   @Override
   public ResponseEntity<Product> createProduct(@Valid CreateProductRequest request) {
-    var product = adapter.create(request);
-    return ResponseEntity.ok(product);
+    return ResponseEntity.status(HttpStatus.CREATED).body(adapter.create(request));
   }
 
   @Override
   public ResponseEntity<Product> getProduct(Long id) {
-    var product = adapter.findById(id);
-    return ResponseEntity.ok(product);
+    return ResponseEntity.ok(adapter.findById(id));
   }
 
   @Override
   public ResponseEntity<ProductTrendResponse> getProductTrend(
       Long productId, LocalDate startDate, LocalDate endDate, String granularity) {
-    var response = adapter.getTrend(productId, startDate, endDate, granularity);
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(adapter.getTrend(productId, startDate, endDate, granularity));
   }
 
   @Override
@@ -55,7 +53,7 @@ public class ProductController implements ProductsApi {
       Double maxPrice,
       Boolean isPromo,
       String availability) {
-    var response =
+    return ResponseEntity.ok(
         adapter.list(
             page,
             pageSize,
@@ -66,14 +64,12 @@ public class ProductController implements ProductsApi {
             category,
             brand,
             includePrice,
-            Objects.nonNull(storeId) ? String.valueOf(storeId) : null);
-    return ResponseEntity.ok(response);
+            Objects.nonNull(storeId) ? String.valueOf(storeId) : null));
   }
 
   @Override
   public ResponseEntity<Product> updateProduct(Long id, @Valid UpdateProductRequest request) {
-    var product = adapter.update(id, request);
-    return ResponseEntity.ok(product);
+    return ResponseEntity.ok(adapter.update(id, request));
   }
 
   @Override

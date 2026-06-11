@@ -10,7 +10,6 @@ import com.example.goodsprice.api.model.UpdateCategoryRequest;
 import com.example.goodsprice.category.application.port.in.CategoryInPort;
 import com.example.goodsprice.category.application.port.in.dto.CategoryCriteria;
 import com.example.goodsprice.category.infrastructure.adapter.web.mapper.CategoryDtoMapper;
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
 import lombok.RequiredArgsConstructor;
@@ -41,8 +40,7 @@ public class CategoryWebAdapter extends AbstractCrudWebAdapter {
       String sortBy,
       String sortOrder) {
     var params = resolvePagination(page, pageSize, sortBy, sortOrder, "name", "asc");
-    var pageRequest =
-        new PageRequestDto(params.page(), params.size(), params.sortBy(), params.sortOrder());
+    var pageRequest = buildPageRequest(params);
     var criteria =
         new CategoryCriteria(
             pageRequest, search, ObjectUtils.getOrNull(status, EntityStatus::getValue));

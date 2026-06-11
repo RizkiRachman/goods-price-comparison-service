@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.example.goodsprice.api.model.EntityStatus;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -92,6 +93,17 @@ class AbstractCrudWebAdapterTest {
     assertEquals(20, params.size());
   }
 
+  @Test
+  void shouldBuildPageRequestFromPaginationParams() {
+    var params = new TestCrudWebAdapter.PaginationParams(2, 30, "name", "asc");
+    var pageRequest = adapter.buildPageRequest(params);
+
+    assertEquals(2, pageRequest.page());
+    assertEquals(30, pageRequest.size());
+    assertEquals("name", pageRequest.sortBy());
+    assertEquals("asc", pageRequest.sortDirection());
+  }
+
   private static final class TestCrudWebAdapter extends AbstractCrudWebAdapter {
     // Exposes protected methods for testing
     @Override
@@ -109,6 +121,11 @@ class AbstractCrudWebAdapterTest {
     @Override
     public String resolveStatus(EntityStatus status) {
       return super.resolveStatus(status);
+    }
+
+    @Override
+    public PageRequestDto buildPageRequest(PaginationParams params) {
+      return super.buildPageRequest(params);
     }
   }
 }

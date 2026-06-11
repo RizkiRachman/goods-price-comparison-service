@@ -26,8 +26,7 @@ public class ReceiptController implements ReceiptsApi {
 
   @Override
   public ResponseEntity<ReceiptUploadResponse> uploadReceipt(MultipartFile image) {
-    var response = adapter.upload(image);
-    return ResponseEntity.accepted().body(response);
+    return ResponseEntity.accepted().body(adapter.upload(image));
   }
 
   @Override
@@ -59,8 +58,7 @@ public class ReceiptController implements ReceiptsApi {
   @Override
   public ResponseEntity<ReceiptResultResponse> createReceipt(
       @Valid ReceiptCreateRequest receiptCreateRequest) {
-    var result = adapter.create(receiptCreateRequest);
-    return ResponseEntity.ok().body(result);
+    return ResponseEntity.ok(adapter.create(receiptCreateRequest));
   }
 
   @Override

@@ -17,8 +17,7 @@ public class ActivityLogController implements ActivityLogsApi {
 
   @Override
   public ResponseEntity<ActivityLog> getActivityLog(UUID id) {
-    var log = adapter.getById(id);
-    return ResponseEntity.ok(log);
+    return ResponseEntity.ok(adapter.getById(id));
   }
 
   @Override
@@ -31,7 +30,7 @@ public class ActivityLogController implements ActivityLogsApi {
       OffsetDateTime to,
       String sortBy,
       String sortOrder) {
-    var response = adapter.list(page, pageSize, sortBy, sortOrder, type, action, from, to);
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(
+        adapter.list(page, pageSize, sortBy, sortOrder, type, action, from, to));
   }
 }

@@ -49,7 +49,7 @@ class StoreControllerTest {
     var response = controller.createStore(request);
 
     assertNotNull(response);
-    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
     assertEquals(1L, response.getBody().getId());
     verify(adapter).create(request);
   }

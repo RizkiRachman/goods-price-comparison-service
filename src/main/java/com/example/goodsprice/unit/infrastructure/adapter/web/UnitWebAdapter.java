@@ -7,7 +7,6 @@ import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Unit;
 import com.example.goodsprice.api.model.UnitListResponse;
 import com.example.goodsprice.api.model.UpdateUnitRequest;
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
 import com.example.goodsprice.unit.application.port.in.UnitInPort;
@@ -47,8 +46,7 @@ public class UnitWebAdapter extends AbstractCrudWebAdapter {
       String sortBy,
       String sortOrder) {
     var params = resolvePagination(page, pageSize, sortBy, sortOrder, "name", "asc");
-    var pageRequest =
-        new PageRequestDto(params.page(), params.size(), params.sortBy(), params.sortOrder());
+    var pageRequest = buildPageRequest(params);
     var criteria =
         new UnitCriteria(
             pageRequest, search, type, ObjectUtils.getOrNull(status, EntityStatus::getValue));
