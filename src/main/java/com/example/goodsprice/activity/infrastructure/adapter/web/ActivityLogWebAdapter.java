@@ -7,7 +7,6 @@ import com.example.goodsprice.activity.application.port.in.dto.ActivityLogCriter
 import com.example.goodsprice.activity.infrastructure.adapter.web.mapper.ActivityLogDtoMapper;
 import com.example.goodsprice.api.model.ActivityLog;
 import com.example.goodsprice.api.model.ActivityLogListResponse;
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.util.EnumParser;
 import com.example.goodsprice.common.util.LogSanitizer;
 import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
@@ -40,8 +39,7 @@ public class ActivityLogWebAdapter extends AbstractCrudWebAdapter {
       OffsetDateTime startDate,
       OffsetDateTime endDate) {
     var params = resolvePagination(page, pageSize, sortBy, sortOrder, "createdAt", "desc");
-    var pageRequest =
-        new PageRequestDto(params.page(), params.size(), params.sortBy(), params.sortOrder());
+    var pageRequest = buildPageRequest(params);
 
     var typeEnum = parseType(type);
     var actionEnum = parseAction(action);

@@ -45,7 +45,7 @@ class ProductControllerTest {
 
     var response = controller.createProduct(request);
 
-    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals(HttpStatus.CREATED, response.getStatusCode());
     assertEquals(1L, response.getBody().getId());
     verify(adapter).create(request);
   }

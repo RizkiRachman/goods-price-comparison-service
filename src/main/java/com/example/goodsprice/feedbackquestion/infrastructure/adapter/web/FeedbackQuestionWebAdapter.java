@@ -3,7 +3,6 @@ package com.example.goodsprice.feedbackquestion.infrastructure.adapter.web;
 import com.example.goodsprice.api.model.CreateFeedbackQuestionRequest;
 import com.example.goodsprice.api.model.FeedbackQuestion;
 import com.example.goodsprice.api.model.FeedbackQuestionListResponse;
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionType;
 import com.example.goodsprice.feedbackquestion.application.port.in.FeedbackQuestionInPort;
@@ -42,8 +41,7 @@ public class FeedbackQuestionWebAdapter extends AbstractCrudWebAdapter {
   public FeedbackQuestionListResponse list(
       Integer page, Integer pageSize, String sortBy, String sortOrder) {
     var params = resolvePagination(page, pageSize, sortBy, sortOrder, "createdAt", "desc");
-    var pageRequest =
-        new PageRequestDto(params.page(), params.size(), params.sortBy(), params.sortOrder());
+    var pageRequest = buildPageRequest(params);
     var criteria = new FeedbackQuestionCriteria(pageRequest, null, null);
     var pageResponse = feedbackQuestionInPort.findAll(criteria);
 

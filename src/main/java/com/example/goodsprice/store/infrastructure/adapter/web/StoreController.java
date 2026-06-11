@@ -8,6 +8,7 @@ import com.example.goodsprice.api.model.StoreListResponse;
 import com.example.goodsprice.api.model.UpdateStoreRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,8 +20,7 @@ public class StoreController implements StoresApi {
 
   @Override
   public ResponseEntity<Store> createStore(@Valid CreateStoreRequest request) {
-    var store = adapter.create(request);
-    return ResponseEntity.ok(store);
+    return ResponseEntity.status(HttpStatus.CREATED).body(adapter.create(request));
   }
 
   @Override
@@ -31,8 +31,7 @@ public class StoreController implements StoresApi {
 
   @Override
   public ResponseEntity<Store> getStore(Long storeId) {
-    var store = adapter.getById(storeId);
-    return ResponseEntity.ok(store);
+    return ResponseEntity.ok(adapter.getById(storeId));
   }
 
   @Override
@@ -45,13 +44,12 @@ public class StoreController implements StoresApi {
       EntityStatus status,
       String sortBy,
       String sortOrder) {
-    var response = adapter.list(page, pageSize, sortBy, sortOrder, search, status, chain, location);
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(
+        adapter.list(page, pageSize, sortBy, sortOrder, search, status, chain, location));
   }
 
   @Override
   public ResponseEntity<Store> updateStore(Long storeId, @Valid UpdateStoreRequest request) {
-    var store = adapter.update(storeId, request);
-    return ResponseEntity.ok(store);
+    return ResponseEntity.ok(adapter.update(storeId, request));
   }
 }

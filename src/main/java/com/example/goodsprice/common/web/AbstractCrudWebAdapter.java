@@ -8,6 +8,7 @@ import static com.example.goodsprice.common.util.PaginationUtils.resolveSortOrde
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Pagination;
 import com.example.goodsprice.common.constant.AppConstants;
+import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.util.ObjectUtils;
 import java.util.List;
@@ -42,6 +43,16 @@ public class AbstractCrudWebAdapter {
         resolveSize(pageSize, AppConstants.DEFAULT_PAGE_SIZE),
         resolveSortBy(sortBy, defaultSort),
         resolveSortOrder(sortOrder, defaultSortOrder));
+  }
+
+  /**
+   * Builds a PageRequestDto from already-resolved pagination parameters.
+   *
+   * @param params resolved pagination parameters
+   * @return page request DTO
+   */
+  protected PageRequestDto buildPageRequest(PaginationParams params) {
+    return new PageRequestDto(params.page(), params.size(), params.sortBy(), params.sortOrder());
   }
 
   /**

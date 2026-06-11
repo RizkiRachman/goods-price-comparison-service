@@ -26,14 +26,13 @@ public class PriceController implements PricesApi {
   @Override
   public ResponseEntity<PriceRecord> createPriceRecord(
       Long productId, @Valid CreatePriceRecordRequest request) {
-    var result = adapter.createPriceRecord(productId, request);
-    return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(adapter.createPriceRecord(productId, request));
   }
 
   @Override
   public ResponseEntity<PriceRecord> getPriceRecord(Long id) {
-    var result = adapter.getPriceRecord(id);
-    return ResponseEntity.ok(result);
+    return ResponseEntity.ok(adapter.getPriceRecord(id));
   }
 
   @Override
@@ -54,7 +53,7 @@ public class PriceController implements PricesApi {
       Integer size,
       String sortBy,
       String sortDirection) {
-    var result =
+    return ResponseEntity.ok(
         adapter.listProductPrices(
             productId,
             storeId,
@@ -65,8 +64,7 @@ public class PriceController implements PricesApi {
             page,
             size,
             sortBy,
-            sortDirection);
-    return ResponseEntity.ok(result);
+            sortDirection));
   }
 
   @Override
@@ -82,7 +80,6 @@ public class PriceController implements PricesApi {
   @Override
   public ResponseEntity<PriceRecord> updatePriceRecord(
       Long id, @Valid UpdatePriceRecordRequest request) {
-    var result = adapter.updatePriceRecord(id, request);
-    return ResponseEntity.ok(result);
+    return ResponseEntity.ok(adapter.updatePriceRecord(id, request));
   }
 }

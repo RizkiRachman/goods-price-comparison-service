@@ -1,15 +1,12 @@
 package com.example.goodsprice.store.infrastructure.adapter.web;
 
 import static com.example.goodsprice.common.util.JsonNullableUtils.resolveNullable;
-import static com.example.goodsprice.common.util.PaginationUtils.resolvePage;
-import static com.example.goodsprice.common.util.PaginationUtils.resolveSize;
 
 import com.example.goodsprice.api.model.CreateStoreRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Store;
 import com.example.goodsprice.api.model.StoreListResponse;
 import com.example.goodsprice.api.model.UpdateStoreRequest;
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
@@ -58,12 +55,8 @@ public class StoreWebAdapter extends AbstractCrudWebAdapter {
       EntityStatus status,
       String chain,
       String location) {
-    var pageRequest =
-        new PageRequestDto(
-            resolvePage(page, 1),
-            resolveSize(pageSize, 20),
-            ObjectUtils.getOrNull(sortBy, s -> s),
-            ObjectUtils.getOrNull(sortOrder, s -> s));
+    var params = resolvePagination(page, pageSize, sortBy, sortOrder, "name", "asc");
+    var pageRequest = buildPageRequest(params);
     var criteria =
         new StoreCriteria(
             pageRequest,
