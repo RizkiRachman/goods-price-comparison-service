@@ -4,6 +4,7 @@ import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
+import com.example.goodsprice.config.CacheConfiguration;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
 import com.example.goodsprice.feedbackquestion.application.port.in.dto.FeedbackQuestionCriteria;
 import com.example.goodsprice.feedbackquestion.application.port.out.FeedbackQuestionRepositoryPort;
@@ -29,13 +30,13 @@ public class FeedbackQuestionRepositoryAdapter
   }
 
   @Override
-  @CachePut(value = "feedback-questions", key = "#result.id")
+  @CachePut(value = CacheConfiguration.FEEDBACK_QUESTIONS_CACHE, key = "#result.id")
   public FeedbackQuestionDomain save(FeedbackQuestionDomain domain) {
     return super.save(domain);
   }
 
   @Override
-  @Cacheable("feedback-questions")
+  @Cacheable(CacheConfiguration.FEEDBACK_QUESTIONS_CACHE)
   public FeedbackQuestionDomain findById(UUID id) {
     return super.findById(id);
   }

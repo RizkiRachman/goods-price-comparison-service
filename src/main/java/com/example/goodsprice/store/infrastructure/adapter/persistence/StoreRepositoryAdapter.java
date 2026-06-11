@@ -4,6 +4,7 @@ import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.common.util.SpecificationBuilder;
+import com.example.goodsprice.config.CacheConfiguration;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
 import com.example.goodsprice.store.application.port.out.StoreRepositoryPort;
@@ -32,13 +33,13 @@ public class StoreRepositoryAdapter
   }
 
   @Override
-  @CachePut(value = "stores", key = "#result.id")
+  @CachePut(value = CacheConfiguration.STORES_CACHE, key = "#result.id")
   public StoreDomain save(StoreDomain store) {
     return super.save(store);
   }
 
   @Override
-  @Cacheable("stores")
+  @Cacheable(CacheConfiguration.STORES_CACHE)
   public StoreDomain findById(Long id) {
     return super.findById(id);
   }
@@ -64,7 +65,7 @@ public class StoreRepositoryAdapter
   }
 
   @Override
-  @CacheEvict(value = "stores", key = "#id")
+  @CacheEvict(value = CacheConfiguration.STORES_CACHE, key = "#id")
   public void deleteById(Long id) {
     super.deleteById(id);
   }

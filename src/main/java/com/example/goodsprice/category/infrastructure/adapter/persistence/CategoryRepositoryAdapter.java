@@ -44,22 +44,22 @@ public class CategoryRepositoryAdapter
   }
 
   @Override
-  public PageResponse<CategoryDomain> findAll(
-      PageRequestDto pageRequest, String search, String status) {
-    var spec = buildSpecification(search, status);
-    return PaginationHelper.findAll(pageRequest, spec, jpaRepo, mapper::toDomain);
+  public PageResponse<CategoryDomain> findAll(CategoryCriteria criteria) {
+    var spec = buildSpecification(criteria);
+    return PaginationHelper.findAll(criteria.pageRequest(), spec, jpaRepo, mapper::toDomain);
   }
 
   @Override
-  public PageResponse<CategoryDomain> findAll(CategoryCriteria criteria) {
-    return findAll(criteria.pageRequest(), criteria.search(), criteria.status());
+  public PageResponse<CategoryDomain> findAll(
+      PageRequestDto pageRequest, String search, String status) {
+    return findAll(new CategoryCriteria(pageRequest, search, status));
   }
 
-  private Specification<CategoryEntity> buildSpecification(String search, String status) {
+  private Specification<CategoryEntity> buildSpecification(CategoryCriteria criteria) {
     return (root, query, cb) -> {
       var predicates = new ArrayList<Predicate>();
-      SpecificationBuilder.addSearchLike(predicates, root, cb, search, "name", "id");
-      SpecificationBuilder.addEqual(predicates, root, cb, "status", status);
+      SpecificationBuilder.addSearchLike(predicates, root, cb, criteria.search(), "name", "id");
+      SpecificationBuilder.addEqual(predicates, root, cb, "status", criteria.status());
       return cb.and(SpecificationBuilder.toArray(predicates));
     };
   }

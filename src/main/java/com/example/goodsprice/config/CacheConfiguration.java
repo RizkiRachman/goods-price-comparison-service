@@ -9,4 +9,5 @@ public class CacheConfiguration {
   public static final String STORES_CACHE = "stores";
   public static final String CATEGORIES_CACHE = "categories";
   public static final String FEEDBACK_QUESTIONS_CACHE = "feedback-questions";
+  public static final String UNITS_CACHE = "units";
 }
