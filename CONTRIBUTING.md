@@ -409,6 +409,6 @@ By contributing, you agree that your contributions will be licensed under the [M
 
 ---
 
-**Thank you for contributing!** 🎉
+**Thank you for contributing!**
 
 *Remember: Quality over quantity. A well-tested, well-documented PR is better than a fast one.*
