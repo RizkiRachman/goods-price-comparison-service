@@ -120,7 +120,7 @@ INIT → PLAN → PLAN_SCORED → EXECUTE → EXECUTE_SCORED → REVIEW → REVI
 
 When `state = BLOCKED`:
 1. Orchestrator writes `retry.issues[]` to envelope
-2. Writes a summary to the PR description: `"⚠️ Blocked at ${phase}: ${issues}"`
+2. Writes a summary to the PR description: `"[BLOCKED] Blocked at ${phase}: ${issues}"`
 3. Pushes branch with partial work
 4. Stops — user reviews and decides: adjust threshold, fix guidance, or discard
 
