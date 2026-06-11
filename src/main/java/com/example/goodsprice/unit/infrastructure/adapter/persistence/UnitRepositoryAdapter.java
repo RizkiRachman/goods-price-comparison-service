@@ -5,6 +5,7 @@ import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.common.util.SpecificationBuilder;
+import com.example.goodsprice.config.CacheConfiguration;
 import com.example.goodsprice.unit.application.domain.model.UnitDomain;
 import com.example.goodsprice.unit.application.port.in.dto.UnitCriteria;
 import com.example.goodsprice.unit.application.port.out.UnitRepositoryPort;
@@ -30,13 +31,13 @@ public class UnitRepositoryAdapter extends AbstractRepositoryAdapter<UnitDomain,
   }
 
   @Override
-  @CachePut(value = "units", key = "#result.id")
+  @CachePut(value = CacheConfiguration.UNITS_CACHE, key = "#result.id")
   public UnitDomain save(UnitDomain domain) {
     return super.save(domain);
   }
 
   @Override
-  @Cacheable("units")
+  @Cacheable(CacheConfiguration.UNITS_CACHE)
   public UnitDomain findById(String id) {
     return super.findById(id);
   }
