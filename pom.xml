@@ -31,13 +31,13 @@
         <api.version>1.10.0</api.version>
         
         <!-- Test coverage -->
-        <jacoco.version>0.8.14</jacoco.version>
+        <jacoco.version>0.8.15</jacoco.version>
         <coverage.minimum>0.80</coverage.minimum>
         <coverage.branch.minimum>0.80</coverage.branch.minimum>
 
         <!-- Database -->
         <postgresql.version>42.7.11</postgresql.version>
-        <flyway.version>10.20.1</flyway.version>
+        <flyway.version>12.8.1</flyway.version>
 
         <!-- Build tools -->
         <lombok.version>1.18.46</lombok.version>
@@ -169,7 +169,7 @@
         <dependency>
             <groupId>com.google.genai</groupId>
             <artifactId>google-genai</artifactId>
-            <version>1.56.0</version>
+            <version>1.57.0</version>
         </dependency>
 
         <!-- Rate Limiting -->
@@ -346,7 +346,7 @@
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
-                <version>3.4.0</version>
+                <version>3.6.0</version>
                 <configuration>
                     <java>
                         <googleJavaFormat>
