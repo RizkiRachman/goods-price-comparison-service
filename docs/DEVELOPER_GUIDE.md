@@ -194,7 +194,7 @@ NumberUtils.toDouble(obj)
 StringUtils.isBlank(str)
 ```
 
-### Modern Java 17
+### Modern Java 21
 
 ```java
 String.formatted()          // over String.format()
@@ -203,6 +203,10 @@ Foo::bar                    // over x -> x.bar()
 instanceof Foo f            // pattern matching
 case X ->                   // switch expressions
 var                         // where type is obvious
+HexFormat.of().formatHex(bytes)  // over manual byte→hex
+list.getFirst() / list.getLast() // over list.get(0) / list.get(size-1)
+@Slf4j                          // over private static final Logger
+String.repeat(N)                // over loop-based string building
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -265,8 +269,8 @@ Run these in order. Each must pass before the next.
 | Coverage | `mvn verify` (JaCoCo) | ≥90% INSTRUCTION / ≥80% BRANCH |
 | Conventions | `./scripts/check-conventions.sh` | getOrNull usage, method refs, no JPA in domain |
 | Full Test | `mvn test && mvn verify` | All tests pass, 0 failures |
-| Security | `mvn verify -P security-check` | OWASP dependency vulnerabilities |
 | Smoke Tests | `npx newman run "postman/Goods Price Comparison Service.postman_collection.json"` | API endpoint integration (requires app running on localhost:8080) |
+| Security | `mvn verify -P security-check` | OWASP dependency vulnerabilities |
 
 ```bash
 mvn spotless:apply              # Quick fix

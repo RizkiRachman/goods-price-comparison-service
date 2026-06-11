@@ -114,11 +114,11 @@ mvn clean verify
 # Convention checks
 ./scripts/check-conventions.sh
 
-# SAST + dependency scan
-mvn verify -P security-check
-
 # Smoke tests (requires app running on localhost:8080)
 npx newman run "postman/Goods Price Comparison Service.postman_collection.json"
+
+# SAST + dependency scan
+mvn verify -P security-check
 ```
 
 ### 4. Commit Your Changes
@@ -150,9 +150,9 @@ Ensure the following checks pass:
 - [ ] `mvn spotless:apply` - Formatting is clean (Google Java Style)
 - [ ] `mvn clean test` - All tests pass (0 failures), ArchUnit (7 rules)
 - [ ] `mvn clean verify` - Full quality gates pass (SpotBugs, PMD CPD, JaCoCo ≥90% INSTRUCTION / ≥80% BRANCH)
-- [ ] `mvn verify -P security-check` - OWASP Dependency-Check passes (no CVSS >= 7)
 - [ ] `./scripts/check-conventions.sh` - Convention checks pass
 - [ ] `npx newman run "postman/Goods Price Comparison Service.postman_collection.json"` - Smoke tests pass (requires app running on localhost:8080)
+- [ ] `mvn verify -P security-check` - OWASP Dependency-Check passes (no CVSS >= 7)
 - [ ] New code has unit tests (100% coverage for new code)
 - [ ] Documentation updated (CHANGELOG.md, README.md, docs/ if applicable)
 - [ ] CHANGELOG.md updated under `[Unreleased]`
@@ -244,7 +244,7 @@ public BigDecimal calculateTotal(List<CartItem> items, Long storeId) {
 - **Cyclomatic complexity:** Max 10
 - **Constructor injection only** (no field injection)
 
-See [`.ai/rules/CODING_STANDARDS.md`](.ai/rules/CODING_STANDARDS.md) for complete details.
+See [AGENTS.md §3 - Non-Negotiable Rules](AGENTS.md) for complete details.
 
 ## Testing Requirements
 
@@ -282,7 +282,7 @@ void shouldCalculateTotalPrice_WhenQuantityIsPositive() {
 2. **Integration Tests** (15%) - Database, API endpoints
 3. **E2E Tests** (5%) - Full user flows
 
-See [`.ai/skills/TESTING.md`](.ai/skills/TESTING.md) for complete testing guide.
+See [docs/DEVELOPER_GUIDE.md §Testing](docs/DEVELOPER_GUIDE.md#testing) for complete testing guide.
 
 ## Commit Message Guidelines
 

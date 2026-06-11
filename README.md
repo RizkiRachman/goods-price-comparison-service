@@ -53,7 +53,7 @@ Key capabilities:
 ## Built With
 
 [![Spring Boot][Spring Boot]][Spring-url]
-[![Java][Java]][Java-url]
+[![Java 21][Java 21]][Java-url]
 [![PostgreSQL][PostgreSQL]][PostgreSQL-url]
 [![Maven][Maven]][Maven-url]
 [![Docker][Docker]][Docker-url]
@@ -126,8 +126,15 @@ For detailed API documentation, see the [Developer Guide](docs/DEVELOPER_GUIDE.m
 - [x] Receipt OCR with Google Vision / Gemini
 - [x] Price database with historical tracking
 - [x] Multi-store price comparison
+- [x] Generic CRUD service abstraction (AbstractGenericService across 5 services)
+- [x] Web adapter / controller consolidation (buildPageRequest helper, 1-liner patterns)
+- [x] Activity log service (AOP-based CRUD audit trail)
+- [x] Feedback & questions API
+- [x] Price drop alerts (subscription entity, async event-driven)
+- [x] Code quality: 91.5% INSTRUCTION / 80.6% BRANCH coverage, 860+ tests
+- [x] Code duplication reduced by ~428 lines across 6 patterns
+- [x] Java 21 optimization (HexFormat, getFirst, @Slf4j consolidation)
 - [ ] Shopping route optimization
-- [ ] Price drop alerts and notifications
 - [ ] Mobile app integration
 
 See the [open issues](https://github.com/RizkiRachman/goods-price-comparison-service/issues) for a full list of proposed features.
@@ -139,7 +146,7 @@ See the [open issues](https://github.com/RizkiRachman/goods-price-comparison-ser
 Contributions are what make the open source community an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
 1. Fork the project
-2. Create your branch (`ANEH-YYYYMMDD-SHORTDESC1-SHORTDESC2-SHORTDESC3`)
+2. Create your branch (`feature/YYYYMMDD-short-description`)
 3. Commit your changes (`feat(scope): brief description`)
 4. Push to the branch
 5. Open a Pull Request
@@ -182,7 +189,7 @@ Project Link: [https://github.com/RizkiRachman/goods-price-comparison-service](h
 [license-url]: https://github.com/RizkiRachman/goods-price-comparison-service/blob/main/LICENSE
 [Spring Boot]: https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white
 [Spring-url]: https://spring.io/projects/spring-boot
-[Java]: https://img.shields.io/badge/Java_17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white
+[Java 21]: https://img.shields.io/badge/Java_21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white
 [Java-url]: https://www.oracle.com/java/
 [PostgreSQL]: https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white
 [PostgreSQL-url]: https://www.postgresql.org/
