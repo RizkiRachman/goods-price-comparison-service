@@ -1,6 +1,7 @@
 package com.example.goodsprice.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 import jakarta.servlet.FilterChain;
@@ -55,11 +56,19 @@ class CorrelationFilterTest {
   void shouldPutCorrelationIdInMdc() throws ServletException, IOException {
     var request = new MockHttpServletRequest();
     var response = new MockHttpServletResponse();
+    String[] capturedMdcValue = new String[1];
+
+    // Capture MDC value inside the filter chain (before finally cleanup)
+    doAnswer(
+            invocation -> {
+              capturedMdcValue[0] = MDC.get("correlationId");
+              return null;
+            })
+        .when(filterChain)
+        .doFilter(request, response);
 
     filter.doFilterInternal(request, response, filterChain);
 
-    String mdcValue = MDC.get("correlationId");
-    assertThat(mdcValue).isNotNull();
-    MDC.clear();
+    assertThat(capturedMdcValue[0]).isNotNull().isNotBlank();
   }
 }
