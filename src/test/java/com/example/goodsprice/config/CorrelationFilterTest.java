@@ -53,6 +53,18 @@ class CorrelationFilterTest {
   }
 
   @Test
+  void shouldSanitizeCorrelationId() throws ServletException, IOException {
+    var request = new MockHttpServletRequest();
+    request.addHeader("X-Correlation-ID", "id-with<script>alert(1)</script>");
+    var response = new MockHttpServletResponse();
+
+    filter.doFilterInternal(request, response, filterChain);
+
+    String correlationId = response.getHeader("X-Correlation-ID");
+    assertThat(correlationId).isEqualTo("id-withscriptalert1script");
+  }
+
+  @Test
   void shouldPutCorrelationIdInMdc() throws ServletException, IOException {
     var request = new MockHttpServletRequest();
     var response = new MockHttpServletResponse();

@@ -20,10 +20,7 @@ public class CorrelationFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    String correlationId = request.getHeader(CORRELATION_ID_HEADER);
-    if (correlationId == null || correlationId.isBlank()) {
-      correlationId = UUID.randomUUID().toString();
-    }
+    String correlationId = sanitizeCorrelationId(request.getHeader(CORRELATION_ID_HEADER));
 
     MDC.put(CORRELATION_ID_MDC_KEY, correlationId);
     response.setHeader(CORRELATION_ID_HEADER, correlationId);
@@ -33,5 +30,13 @@ public class CorrelationFilter extends OncePerRequestFilter {
     } finally {
       MDC.remove(CORRELATION_ID_MDC_KEY);
     }
+  }
+
+  private static String sanitizeCorrelationId(String value) {
+    if (value == null || value.isBlank()) {
+      return UUID.randomUUID().toString();
+    }
+    // Only allow alphanumeric, hyphens, and underscores — strip anything else
+    return value.replaceAll("[^a-zA-Z0-9\\-_]", "");
   }
 }
