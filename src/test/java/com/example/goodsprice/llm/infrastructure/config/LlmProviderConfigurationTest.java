@@ -12,12 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.client.RestTemplate;
 
 @SpringBootTest
 @ActiveProfiles("test")
 class LlmProviderConfigurationTest {
 
   @Autowired private ApplicationContext context;
+  @Autowired private LlmProviderConfiguration configuration;
 
   @Test
   @DisplayName("Should create RestTemplate bean")
@@ -64,5 +66,13 @@ class LlmProviderConfigurationTest {
     assertNotNull(provider);
     assertTrue(provider.isAvailable());
     assertEquals("local", provider.getProviderName());
+  }
+
+  @Test
+  @DisplayName("Should create RestTemplate bean with timeouts")
+  void shouldCreateRestTemplateBeanWithTimeouts() {
+    RestTemplate restTemplate = configuration.restTemplate();
+    assertNotNull(restTemplate);
+    assertNotNull(restTemplate.getRequestFactory());
   }
 }

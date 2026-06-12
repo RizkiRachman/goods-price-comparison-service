@@ -9,8 +9,10 @@ import com.example.goodsprice.llm.infrastructure.adapter.provider.SumopodLlmProv
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.util.Timeout;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
@@ -35,8 +37,18 @@ public class LlmProviderConfiguration {
     var cm = new PoolingHttpClientConnectionManager();
     cm.setMaxTotal(20);
     cm.setDefaultMaxPerRoute(10);
-    var httpClient = HttpClients.custom().setConnectionManager(cm).build();
+    var requestConfig =
+        RequestConfig.custom()
+            .setConnectTimeout(Timeout.ofMilliseconds(30_000))
+            .setResponseTimeout(Timeout.ofMilliseconds(60_000))
+            .build();
+    var httpClient =
+        HttpClients.custom()
+            .setConnectionManager(cm)
+            .setDefaultRequestConfig(requestConfig)
+            .build();
     var factory = new HttpComponentsClientHttpRequestFactory(httpClient);
+    factory.setReadTimeout(60_000); // 60 seconds
     return new RestTemplate(factory);
   }
 

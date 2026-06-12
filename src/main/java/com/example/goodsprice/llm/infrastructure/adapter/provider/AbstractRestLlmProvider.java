@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -86,6 +87,11 @@ public abstract class AbstractRestLlmProvider implements LlmProviderPort {
       var headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_JSON);
       headers.setBearerAuth(config.getApiKey());
+
+      var correlationId = MDC.get("correlationId");
+      if (correlationId != null) {
+        headers.set("X-Correlation-ID", correlationId);
+      }
 
       var requestBody = buildRequestBody(imageBase64, config.getModel());
       var entity = new HttpEntity<>(requestBody, headers);
