@@ -115,6 +115,16 @@ class UnitServiceTest {
   }
 
   @Test
+  @DisplayName("Should throw NotFoundException when deleting non-existent unit")
+  void shouldThrowExceptionWhenDeletingNonExistentUnit() {
+    when(unitRepository.findById("NONEXISTENT")).thenReturn(null);
+
+    var exception =
+        assertThrows(NotFoundException.class, () -> unitService.deleteById("NONEXISTENT"));
+    assertEquals("UNIT_NOT_FOUND", exception.getErrorCode());
+  }
+
+  @Test
   @DisplayName("Should throw NotFoundException when unit not found")
   void shouldThrowExceptionWhenUnitNotFound() {
     when(unitRepository.findById("NONEXISTENT")).thenReturn(null);

@@ -7,11 +7,11 @@ import com.example.goodsprice.api.model.ListProducts200Response;
 import com.example.goodsprice.api.model.Product;
 import com.example.goodsprice.api.model.ProductTrendResponse;
 import com.example.goodsprice.api.model.UpdateProductRequest;
+import com.example.goodsprice.common.web.ControllerResponse;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -23,18 +23,18 @@ public class ProductController implements ProductsApi {
 
   @Override
   public ResponseEntity<Product> createProduct(@Valid CreateProductRequest request) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(adapter.create(request));
+    return ControllerResponse.created(adapter.create(request));
   }
 
   @Override
   public ResponseEntity<Product> getProduct(Long id) {
-    return ResponseEntity.ok(adapter.findById(id));
+    return ControllerResponse.ok(adapter.findById(id));
   }
 
   @Override
   public ResponseEntity<ProductTrendResponse> getProductTrend(
       Long productId, LocalDate startDate, LocalDate endDate, String granularity) {
-    return ResponseEntity.ok(adapter.getTrend(productId, startDate, endDate, granularity));
+    return ControllerResponse.ok(adapter.getTrend(productId, startDate, endDate, granularity));
   }
 
   @Override
@@ -53,7 +53,7 @@ public class ProductController implements ProductsApi {
       Double maxPrice,
       Boolean isPromo,
       String availability) {
-    return ResponseEntity.ok(
+    return ControllerResponse.ok(
         adapter.list(
             page,
             pageSize,
@@ -69,12 +69,12 @@ public class ProductController implements ProductsApi {
 
   @Override
   public ResponseEntity<Product> updateProduct(Long id, @Valid UpdateProductRequest request) {
-    return ResponseEntity.ok(adapter.update(id, request));
+    return ControllerResponse.ok(adapter.update(id, request));
   }
 
   @Override
   public ResponseEntity<Void> deleteProduct(Long id) {
     adapter.delete(id);
-    return ResponseEntity.noContent().build();
+    return ControllerResponse.noContent();
   }
 }

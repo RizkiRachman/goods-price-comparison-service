@@ -12,6 +12,7 @@ import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.util.ObjectUtils;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -85,5 +86,13 @@ public class AbstractCrudWebAdapter {
       PageResponse<D> pageResponse, Function<D, R> mapper) {
     var data = pageResponse.content().stream().map(mapper).toList();
     return new ListResponseData<>(data, pageResponse.toPagination());
+  }
+
+  protected <D, R, S> S buildCompleteListResponse(
+      PageResponse<D> pageResponse,
+      Function<D, R> mapper,
+      BiFunction<List<R>, Pagination, S> responseFactory) {
+    var dp = buildListResponse(pageResponse, mapper);
+    return responseFactory.apply(dp.data(), dp.pagination());
   }
 }

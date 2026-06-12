@@ -6,9 +6,9 @@ import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Store;
 import com.example.goodsprice.api.model.StoreListResponse;
 import com.example.goodsprice.api.model.UpdateStoreRequest;
+import com.example.goodsprice.common.web.ControllerResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,18 +20,18 @@ public class StoreController implements StoresApi {
 
   @Override
   public ResponseEntity<Store> createStore(@Valid CreateStoreRequest request) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(adapter.create(request));
+    return ControllerResponse.created(adapter.create(request));
   }
 
   @Override
   public ResponseEntity<Void> deleteStore(Long storeId) {
     adapter.delete(storeId);
-    return ResponseEntity.noContent().build();
+    return ControllerResponse.noContent();
   }
 
   @Override
   public ResponseEntity<Store> getStore(Long storeId) {
-    return ResponseEntity.ok(adapter.getById(storeId));
+    return ControllerResponse.ok(adapter.getById(storeId));
   }
 
   @Override
@@ -44,12 +44,12 @@ public class StoreController implements StoresApi {
       EntityStatus status,
       String sortBy,
       String sortOrder) {
-    return ResponseEntity.ok(
+    return ControllerResponse.ok(
         adapter.list(page, pageSize, sortBy, sortOrder, search, status, chain, location));
   }
 
   @Override
   public ResponseEntity<Store> updateStore(Long storeId, @Valid UpdateStoreRequest request) {
-    return ResponseEntity.ok(adapter.update(storeId, request));
+    return ControllerResponse.ok(adapter.update(storeId, request));
   }
 }

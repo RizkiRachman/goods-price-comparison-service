@@ -3,6 +3,7 @@ package com.example.goodsprice.activity.infrastructure.adapter.web;
 import com.example.goodsprice.api.controller.ActivityLogsApi;
 import com.example.goodsprice.api.model.ActivityLog;
 import com.example.goodsprice.api.model.ActivityLogListResponse;
+import com.example.goodsprice.common.web.ControllerResponse;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class ActivityLogController implements ActivityLogsApi {
 
   @Override
   public ResponseEntity<ActivityLog> getActivityLog(UUID id) {
-    return ResponseEntity.ok(adapter.getById(id));
+    return ControllerResponse.ok(adapter.getById(id));
   }
 
   @Override
@@ -30,7 +31,7 @@ public class ActivityLogController implements ActivityLogsApi {
       OffsetDateTime to,
       String sortBy,
       String sortOrder) {
-    return ResponseEntity.ok(
+    return ControllerResponse.ok(
         adapter.list(page, pageSize, sortBy, sortOrder, type, action, from, to));
   }
 }

@@ -54,6 +54,13 @@ buildNumber.properties
 .classpath
 .factorypath
 
+# Binary package artifacts
+*.tgz
+
+# Node.js project files (Java project — no frontend)
+package.json
+package-lock.json
+
 # OS generated files
 .DS_Store
 .DS_Store?
