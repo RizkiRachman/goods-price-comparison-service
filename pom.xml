@@ -42,6 +42,9 @@
         <!-- Build tools -->
         <lombok.version>1.18.46</lombok.version>
         <mapstruct.version>1.6.3</mapstruct.version>
+
+        <!-- Observability -->
+        <logstash-logback.version>8.0</logstash-logback.version>
     </properties>
 
     <repositories>
@@ -93,7 +96,7 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>8.0</version>
+            <version>${logstash-logback.version}</version>
         </dependency>
 
         <!-- Micrometer Prometheus -->
