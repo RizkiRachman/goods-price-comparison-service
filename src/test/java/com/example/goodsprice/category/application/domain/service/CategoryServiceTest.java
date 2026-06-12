@@ -51,7 +51,13 @@ class CategoryServiceTest {
   void shouldCreateCategory() {
     when(categoryRepository.save(any(CategoryDomain.class))).thenReturn(existingCategory);
 
-    var result = categoryService.create("FRUIT", "Fruits", "All kinds of fruits");
+    var domain =
+        CategoryDomain.builder()
+            .id("FRUIT")
+            .name("Fruits")
+            .description("All kinds of fruits")
+            .build();
+    var result = categoryService.create(domain);
 
     assertNotNull(result);
     assertEquals("FRUIT", result.getId());
@@ -77,8 +83,13 @@ class CategoryServiceTest {
     when(categoryRepository.findById("FRUIT")).thenReturn(existingCategory);
     when(categoryRepository.save(any(CategoryDomain.class))).thenReturn(existingCategory);
 
-    var result =
-        categoryService.update("FRUIT", "Fresh Fruits", "Fresh and organic fruits", "INACTIVE");
+    var domain =
+        CategoryDomain.builder()
+            .name("Fresh Fruits")
+            .description("Fresh and organic fruits")
+            .status("INACTIVE")
+            .build();
+    var result = categoryService.update("FRUIT", domain);
 
     assertEquals("Fresh Fruits", result.getName());
     assertEquals("Fresh and organic fruits", result.getDescription());

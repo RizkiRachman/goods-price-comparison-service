@@ -5,10 +5,10 @@ import com.example.goodsprice.common.constant.ErrorCodes;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
-import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionType;
 import com.example.goodsprice.feedbackquestion.application.port.in.FeedbackQuestionInPort;
 import com.example.goodsprice.feedbackquestion.application.port.in.dto.FeedbackQuestionCriteria;
 import com.example.goodsprice.feedbackquestion.application.port.out.FeedbackQuestionRepositoryPort;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,15 +34,9 @@ public class FeedbackQuestionService extends AbstractGenericService<FeedbackQues
   @Override
   @Transactional
   @ActivityLog
-  public FeedbackQuestionDomain create(
-      String userName, String userEmail, FeedbackQuestionType type, String message) {
-    var domain =
-        FeedbackQuestionDomain.builder()
-            .userName(userName)
-            .userEmail(userEmail)
-            .type(type)
-            .message(message)
-            .build();
+  public FeedbackQuestionDomain create(FeedbackQuestionDomain domain) {
+    domain.setCreatedAt(OffsetDateTime.now());
+    domain.setUpdatedAt(OffsetDateTime.now());
     return save(domain);
   }
 

@@ -56,7 +56,14 @@ class AlertServiceTest {
     when(alertRepository.save(any(AlertSubscription.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
-    var result = alertService.subscribe(1L, 12_000.0, "EMAIL", "user@test.com");
+    var domain =
+        AlertSubscription.builder()
+            .productId(1L)
+            .targetPrice(12_000.0)
+            .notificationMethod("EMAIL")
+            .email("user@test.com")
+            .build();
+    var result = alertService.subscribe(domain);
 
     assertNotNull(result);
     assertEquals(1L, result.getProductId());
@@ -83,7 +90,14 @@ class AlertServiceTest {
     when(alertRepository.save(any(AlertSubscription.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
-    var result = alertService.subscribe(1L, 12_000.0, "EMAIL", "user@test.com");
+    var domain =
+        AlertSubscription.builder()
+            .productId(1L)
+            .targetPrice(12_000.0)
+            .notificationMethod("EMAIL")
+            .email("user@test.com")
+            .build();
+    var result = alertService.subscribe(domain);
 
     assertNotNull(result);
     assertEquals(1L, result.getProductId());
@@ -106,7 +120,14 @@ class AlertServiceTest {
     when(alertRepository.save(any(AlertSubscription.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
-    var result = alertService.subscribe(1L, 10_000.0, "SMS", "08123456789");
+    var domain =
+        AlertSubscription.builder()
+            .productId(1L)
+            .targetPrice(10_000.0)
+            .notificationMethod("SMS")
+            .email("08123456789")
+            .build();
+    var result = alertService.subscribe(domain);
 
     assertNotNull(result);
     assertEquals("SMS", result.getNotificationMethod());
@@ -121,8 +142,13 @@ class AlertServiceTest {
   void shouldThrowExceptionForInvalidProduct() {
     when(productInPort.findById(999L)).thenThrow(new NullPointerException("Product not found"));
 
-    assertThrows(
-        NullPointerException.class,
-        () -> alertService.subscribe(999L, 12_000.0, "EMAIL", "user@test.com"));
+    var domain =
+        AlertSubscription.builder()
+            .productId(999L)
+            .targetPrice(12_000.0)
+            .notificationMethod("EMAIL")
+            .email("user@test.com")
+            .build();
+    assertThrows(NullPointerException.class, () -> alertService.subscribe(domain));
   }
 }

@@ -56,7 +56,14 @@ class ProductServiceTest {
   void shouldCreateProduct() {
     when(productRepository.save(any(ProductDomain.class))).thenReturn(product);
 
-    var result = productService.create("Susu Kotak", "Minuman", "Indomilk", "KG");
+    var input =
+        ProductDomain.builder()
+            .name("Susu Kotak")
+            .category("Minuman")
+            .brand("Indomilk")
+            .unit("KG")
+            .build();
+    var result = productService.create(input);
 
     assertNotNull(result);
     assertEquals("Susu Kotak", result.getName());
@@ -146,7 +153,14 @@ class ProductServiceTest {
     when(productRepository.findById(1L)).thenReturn(product);
     when(productRepository.save(any(ProductDomain.class))).thenReturn(product);
 
-    var result = productService.update(1L, "Updated", "Makanan", "Baru", "LITER");
+    var input =
+        ProductDomain.builder()
+            .name("Updated")
+            .category("Makanan")
+            .brand("Baru")
+            .unit("LITER")
+            .build();
+    var result = productService.update(1L, input);
 
     assertNotNull(result);
     assertEquals("Updated", result.getName());
@@ -157,7 +171,8 @@ class ProductServiceTest {
   void shouldThrowNotFoundWhenUpdateFails() {
     when(productRepository.findById(999L)).thenReturn(null);
 
-    assertThrows(NotFoundException.class, () -> productService.update(999L, "x", "x", "x", "x"));
+    var input = ProductDomain.builder().name("x").category("x").brand("x").unit("x").build();
+    assertThrows(NotFoundException.class, () -> productService.update(999L, input));
   }
 
   @Test

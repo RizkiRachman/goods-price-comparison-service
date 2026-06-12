@@ -21,12 +21,14 @@ public class AlertWebAdapter {
   public AlertSubscriptionResponse subscribe(AlertSubscriptionRequest request) {
     var notificationMethod =
         ObjectUtils.getOrNull(request.getNotificationMethod(), Object::toString);
-    var subscription =
-        alertInPort.subscribe(
-            request.getProductId(),
-            request.getTargetPrice(),
-            notificationMethod,
-            request.getEmail());
+    var domain =
+        AlertSubscription.builder()
+            .productId(request.getProductId())
+            .targetPrice(request.getTargetPrice())
+            .notificationMethod(notificationMethod)
+            .email(request.getEmail())
+            .build();
+    var subscription = alertInPort.subscribe(domain);
 
     var message = buildSubscriptionMessage(subscription, request);
     return mapper.toResponse(subscription, message);

@@ -9,9 +9,13 @@ import com.example.goodsprice.api.model.UnitListResponse;
 import com.example.goodsprice.api.model.UpdateUnitRequest;
 import com.example.goodsprice.common.util.ObjectUtils;
 import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
+import com.example.goodsprice.unit.application.domain.model.UnitDomain;
+import com.example.goodsprice.unit.application.domain.model.UnitType;
 import com.example.goodsprice.unit.application.port.in.UnitInPort;
 import com.example.goodsprice.unit.application.port.in.dto.UnitCriteria;
 import com.example.goodsprice.unit.infrastructure.adapter.web.mapper.UnitDtoMapper;
+import java.util.Locale;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -23,14 +27,19 @@ public class UnitWebAdapter extends AbstractCrudWebAdapter {
   private final UnitDtoMapper mapper;
 
   public Unit create(CreateUnitRequest request) {
+    var typeStr = ObjectUtils.getOrNull(request.getType(), CreateUnitRequest.TypeEnum::getValue);
     var domain =
-        unitInPort.create(
-            request.getId(),
-            request.getName(),
-            request.getSymbol(),
-            ObjectUtils.getOrNull(request.getType(), CreateUnitRequest.TypeEnum::getValue),
-            request.getDescription());
-    return mapper.toApiUnit(domain);
+        UnitDomain.builder()
+            .id(request.getId())
+            .name(request.getName())
+            .symbol(request.getSymbol())
+            .type(
+                Objects.nonNull(typeStr)
+                    ? UnitType.valueOf(typeStr.toUpperCase(Locale.ROOT))
+                    : null)
+            .description(request.getDescription())
+            .build();
+    return mapper.toApiUnit(unitInPort.create(domain));
   }
 
   public Unit findById(String id) {
@@ -64,14 +73,18 @@ public class UnitWebAdapter extends AbstractCrudWebAdapter {
   }
 
   public Unit update(String id, UpdateUnitRequest request) {
+    var typeStr = ObjectUtils.getOrNull(request.getType(), t -> t.name());
     var domain =
-        unitInPort.update(
-            id,
-            request.getName(),
-            resolveNullable(request.getSymbol()),
-            ObjectUtils.getOrNull(request.getType(), t -> t.name()),
-            resolveNullable(request.getDescription()),
-            ObjectUtils.getOrNull(request.getStatus(), EntityStatus::getValue));
-    return mapper.toApiUnit(domain);
+        UnitDomain.builder()
+            .name(request.getName())
+            .symbol(resolveNullable(request.getSymbol()))
+            .type(
+                Objects.nonNull(typeStr)
+                    ? UnitType.valueOf(typeStr.toUpperCase(Locale.ROOT))
+                    : null)
+            .description(resolveNullable(request.getDescription()))
+            .status(ObjectUtils.getOrNull(request.getStatus(), EntityStatus::getValue))
+            .build();
+    return mapper.toApiUnit(unitInPort.update(id, domain));
   }
 }

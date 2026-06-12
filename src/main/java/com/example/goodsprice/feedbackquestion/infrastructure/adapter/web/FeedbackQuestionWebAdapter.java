@@ -4,6 +4,7 @@ import com.example.goodsprice.api.model.CreateFeedbackQuestionRequest;
 import com.example.goodsprice.api.model.FeedbackQuestion;
 import com.example.goodsprice.api.model.FeedbackQuestionListResponse;
 import com.example.goodsprice.common.web.AbstractCrudWebAdapter;
+import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionType;
 import com.example.goodsprice.feedbackquestion.application.port.in.FeedbackQuestionInPort;
 import com.example.goodsprice.feedbackquestion.application.port.in.dto.FeedbackQuestionCriteria;
@@ -29,9 +30,13 @@ public class FeedbackQuestionWebAdapter extends AbstractCrudWebAdapter {
       type = FeedbackQuestionType.valueOf(request.getType().getValue().toUpperCase(Locale.ROOT));
     }
     var domain =
-        feedbackQuestionInPort.create(
-            request.getUserName(), request.getUserEmail(), type, request.getMessage());
-    return mapper.toApiFeedbackQuestion(domain);
+        FeedbackQuestionDomain.builder()
+            .userName(request.getUserName())
+            .userEmail(request.getUserEmail())
+            .type(type)
+            .message(request.getMessage())
+            .build();
+    return mapper.toApiFeedbackQuestion(feedbackQuestionInPort.create(domain));
   }
 
   public FeedbackQuestion findById(UUID id) {

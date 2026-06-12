@@ -3,6 +3,7 @@ package com.example.goodsprice.product.infrastructure.adapter.web;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,14 +62,14 @@ class ProductWebAdapterTest {
     request.setBrand("Indomilk");
     request.setUnit("KG");
 
-    when(productInPort.create("Susu Kotak", "Minuman", "Indomilk", "KG")).thenReturn(productDomain);
+    when(productInPort.create(any(ProductDomain.class))).thenReturn(productDomain);
     when(mapper.toApiProduct(productDomain)).thenReturn(apiProduct);
 
     var result = productWebAdapter.create(request);
 
     assertNotNull(result);
     assertEquals("Susu Kotak", result.getName());
-    verify(productInPort).create("Susu Kotak", "Minuman", "Indomilk", "KG");
+    verify(productInPort).create(any(ProductDomain.class));
   }
 
   @Test
@@ -104,14 +105,14 @@ class ProductWebAdapterTest {
     var request = new UpdateProductRequest();
     request.setName("Updated Product");
 
-    when(productInPort.update(1L, "Updated Product", null, null, null)).thenReturn(productDomain);
+    when(productInPort.update(eq(1L), any(ProductDomain.class))).thenReturn(productDomain);
     when(mapper.toApiProduct(productDomain)).thenReturn(apiProduct);
 
     var result = productWebAdapter.update(1L, request);
 
     assertNotNull(result);
     assertEquals("Susu Kotak", result.getName());
-    verify(productInPort).update(1L, "Updated Product", null, null, null);
+    verify(productInPort).update(eq(1L), any(ProductDomain.class));
   }
 
   @Test

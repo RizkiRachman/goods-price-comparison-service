@@ -7,6 +7,7 @@ import com.example.goodsprice.api.model.CategoryListResponse;
 import com.example.goodsprice.api.model.CreateCategoryRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.UpdateCategoryRequest;
+import com.example.goodsprice.category.application.domain.model.CategoryDomain;
 import com.example.goodsprice.category.application.port.in.CategoryInPort;
 import com.example.goodsprice.category.application.port.in.dto.CategoryCriteria;
 import com.example.goodsprice.category.infrastructure.adapter.web.mapper.CategoryDtoMapper;
@@ -24,8 +25,12 @@ public class CategoryWebAdapter extends AbstractCrudWebAdapter {
 
   public Category create(CreateCategoryRequest request) {
     var domain =
-        categoryInPort.create(request.getId(), request.getName(), request.getDescription());
-    return mapper.toApiCategory(domain);
+        CategoryDomain.builder()
+            .id(request.getId())
+            .name(request.getName())
+            .description(request.getDescription())
+            .build();
+    return mapper.toApiCategory(categoryInPort.create(domain));
   }
 
   public Category findById(String id) {
@@ -59,11 +64,11 @@ public class CategoryWebAdapter extends AbstractCrudWebAdapter {
 
   public Category update(String id, UpdateCategoryRequest request) {
     var domain =
-        categoryInPort.update(
-            id,
-            request.getName(),
-            resolveNullable(request.getDescription()),
-            ObjectUtils.getOrNull(request.getStatus(), EntityStatus::getValue));
-    return mapper.toApiCategory(domain);
+        CategoryDomain.builder()
+            .name(request.getName())
+            .description(resolveNullable(request.getDescription()))
+            .status(ObjectUtils.getOrNull(request.getStatus(), EntityStatus::getValue))
+            .build();
+    return mapper.toApiCategory(categoryInPort.update(id, domain));
   }
 }

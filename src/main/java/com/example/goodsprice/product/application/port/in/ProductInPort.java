@@ -9,7 +9,7 @@ import java.util.Map;
 
 public interface ProductInPort {
 
-  ProductDomain create(String name, String category, String brand, String unit);
+  ProductDomain create(ProductDomain product);
 
   ProductDomain createIfNotExist(String name, String category, String unit);
 
@@ -25,7 +25,7 @@ public interface ProductInPort {
 
   PageResponse<ProductDomain> search(ProductSearchCriteria criteria);
 
-  ProductDomain update(Long id, String name, String category, String brand, String unit);
+  ProductDomain update(Long id, ProductDomain product);
 
   void deleteById(Long id);
 

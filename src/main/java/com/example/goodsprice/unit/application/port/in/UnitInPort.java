@@ -6,12 +6,11 @@ import com.example.goodsprice.unit.application.port.in.dto.UnitCriteria;
 
 public interface UnitInPort {
 
-  UnitDomain create(String id, String name, String symbol, String type, String description);
+  UnitDomain create(UnitDomain domain);
 
   UnitDomain findById(String id);
 
   PageResponse<UnitDomain> findAll(UnitCriteria criteria);
 
-  UnitDomain update(
-      String id, String name, String symbol, String type, String description, String status);
+  UnitDomain update(String id, UnitDomain domain);
 }

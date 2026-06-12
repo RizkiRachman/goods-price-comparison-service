@@ -5,6 +5,5 @@ import com.example.goodsprice.alert.application.domain.model.AlertSubscription;
 @FunctionalInterface
 public interface AlertInPort {
 
-  AlertSubscription subscribe(
-      Long productId, Double targetPrice, String notificationMethod, String email);
+  AlertSubscription subscribe(AlertSubscription domain);
 }

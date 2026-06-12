@@ -39,9 +39,13 @@ public class ProductWebAdapter {
 
   public Product create(CreateProductRequest request) {
     var domain =
-        productInPort.create(
-            request.getName(), request.getCategory(), request.getBrand(), request.getUnit());
-    return mapper.toApiProduct(domain);
+        ProductDomain.builder()
+            .name(request.getName())
+            .category(request.getCategory())
+            .brand(request.getBrand())
+            .unit(request.getUnit())
+            .build();
+    return mapper.toApiProduct(productInPort.create(domain));
   }
 
   public Product findById(Long id) {
@@ -89,13 +93,13 @@ public class ProductWebAdapter {
 
   public Product update(Long id, UpdateProductRequest request) {
     var domain =
-        productInPort.update(
-            id,
-            request.getName(),
-            resolveNullable(request.getCategory()),
-            resolveNullable(request.getBrand()),
-            resolveNullable(request.getUnit()));
-    return mapper.toApiProduct(domain);
+        ProductDomain.builder()
+            .name(request.getName())
+            .category(resolveNullable(request.getCategory()))
+            .brand(resolveNullable(request.getBrand()))
+            .unit(resolveNullable(request.getUnit()))
+            .build();
+    return mapper.toApiProduct(productInPort.update(id, domain));
   }
 
   public void delete(Long id) {
