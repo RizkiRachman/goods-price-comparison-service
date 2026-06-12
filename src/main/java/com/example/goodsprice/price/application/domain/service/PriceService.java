@@ -44,27 +44,16 @@ public class PriceService extends AbstractGenericService<PriceDomain, Long> impl
   @Override
   @Transactional
   @ActivityLog
-  public PriceDomain create(
-      Long productId,
-      Long storeId,
-      Double price,
-      Double unitPrice,
-      LocalDate dateRecorded,
-      Boolean isPromo) {
-    var priceRecord =
-        PriceDomain.builder()
-            .productId(productId)
-            .storeId(storeId)
-            .price(price)
-            .unitPrice(unitPrice)
-            .dateRecorded(dateRecorded)
-            .isPromo(isPromo)
-            .build();
-    priceRecord = save(priceRecord);
+  public PriceDomain create(PriceDomain domain) {
+    var priceRecord = save(domain);
 
-    productInPort.updateLastPriceUpdate(productId, LocalDateTime.now());
+    productInPort.updateLastPriceUpdate(domain.getProductId(), LocalDateTime.now());
 
-    log.info("Price created: product={}, store={}, price={}", productId, storeId, price);
+    log.info(
+        "Price created: product={}, store={}, price={}",
+        domain.getProductId(),
+        domain.getStoreId(),
+        domain.getPrice());
     return priceRecord;
   }
 
@@ -138,14 +127,15 @@ public class PriceService extends AbstractGenericService<PriceDomain, Long> impl
   @Override
   @Transactional
   @ActivityLog
-  public PriceDomain update(
-      Long id, Double price, Double unitPrice, LocalDate dateRecorded, Boolean isPromo) {
+  public PriceDomain update(Long id, PriceDomain domain) {
     var existing = findById(id);
 
-    existing.setPrice(ObjectUtils.defaultIfNull(price, existing.getPrice()));
-    existing.setUnitPrice(ObjectUtils.defaultIfNull(unitPrice, existing.getUnitPrice()));
-    existing.setDateRecorded(ObjectUtils.defaultIfNull(dateRecorded, existing.getDateRecorded()));
-    existing.setIsPromo(ObjectUtils.defaultIfNull(isPromo, Boolean.FALSE));
+    existing.setPrice(ObjectUtils.defaultIfNull(domain.getPrice(), existing.getPrice()));
+    existing.setUnitPrice(
+        ObjectUtils.defaultIfNull(domain.getUnitPrice(), existing.getUnitPrice()));
+    existing.setDateRecorded(
+        ObjectUtils.defaultIfNull(domain.getDateRecorded(), existing.getDateRecorded()));
+    existing.setIsPromo(ObjectUtils.defaultIfNull(domain.getIsPromo(), Boolean.FALSE));
 
     existing = save(existing);
 

@@ -50,11 +50,19 @@ class UnitServiceTest {
   }
 
   @Test
-  @DisplayName("Should create a unit with UnitType conversion from uppercase string")
+  @DisplayName("Should create a unit")
   void shouldCreateUnit() {
     when(unitRepository.save(any(UnitDomain.class))).thenReturn(kgUnit);
 
-    var result = unitService.create("KG", "Kilogram", "kg", "weight", "Unit of mass");
+    var domain =
+        UnitDomain.builder()
+            .id("KG")
+            .name("Kilogram")
+            .symbol("kg")
+            .type(UnitType.WEIGHT)
+            .description("Unit of mass")
+            .build();
+    var result = unitService.create(domain);
 
     assertNotNull(result);
     assertEquals("KG", result.getId());
@@ -87,8 +95,14 @@ class UnitServiceTest {
     when(unitRepository.findById("KG")).thenReturn(kgUnit);
     when(unitRepository.save(any(UnitDomain.class))).thenReturn(kgUnit);
 
-    var result =
-        unitService.update("KG", "Kilogram", "kg", null, "Updated description", "INACTIVE");
+    var domain =
+        UnitDomain.builder()
+            .name("Kilogram")
+            .symbol("kg")
+            .description("Updated description")
+            .status("INACTIVE")
+            .build();
+    var result = unitService.update("KG", domain);
 
     assertEquals("Kilogram", result.getName());
     assertEquals("kg", result.getSymbol());
@@ -107,7 +121,15 @@ class UnitServiceTest {
     when(unitRepository.findById("KG")).thenReturn(kgUnit);
     when(unitRepository.save(any(UnitDomain.class))).thenReturn(kgUnit);
 
-    var result = unitService.update("KG", "Kilogram", "kg", "volume", "Unit of mass", "ACTIVE");
+    var domain =
+        UnitDomain.builder()
+            .name("Kilogram")
+            .symbol("kg")
+            .type(UnitType.VOLUME)
+            .description("Unit of mass")
+            .status("ACTIVE")
+            .build();
+    var result = unitService.update("KG", domain);
 
     assertEquals(UnitType.VOLUME, result.getType());
     verify(unitRepository).save(unitCaptor.capture());

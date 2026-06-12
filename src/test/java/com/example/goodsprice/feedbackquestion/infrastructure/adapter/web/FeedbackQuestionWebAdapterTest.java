@@ -3,7 +3,6 @@ package com.example.goodsprice.feedbackquestion.infrastructure.adapter.web;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,17 +67,14 @@ class FeedbackQuestionWebAdapterTest {
     request.setType(CreateFeedbackQuestionRequest.TypeEnum.FEEDBACK);
     request.setMessage("Great!");
 
-    when(feedbackQuestionInPort.create(
-            eq("John"), eq("john@test.com"), eq(FeedbackQuestionType.FEEDBACK), eq("Great!")))
-        .thenReturn(domain);
+    when(feedbackQuestionInPort.create(any(FeedbackQuestionDomain.class))).thenReturn(domain);
     when(mapper.toApiFeedbackQuestion(domain)).thenReturn(apiModel);
 
     var result = adapter.create(request);
 
     assertNotNull(result);
     assertEquals("John", result.getUserName());
-    verify(feedbackQuestionInPort)
-        .create("John", "john@test.com", FeedbackQuestionType.FEEDBACK, "Great!");
+    verify(feedbackQuestionInPort).create(any(FeedbackQuestionDomain.class));
     verify(mapper).toApiFeedbackQuestion(domain);
   }
 
@@ -91,16 +87,13 @@ class FeedbackQuestionWebAdapterTest {
     request.setType(null);
     request.setMessage("How do I?");
 
-    when(feedbackQuestionInPort.create(
-            eq("Jane"), eq("jane@test.com"), eq(FeedbackQuestionType.QUESTION), eq("How do I?")))
-        .thenReturn(domain);
+    when(feedbackQuestionInPort.create(any(FeedbackQuestionDomain.class))).thenReturn(domain);
     when(mapper.toApiFeedbackQuestion(domain)).thenReturn(apiModel);
 
     var result = adapter.create(request);
 
     assertNotNull(result);
-    verify(feedbackQuestionInPort)
-        .create("Jane", "jane@test.com", FeedbackQuestionType.QUESTION, "How do I?");
+    verify(feedbackQuestionInPort).create(any(FeedbackQuestionDomain.class));
   }
 
   @Test

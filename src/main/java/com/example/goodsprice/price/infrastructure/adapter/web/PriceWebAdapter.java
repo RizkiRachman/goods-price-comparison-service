@@ -45,14 +45,16 @@ public class PriceWebAdapter extends AbstractCrudWebAdapter {
   public PriceRecord createPriceRecord(Long productId, CreatePriceRecordRequest request) {
     var dateRecorded =
         ObjectUtils.getOrNull(request.getDateRecorded(), OffsetDateTime::toLocalDate);
-    var price =
-        priceInPort.create(
-            productId,
-            request.getStoreId(),
-            request.getPrice(),
-            request.getUnitPrice(),
-            dateRecorded,
-            request.getIsPromo());
+    var domain =
+        PriceDomain.builder()
+            .productId(productId)
+            .storeId(request.getStoreId())
+            .price(request.getPrice())
+            .unitPrice(request.getUnitPrice())
+            .dateRecorded(dateRecorded)
+            .isPromo(request.getIsPromo())
+            .build();
+    var price = priceInPort.create(domain);
     var store = storeInPort.findById(price.getStoreId());
     return mapper.toPriceRecord(price, store);
   }
@@ -116,8 +118,14 @@ public class PriceWebAdapter extends AbstractCrudWebAdapter {
     var dateRecorded =
         ObjectUtils.getOrNull(request.getDateRecorded(), OffsetDateTime::toLocalDate);
     var unitPrice = ObjectUtils.getOrNull(request.getUnitPrice(), u -> u.orElse(null));
-    var price =
-        priceInPort.update(id, request.getPrice(), unitPrice, dateRecorded, request.getIsPromo());
+    var domain =
+        PriceDomain.builder()
+            .price(request.getPrice())
+            .unitPrice(unitPrice)
+            .dateRecorded(dateRecorded)
+            .isPromo(request.getIsPromo())
+            .build();
+    var price = priceInPort.update(id, domain);
     var store = storeInPort.findById(price.getStoreId());
     return mapper.toPriceRecord(price, store);
   }

@@ -29,14 +29,19 @@ class FeedbackQuestionServiceTest {
   @DisplayName("Should create a new feedback question successfully")
   void createSuccess() {
     // Given
-    FeedbackQuestionDomain feedbackQuestion = FeedbackQuestionDomain.builder().build();
+    var domain =
+        FeedbackQuestionDomain.builder()
+            .userName("userName")
+            .userEmail("userEmail")
+            .type(FeedbackQuestionType.FEEDBACK)
+            .message("message")
+            .build();
+    var savedDomain = FeedbackQuestionDomain.builder().build();
     when(feedbackQuestionRepository.save(any(FeedbackQuestionDomain.class)))
-        .thenReturn(feedbackQuestion);
+        .thenReturn(savedDomain);
 
     // When
-    FeedbackQuestionDomain createdFeedbackQuestion =
-        feedbackQuestionService.create(
-            "userName", "userEmail", FeedbackQuestionType.FEEDBACK, "message");
+    FeedbackQuestionDomain createdFeedbackQuestion = feedbackQuestionService.create(domain);
 
     // Then
     assertNotNull(createdFeedbackQuestion);

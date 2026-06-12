@@ -5,11 +5,9 @@ import com.example.goodsprice.common.constant.ErrorCodes;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.unit.application.domain.model.UnitDomain;
-import com.example.goodsprice.unit.application.domain.model.UnitType;
 import com.example.goodsprice.unit.application.port.in.UnitInPort;
 import com.example.goodsprice.unit.application.port.in.dto.UnitCriteria;
 import com.example.goodsprice.unit.application.port.out.UnitRepositoryPort;
-import java.util.Locale;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,17 +32,9 @@ public class UnitService extends AbstractGenericService<UnitDomain, String> impl
   @Override
   @Transactional
   @ActivityLog
-  public UnitDomain create(String id, String name, String symbol, String type, String description) {
-    var unit =
-        UnitDomain.builder()
-            .id(id)
-            .name(name)
-            .symbol(symbol)
-            .type(UnitType.valueOf(type.toUpperCase(Locale.ROOT)))
-            .description(description)
-            .status("ACTIVE")
-            .build();
-    return save(unit);
+  public UnitDomain create(UnitDomain domain) {
+    domain.setStatus("ACTIVE");
+    return save(domain);
   }
 
   @Override
@@ -55,16 +45,15 @@ public class UnitService extends AbstractGenericService<UnitDomain, String> impl
   @Override
   @Transactional
   @ActivityLog
-  public UnitDomain update(
-      String id, String name, String symbol, String type, String description, String status) {
+  public UnitDomain update(String id, UnitDomain domain) {
     var existing = findById(id);
-    existing.setName(name);
-    existing.setSymbol(symbol);
-    if (Objects.nonNull(type)) {
-      existing.setType(UnitType.valueOf(type.toUpperCase(Locale.ROOT)));
+    existing.setName(domain.getName());
+    existing.setSymbol(domain.getSymbol());
+    if (Objects.nonNull(domain.getType())) {
+      existing.setType(domain.getType());
     }
-    existing.setDescription(description);
-    existing.setStatus(status);
+    existing.setDescription(domain.getDescription());
+    existing.setStatus(domain.getStatus());
     return save(existing);
   }
 }

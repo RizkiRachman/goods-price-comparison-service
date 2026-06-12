@@ -22,6 +22,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -67,15 +68,14 @@ class UnitWebAdapterTest {
     request.setType(CreateUnitRequest.TypeEnum.WEIGHT);
     request.setDescription("Unit of mass");
 
-    when(unitInPort.create("KG", "Kilogram", "kg", "WEIGHT", "Unit of mass"))
-        .thenReturn(unitDomain);
+    when(unitInPort.create(any(UnitDomain.class))).thenReturn(unitDomain);
     when(mapper.toApiUnit(unitDomain)).thenReturn(apiUnit);
 
     var result = unitWebAdapter.create(request);
 
     assertNotNull(result);
     assertEquals("KG", result.getId());
-    verify(unitInPort).create("KG", "Kilogram", "kg", "WEIGHT", "Unit of mass");
+    verify(unitInPort).create(any(UnitDomain.class));
   }
 
   @Test
@@ -123,7 +123,7 @@ class UnitWebAdapterTest {
     var request = new UpdateUnitRequest();
     request.setName("Kilogram Updated");
 
-    when(unitInPort.update("KG", "Kilogram Updated", null, null, null, null))
+    when(unitInPort.update(ArgumentMatchers.eq("KG"), any(UnitDomain.class)))
         .thenReturn(unitDomain);
     when(mapper.toApiUnit(unitDomain)).thenReturn(apiUnit);
 
@@ -131,6 +131,6 @@ class UnitWebAdapterTest {
 
     assertNotNull(result);
     assertEquals("KG", result.getId());
-    verify(unitInPort).update("KG", "Kilogram Updated", null, null, null, null);
+    verify(unitInPort).update(ArgumentMatchers.eq("KG"), any(UnitDomain.class));
   }
 }

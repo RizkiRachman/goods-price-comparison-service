@@ -21,6 +21,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -62,15 +63,14 @@ class CategoryWebAdapterTest {
     request.setName("Fruits");
     request.setDescription("All kinds of fruits");
 
-    when(categoryInPort.create("FRUIT", "Fruits", "All kinds of fruits"))
-        .thenReturn(categoryDomain);
+    when(categoryInPort.create(any(CategoryDomain.class))).thenReturn(categoryDomain);
     when(mapper.toApiCategory(categoryDomain)).thenReturn(apiCategory);
 
     var result = categoryWebAdapter.create(request);
 
     assertNotNull(result);
     assertEquals("FRUIT", result.getId());
-    verify(categoryInPort).create("FRUIT", "Fruits", "All kinds of fruits");
+    verify(categoryInPort).create(any(CategoryDomain.class));
   }
 
   @Test
@@ -118,13 +118,14 @@ class CategoryWebAdapterTest {
     var request = new UpdateCategoryRequest();
     request.setName("Fresh Fruits");
 
-    when(categoryInPort.update("FRUIT", "Fresh Fruits", null, null)).thenReturn(categoryDomain);
+    when(categoryInPort.update(ArgumentMatchers.eq("FRUIT"), any(CategoryDomain.class)))
+        .thenReturn(categoryDomain);
     when(mapper.toApiCategory(categoryDomain)).thenReturn(apiCategory);
 
     var result = categoryWebAdapter.update("FRUIT", request);
 
     assertNotNull(result);
     assertEquals("FRUIT", result.getId());
-    verify(categoryInPort).update("FRUIT", "Fresh Fruits", null, null);
+    verify(categoryInPort).update(ArgumentMatchers.eq("FRUIT"), any(CategoryDomain.class));
   }
 }

@@ -6,11 +6,11 @@ import com.example.goodsprice.common.dto.PageResponse;
 
 public interface CategoryInPort {
 
-  CategoryDomain create(String id, String name, String description);
+  CategoryDomain create(CategoryDomain domain);
 
   CategoryDomain findById(String id);
 
   PageResponse<CategoryDomain> findAll(CategoryCriteria criteria);
 
-  CategoryDomain update(String id, String name, String description, String status);
+  CategoryDomain update(String id, CategoryDomain domain);
 }

@@ -52,11 +52,9 @@ public class ProductService extends AbstractGenericService<ProductDomain, Long>
   @Override
   @Transactional
   @ActivityLog
-  public ProductDomain create(String name, String category, String brand, String unit) {
-    var product =
-        ProductDomain.builder().name(name).category(category).brand(brand).unit(unit).build();
+  public ProductDomain create(ProductDomain product) {
     product = save(product);
-    log.info("Product created: {} (id: {})", name, product.getId());
+    log.info("Product created: {} (id: {})", product.getName(), product.getId());
     return product;
   }
 
@@ -69,7 +67,7 @@ public class ProductService extends AbstractGenericService<ProductDomain, Long>
       log.debug("Product already exists: {} (id: {})", name, existing.getId());
       return existing;
     }
-    return create(name, category, null, unit);
+    return create(ProductDomain.builder().name(name).category(category).unit(unit).build());
   }
 
   @Override
@@ -168,12 +166,12 @@ public class ProductService extends AbstractGenericService<ProductDomain, Long>
   @Override
   @Transactional
   @ActivityLog
-  public ProductDomain update(Long id, String name, String category, String brand, String unit) {
+  public ProductDomain update(Long id, ProductDomain product) {
     var existing = findById(id);
-    existing.setName(name);
-    existing.setCategory(category);
-    existing.setBrand(brand);
-    existing.setUnit(unit);
+    existing.setName(product.getName());
+    existing.setCategory(product.getCategory());
+    existing.setBrand(product.getBrand());
+    existing.setUnit(product.getUnit());
     existing = save(existing);
     log.info("Product updated: {} (id: {})", existing.getName(), id);
     return existing;

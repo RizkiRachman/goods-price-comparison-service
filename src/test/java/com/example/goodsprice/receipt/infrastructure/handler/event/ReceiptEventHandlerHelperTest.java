@@ -4,16 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
+import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
@@ -297,8 +295,7 @@ class ReceiptEventHandlerHelperTest {
     helper.processProductsAndPrices(Collections.emptyList(), store, today);
 
     verify(productInPort, never()).createIfNotExist(anyString(), anyString(), anyString());
-    verify(priceInPort, never())
-        .create(anyLong(), anyLong(), anyDouble(), anyDouble(), any(), anyBoolean());
+    verify(priceInPort, never()).create(any(PriceDomain.class));
   }
 
   @Test

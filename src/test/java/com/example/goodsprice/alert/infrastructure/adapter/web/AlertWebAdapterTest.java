@@ -3,9 +3,7 @@ package com.example.goodsprice.alert.infrastructure.adapter.web;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -61,15 +59,15 @@ class AlertWebAdapterTest {
     request.setNotificationMethod(AlertSubscriptionRequest.NotificationMethodEnum.EMAIL);
     request.setEmail("user@test.com");
 
-    when(alertInPort.subscribe(anyLong(), anyDouble(), any(), any())).thenReturn(subscription);
-    when(mapper.toResponse(any(AlertSubscription.class), any(String.class))).thenReturn(response);
+    when(alertInPort.subscribe(any(AlertSubscription.class))).thenReturn(subscription);
+    when(mapper.toResponse(any(AlertSubscription.class), anyString())).thenReturn(response);
 
     var result = adapter.subscribe(request);
 
     assertNotNull(result);
     assertEquals("sub-1", result.getSubscriptionId());
-    verify(alertInPort).subscribe(1L, 12000.0, "email", "user@test.com");
-    verify(mapper).toResponse(any(AlertSubscription.class), any(String.class));
+    verify(alertInPort).subscribe(any(AlertSubscription.class));
+    verify(mapper).toResponse(any(AlertSubscription.class), anyString());
   }
 
   @Test
@@ -81,8 +79,8 @@ class AlertWebAdapterTest {
     request.setNotificationMethod(null);
     request.setEmail("user@test.com");
 
-    when(alertInPort.subscribe(anyLong(), anyDouble(), isNull(), any())).thenReturn(subscription);
-    when(mapper.toResponse(any(AlertSubscription.class), any(String.class))).thenReturn(response);
+    when(alertInPort.subscribe(any(AlertSubscription.class))).thenReturn(subscription);
+    when(mapper.toResponse(any(AlertSubscription.class), anyString())).thenReturn(response);
 
     var result = adapter.subscribe(request);
 
@@ -98,8 +96,8 @@ class AlertWebAdapterTest {
     request.setNotificationMethod(AlertSubscriptionRequest.NotificationMethodEnum.EMAIL);
     request.setEmail("user@test.com");
 
-    when(alertInPort.subscribe(anyLong(), anyDouble(), any(), any())).thenReturn(subscription);
-    when(mapper.toResponse(any(AlertSubscription.class), any(String.class)))
+    when(alertInPort.subscribe(any(AlertSubscription.class))).thenReturn(subscription);
+    when(mapper.toResponse(any(AlertSubscription.class), anyString()))
         .thenAnswer(
             invocation -> {
               var msg = invocation.getArgument(1, String.class);

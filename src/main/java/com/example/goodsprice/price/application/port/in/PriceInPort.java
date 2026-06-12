@@ -10,13 +10,7 @@ import java.util.Map;
 
 public interface PriceInPort {
 
-  PriceDomain create(
-      Long productId,
-      Long storeId,
-      Double price,
-      Double unitPrice,
-      LocalDate dateRecorded,
-      Boolean isPromo);
+  PriceDomain create(PriceDomain domain);
 
   PriceDomain findById(Long id);
 
@@ -32,8 +26,7 @@ public interface PriceInPort {
 
   void deleteById(Long id);
 
-  PriceDomain update(
-      Long id, Double price, Double unitPrice, LocalDate dateRecorded, Boolean isPromo);
+  PriceDomain update(Long id, PriceDomain domain);
 
   /**
    * Creates prices for multiple product-store combinations in batch.

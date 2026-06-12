@@ -7,14 +7,11 @@ import com.example.goodsprice.category.infrastructure.adapter.persistence.entity
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
+import com.example.goodsprice.common.persistence.SpecificationBuilder;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
-import com.example.goodsprice.common.util.SpecificationBuilder;
 import com.example.goodsprice.config.CacheConfiguration;
-import jakarta.persistence.criteria.Predicate;
-import java.util.ArrayList;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -45,7 +42,11 @@ public class CategoryRepositoryAdapter
 
   @Override
   public PageResponse<CategoryDomain> findAll(CategoryCriteria criteria) {
-    var spec = buildSpecification(criteria);
+    var spec =
+        new SpecificationBuilder<CategoryEntity>()
+            .addSearchLike(criteria.search(), "name", "id")
+            .addEqual("status", criteria.status())
+            .build();
     return PaginationHelper.findAll(criteria.pageRequest(), spec, jpaRepo, mapper::toDomain);
   }
 
@@ -53,14 +54,5 @@ public class CategoryRepositoryAdapter
   public PageResponse<CategoryDomain> findAll(
       PageRequestDto pageRequest, String search, String status) {
     return findAll(new CategoryCriteria(pageRequest, search, status));
-  }
-
-  private Specification<CategoryEntity> buildSpecification(CategoryCriteria criteria) {
-    return (root, query, cb) -> {
-      var predicates = new ArrayList<Predicate>();
-      SpecificationBuilder.addSearchLike(predicates, root, cb, criteria.search(), "name", "id");
-      SpecificationBuilder.addEqual(predicates, root, cb, "status", criteria.status());
-      return cb.and(SpecificationBuilder.toArray(predicates));
-    };
   }
 }

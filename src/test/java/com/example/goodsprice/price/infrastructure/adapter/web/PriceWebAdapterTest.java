@@ -155,8 +155,7 @@ class PriceWebAdapterTest {
     priceRecord.setId(10L);
     priceRecord.setPrice(15000.0);
 
-    when(priceInPort.create(eq(1L), eq(100L), eq(15000.0), eq(15000.0), any(), eq(false)))
-        .thenReturn(price);
+    when(priceInPort.create(any(PriceDomain.class))).thenReturn(price);
     when(storeInPort.findById(100L)).thenReturn(store);
     when(mapper.toPriceRecord(price, store)).thenReturn(priceRecord);
 
@@ -164,7 +163,7 @@ class PriceWebAdapterTest {
 
     assertNotNull(result);
     assertEquals(10L, result.getId());
-    verify(priceInPort).create(eq(1L), eq(100L), eq(15000.0), eq(15000.0), any(), eq(false));
+    verify(priceInPort).create(any(PriceDomain.class));
     verify(storeInPort).findById(100L);
     verify(mapper).toPriceRecord(price, store);
   }
@@ -206,7 +205,7 @@ class PriceWebAdapterTest {
     priceRecord.setId(10L);
     priceRecord.setPrice(18000.0);
 
-    when(priceInPort.update(eq(10L), eq(18000.0), any(), any(), any())).thenReturn(price);
+    when(priceInPort.update(eq(10L), any(PriceDomain.class))).thenReturn(price);
     when(storeInPort.findById(100L)).thenReturn(store);
     when(mapper.toPriceRecord(price, store)).thenReturn(priceRecord);
 
@@ -214,7 +213,7 @@ class PriceWebAdapterTest {
 
     assertNotNull(result);
     assertEquals(10L, result.getId());
-    verify(priceInPort).update(eq(10L), eq(18000.0), any(), any(), any());
+    verify(priceInPort).update(eq(10L), any(PriceDomain.class));
     verify(storeInPort).findById(100L);
     verify(mapper).toPriceRecord(price, store);
   }

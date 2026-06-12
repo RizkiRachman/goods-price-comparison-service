@@ -38,8 +38,8 @@ public class AlertService extends AbstractGenericService<AlertSubscription, Stri
 
   @Override
   @Transactional
-  public AlertSubscription subscribe(
-      Long productId, Double targetPrice, String notificationMethod, String email) {
+  public AlertSubscription subscribe(AlertSubscription domain) {
+    var productId = domain.getProductId();
     var product = productInPort.findById(productId);
     var cheapestPrice = priceInPort.findCheapestByProduct(productId);
     var currentPrice = Objects.nonNull(cheapestPrice) ? cheapestPrice.getPrice() : null;
@@ -49,10 +49,10 @@ public class AlertService extends AbstractGenericService<AlertSubscription, Stri
             .id(UUID.randomUUID().toString())
             .productId(productId)
             .productName(product.getName())
-            .targetPrice(targetPrice)
+            .targetPrice(domain.getTargetPrice())
             .currentPrice(currentPrice)
-            .notificationMethod(notificationMethod)
-            .email(email)
+            .notificationMethod(domain.getNotificationMethod())
+            .email(domain.getEmail())
             .status("ACTIVE")
             .build();
 
@@ -61,8 +61,8 @@ public class AlertService extends AbstractGenericService<AlertSubscription, Stri
     log.info(
         "Alert subscription created: product={}, targetPrice={}, method={}",
         productId,
-        targetPrice,
-        notificationMethod);
+        domain.getTargetPrice(),
+        domain.getNotificationMethod());
     return saved;
   }
 }

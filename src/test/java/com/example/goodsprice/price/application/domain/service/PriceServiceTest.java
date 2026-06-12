@@ -67,9 +67,18 @@ class PriceServiceTest {
   @Test
   @DisplayName("Should create a price record")
   void shouldCreatePrice() {
+    var inputDomain =
+        PriceDomain.builder()
+            .productId(100L)
+            .storeId(10L)
+            .price(15000.0)
+            .unitPrice(15000.0)
+            .dateRecorded(LocalDate.of(2026, 6, 1))
+            .isPromo(false)
+            .build();
     when(priceRepository.save(any(PriceDomain.class))).thenReturn(price1);
 
-    var result = priceService.create(100L, 10L, 15000.0, 15000.0, LocalDate.of(2026, 6, 1), false);
+    var result = priceService.create(inputDomain);
 
     assertNotNull(result);
     assertEquals(100L, result.getProductId());
@@ -81,9 +90,10 @@ class PriceServiceTest {
   @Test
   @DisplayName("Should create price with null optional fields")
   void shouldCreatePriceWithNullOptionals() {
+    var inputDomain = PriceDomain.builder().productId(100L).storeId(10L).price(15000.0).build();
     when(priceRepository.save(any(PriceDomain.class))).thenReturn(price1);
 
-    var result = priceService.create(100L, 10L, 15000.0, null, null, null);
+    var result = priceService.create(inputDomain);
 
     assertNotNull(result);
     verify(priceRepository).save(any(PriceDomain.class));
@@ -281,10 +291,17 @@ class PriceServiceTest {
   @Test
   @DisplayName("Should update price fields")
   void shouldUpdatePrice() {
+    var updateDomain =
+        PriceDomain.builder()
+            .price(18000.0)
+            .unitPrice(18000.0)
+            .dateRecorded(LocalDate.of(2026, 6, 5))
+            .isPromo(true)
+            .build();
     when(priceRepository.findById(1L)).thenReturn(price1);
     when(priceRepository.save(any(PriceDomain.class))).thenReturn(price1);
 
-    var result = priceService.update(1L, 18000.0, 18000.0, LocalDate.of(2026, 6, 5), true);
+    var result = priceService.update(1L, updateDomain);
 
     assertNotNull(result);
     verify(priceRepository).save(any(PriceDomain.class));
@@ -294,10 +311,11 @@ class PriceServiceTest {
   @Test
   @DisplayName("Should keep existing values when update fields are null")
   void shouldKeepExistingOnNullUpdate() {
+    var updateDomain = PriceDomain.builder().build();
     when(priceRepository.findById(1L)).thenReturn(price1);
     when(priceRepository.save(any(PriceDomain.class))).thenReturn(price1);
 
-    var result = priceService.update(1L, null, null, null, null);
+    var result = priceService.update(1L, updateDomain);
 
     assertNotNull(result);
     assertEquals(15000.0, result.getPrice());
@@ -308,9 +326,10 @@ class PriceServiceTest {
   @Test
   @DisplayName("Should throw NotFoundException when updating non-existent")
   void shouldThrowWhenUpdatingNonExistent() {
+    var updateDomain = PriceDomain.builder().price(100.0).build();
     when(priceRepository.findById(999L)).thenReturn(null);
 
-    assertThrows(NotFoundException.class, () -> priceService.update(999L, 100.0, null, null, null));
+    assertThrows(NotFoundException.class, () -> priceService.update(999L, updateDomain));
   }
 
   private void assertAllDateRangeFallbacks() {
