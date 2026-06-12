@@ -14,6 +14,9 @@ public class AdminWebAdapter {
   private final AdminInPort adminInPort;
 
   public AdminJobTriggerResponse trigger(String jobName) {
-    return adminInPort.triggerJob(jobName);
+    log.info("ADMIN_ACTION: job triggered, jobName={}", jobName);
+    var result = adminInPort.triggerJob(jobName);
+    log.info("ADMIN_ACTION: job completed, jobName={}, result={}", jobName, result);
+    return result;
   }
 }
