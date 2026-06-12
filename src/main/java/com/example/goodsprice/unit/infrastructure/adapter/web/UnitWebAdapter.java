@@ -52,11 +52,15 @@ public class UnitWebAdapter extends AbstractCrudWebAdapter {
             pageRequest, search, type, ObjectUtils.getOrNull(status, EntityStatus::getValue));
 
     var pageResponse = unitInPort.findAll(criteria);
-    var dp = buildListResponse(pageResponse, mapper::toApiUnit);
-    var response = new UnitListResponse();
-    response.setData(dp.data());
-    response.setPagination(dp.pagination());
-    return response;
+    return buildCompleteListResponse(
+        pageResponse,
+        mapper::toApiUnit,
+        (data, pagination) -> {
+          var r = new UnitListResponse();
+          r.setData(data);
+          r.setPagination(pagination);
+          return r;
+        });
   }
 
   public Unit update(String id, UpdateUnitRequest request) {

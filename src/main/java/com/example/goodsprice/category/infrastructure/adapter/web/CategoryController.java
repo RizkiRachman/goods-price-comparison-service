@@ -6,9 +6,9 @@ import com.example.goodsprice.api.model.CategoryListResponse;
 import com.example.goodsprice.api.model.CreateCategoryRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.UpdateCategoryRequest;
+import com.example.goodsprice.common.web.ControllerResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,12 +21,12 @@ public class CategoryController implements CategoriesApi {
   @Override
   public ResponseEntity<Category> createCategory(@Valid CreateCategoryRequest request) {
     var category = adapter.create(request);
-    return ResponseEntity.status(HttpStatus.CREATED).body(category);
+    return ControllerResponse.created(category);
   }
 
   @Override
   public ResponseEntity<Category> getCategory(String categoryId) {
-    return ResponseEntity.ok(adapter.findById(categoryId));
+    return ControllerResponse.ok(adapter.findById(categoryId));
   }
 
   @Override
@@ -37,12 +37,12 @@ public class CategoryController implements CategoriesApi {
       EntityStatus status,
       String sortBy,
       String sortOrder) {
-    return ResponseEntity.ok(adapter.list(page, pageSize, search, status, sortBy, sortOrder));
+    return ControllerResponse.ok(adapter.list(page, pageSize, search, status, sortBy, sortOrder));
   }
 
   @Override
   public ResponseEntity<Category> updateCategory(
       String categoryId, @Valid UpdateCategoryRequest request) {
-    return ResponseEntity.ok(adapter.update(categoryId, request));
+    return ControllerResponse.ok(adapter.update(categoryId, request));
   }
 }

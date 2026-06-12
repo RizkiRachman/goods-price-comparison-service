@@ -91,6 +91,16 @@ class CategoryServiceTest {
   }
 
   @Test
+  @DisplayName("Should throw NotFoundException when deleting non-existent category")
+  void shouldThrowExceptionWhenDeletingNonExistentCategory() {
+    when(categoryRepository.findById("NONEXISTENT")).thenReturn(null);
+
+    var exception =
+        assertThrows(NotFoundException.class, () -> categoryService.deleteById("NONEXISTENT"));
+    assertEquals("CATEGORY_NOT_FOUND", exception.getErrorCode());
+  }
+
+  @Test
   @DisplayName("Should return all categories with pagination")
   void shouldReturnAllCategories() {
     var categories = List.of(existingCategory);

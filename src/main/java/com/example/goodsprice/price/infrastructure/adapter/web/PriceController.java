@@ -10,10 +10,10 @@ import com.example.goodsprice.api.model.PriceSearchRequestV2;
 import com.example.goodsprice.api.model.PriceSearchResponse;
 import com.example.goodsprice.api.model.PriceSearchResponseV2;
 import com.example.goodsprice.api.model.UpdatePriceRecordRequest;
+import com.example.goodsprice.common.web.ControllerResponse;
 import jakarta.validation.Valid;
 import java.time.OffsetDateTime;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,19 +26,18 @@ public class PriceController implements PricesApi {
   @Override
   public ResponseEntity<PriceRecord> createPriceRecord(
       Long productId, @Valid CreatePriceRecordRequest request) {
-    return ResponseEntity.status(HttpStatus.CREATED)
-        .body(adapter.createPriceRecord(productId, request));
+    return ControllerResponse.created(adapter.createPriceRecord(productId, request));
   }
 
   @Override
   public ResponseEntity<PriceRecord> getPriceRecord(Long id) {
-    return ResponseEntity.ok(adapter.getPriceRecord(id));
+    return ControllerResponse.ok(adapter.getPriceRecord(id));
   }
 
   @Override
   public ResponseEntity<Void> deletePriceRecord(Long id) {
     adapter.deletePriceRecord(id);
-    return ResponseEntity.noContent().build();
+    return ControllerResponse.noContent();
   }
 
   @Override
@@ -53,7 +52,7 @@ public class PriceController implements PricesApi {
       Integer size,
       String sortBy,
       String sortDirection) {
-    return ResponseEntity.ok(
+    return ControllerResponse.ok(
         adapter.listProductPrices(
             productId,
             storeId,
@@ -69,17 +68,17 @@ public class PriceController implements PricesApi {
 
   @Override
   public ResponseEntity<PriceSearchResponse> searchPrices(@Valid PriceSearchRequest request) {
-    return ResponseEntity.ok(adapter.search(request));
+    return ControllerResponse.ok(adapter.search(request));
   }
 
   @Override
   public ResponseEntity<PriceSearchResponseV2> searchPricesV2(@Valid PriceSearchRequestV2 request) {
-    return ResponseEntity.ok(adapter.searchV2(request));
+    return ControllerResponse.ok(adapter.searchV2(request));
   }
 
   @Override
   public ResponseEntity<PriceRecord> updatePriceRecord(
       Long id, @Valid UpdatePriceRecordRequest request) {
-    return ResponseEntity.ok(adapter.updatePriceRecord(id, request));
+    return ControllerResponse.ok(adapter.updatePriceRecord(id, request));
   }
 }

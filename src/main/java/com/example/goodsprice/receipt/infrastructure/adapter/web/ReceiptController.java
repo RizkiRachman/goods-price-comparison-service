@@ -10,6 +10,7 @@ import com.example.goodsprice.api.model.ReceiptRejectResponse;
 import com.example.goodsprice.api.model.ReceiptResultResponse;
 import com.example.goodsprice.api.model.ReceiptStatusResponse;
 import com.example.goodsprice.api.model.ReceiptUploadResponse;
+import com.example.goodsprice.common.web.ControllerResponse;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -31,39 +32,39 @@ public class ReceiptController implements ReceiptsApi {
 
   @Override
   public ResponseEntity<ReceiptStatusResponse> getReceiptStatus(UUID id) {
-    return ResponseEntity.ok(adapter.getStatus(id));
+    return ControllerResponse.ok(adapter.getStatus(id));
   }
 
   @Override
   public ResponseEntity<ReceiptResultResponse> getReceiptResults(UUID id) {
-    return ResponseEntity.ok(adapter.getResult(id));
+    return ControllerResponse.ok(adapter.getResult(id));
   }
 
   @Override
   public ResponseEntity<ReceiptApproveResponse> approveReceipt(UUID id) {
-    return ResponseEntity.ok(adapter.approve(id));
+    return ControllerResponse.ok(adapter.approve(id));
   }
 
   @Override
   public ResponseEntity<ReceiptRejectResponse> rejectReceipt(UUID id) {
-    return ResponseEntity.ok(adapter.reject(id));
+    return ControllerResponse.ok(adapter.reject(id));
   }
 
   @Override
   public ResponseEntity<ReceiptResultResponse> correctReceipt(
       UUID id, @Valid ReceiptCorrectRequest receiptCorrectRequest) {
-    return ResponseEntity.ok(correctionAdapter.correct(id, receiptCorrectRequest));
+    return ControllerResponse.ok(correctionAdapter.correct(id, receiptCorrectRequest));
   }
 
   @Override
   public ResponseEntity<ReceiptResultResponse> createReceipt(
       @Valid ReceiptCreateRequest receiptCreateRequest) {
-    return ResponseEntity.ok(adapter.create(receiptCreateRequest));
+    return ControllerResponse.ok(adapter.create(receiptCreateRequest));
   }
 
   @Override
   public ResponseEntity<BillSplitResponse> splitBill(
       UUID receiptId, @Valid BillSplitRequest request) {
-    return ResponseEntity.ok(adapter.splitBill(receiptId, request));
+    return ControllerResponse.ok(adapter.splitBill(receiptId, request));
   }
 }
