@@ -217,6 +217,10 @@ graphify-out/
 # Release plans (development artifacts — keep in PR body, not in repo)
 docs/release-plans/
 
+# OpenCode plugin configs (local — contain patterns that should stay local)
+vibeguard.config.json
+.opencode-skillful.json
+
 # Code quality reports (development artifacts — local analysis only)
 docs/quality-analysis-*.md
 docs/analysis-*.md
