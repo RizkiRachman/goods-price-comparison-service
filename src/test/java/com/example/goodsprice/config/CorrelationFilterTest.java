@@ -76,7 +76,8 @@ class CorrelationFilterTest {
     assertThat(correlationId).doesNotContain("!");
     assertThat(correlationId).isNotNull().isNotEmpty();
     // Should be a valid UUID (contains hyphens)
-    assertThat(correlationId).matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
+    assertThat(correlationId)
+        .matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
   }
 
   @Test
