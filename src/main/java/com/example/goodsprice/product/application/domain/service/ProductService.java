@@ -53,9 +53,9 @@ public class ProductService extends AbstractGenericService<ProductDomain, Long>
   @Transactional
   @ActivityLog
   public ProductDomain create(ProductDomain product) {
-    product = save(product);
-    log.info("Product created: {} (id: {})", product.getName(), product.getId());
-    return product;
+    var saved = save(product);
+    log.info("Product created: {} (id: {})", saved.getName(), saved.getId());
+    return saved;
   }
 
   @Override
