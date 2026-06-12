@@ -65,6 +65,21 @@ class CorrelationFilterTest {
   }
 
   @Test
+  void shouldGenerateUuidWhenSanitizedToEmpty() throws ServletException, IOException {
+    var request = new MockHttpServletRequest();
+    request.addHeader("X-Correlation-ID", "!!!");
+    var response = new MockHttpServletResponse();
+
+    filter.doFilterInternal(request, response, filterChain);
+
+    String correlationId = response.getHeader("X-Correlation-ID");
+    assertThat(correlationId).doesNotContain("!");
+    assertThat(correlationId).isNotNull().isNotEmpty();
+    // Should be a valid UUID (contains hyphens)
+    assertThat(correlationId).matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
+  }
+
+  @Test
   void shouldPutCorrelationIdInMdc() throws ServletException, IOException {
     var request = new MockHttpServletRequest();
     var response = new MockHttpServletResponse();

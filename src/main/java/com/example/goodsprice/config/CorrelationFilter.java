@@ -37,6 +37,7 @@ public class CorrelationFilter extends OncePerRequestFilter {
       return UUID.randomUUID().toString();
     }
     // Only allow alphanumeric, hyphens, and underscores — strip anything else
-    return value.replaceAll("[^a-zA-Z0-9\\-_]", "");
+    var sanitized = value.replaceAll("[^a-zA-Z0-9\\-_]", "");
+    return sanitized.isBlank() ? UUID.randomUUID().toString() : sanitized;
   }
 }
