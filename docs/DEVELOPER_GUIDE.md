@@ -88,26 +88,44 @@ mvn spring-boot:run
 src/main/java/com/example/goodsprice/
 ├── common/                    # Shared utilities, constants, events
 │   ├── constant/             # AppConstants, ErrorCodes
-│   ├── exception/            # Custom exceptions
-│   └── util/                 # ObjectUtils, NumberUtils, JsonUtils
+│   ├── exception/            # Custom exceptions (NotFoundException)
+│   ├── repository/           # GenericRepositoryPort
+│   ├── service/              # AbstractGenericService
+│   └── util/                 # ObjectUtils, NumberUtils, JsonUtils, Pipeline
 │
 ├── receipt/                   # Receipt service
 │   ├── application/
 │   │   ├── domain/model/     # Receipt, ReceiptItem, ReceiptStatus
-│   │   ├── domain/service/   # ReceiptService
-│   │   ├── port/in/          # ReceiptInPort
+│   │   ├── domain/service/   # ReceiptService, BillSplitService, ReceiptApprovalService
+│   │   ├── port/in/          # ReceiptInPort, BillSplitInPort, ReceiptApprovalInPort
 │   │   └── port/out/         # ReceiptRepositoryPort, ReceiptEventOutPort
 │   └── infrastructure/
-│       ├── adapter/web/      # ReceiptController, ReceiptWebAdapter
+│       ├── adapter/web/      # ReceiptController, ReceiptWebAdapter, ReceiptCorrectionWebAdapter
 │       ├── adapter/persistence/  # ReceiptEntity, ReceiptRepositoryAdapter
 │       └── handler/event/    # ReceiptProcessEventListener
 │
 ├── price/                     # Price service
+│   ├── application/
+│   │   ├── domain/model/     # PriceDomain, PriceSummary
+│   │   ├── domain/service/   # PriceService, ProductPriceQueryService, PriceSummaryQueryService
+│   │   ├── port/in/          # PriceInPort, ProductPriceQueryInPort, PriceSummaryQueryInPort
+│   │   └── port/out/         # PriceRepositoryPort, PriceEventOutPort
+│   └── infrastructure/
+│       ├── adapter/web/      # PriceController, PriceWebAdapter
+│       ├── adapter/persistence/  # PriceEntity, PriceRepositoryAdapter
+│       └── handler/event/    # ReceiptProcessedEventHandler
+│
 ├── product/                   # Product service
 ├── store/                     # Store service
-├── llm/                       # LLM integration
+├── unit/                      # Unit service
+├── category/                  # Category service
+├── llm/                       # LLM integration (provider abstraction)
 ├── shopping/                  # Shopping optimization
-└── alert/                     # Alert service
+├── alert/                     # Alert service (price drop subscriptions)
+├── activity/                  # Activity log (AOP-based audit trail)
+├── feedbackquestion/          # Feedback & questions
+├── system/                    # System health, metrics
+└── config/                    # Cross-cutting config (cache, CORS, rate limiting)
 ```
 
 Each service follows the hexagonal pattern: **ports → domain → adapters**. See the [Architecture Overview](ARCHITECTURE_HYBRID.md) for design rationale.
@@ -241,19 +259,30 @@ mvn flyway:migrate -Pflyway
 | Type | Location | What It Tests |
 |------|----------|---------------|
 | Unit | `application/domain/service/*Test` | Business logic with mocked ports |
-| Integration | `infrastructure/adapter/persistence/*Test` | Database layer |
-| Controller | `infrastructure/adapter/web/*Test` | REST endpoints |
-| Architecture | `architecture/HexagonalArchitectureTest` | ArchUnit rules |
+| Integration (JPA) | `infrastructure/adapter/persistence/*DataJpaTest` | Database layer — entity mapping, JPA queries against H2 |
+| Integration (Web) | `infrastructure/adapter/web/*WebMvcTest` | Controller HTTP mapping — status codes, JSON serialization, exception handling |
+| Unit (Controller) | `infrastructure/adapter/web/*Test` | Controller logic with `@InjectMocks` |
+| Unit (Repository) | `infrastructure/adapter/persistence/*Test` | Repository adapter with `@Mock` |
+| Architecture | `architecture/HexagonalArchitectureTest` | ArchUnit rules (7 rules) |
+
+**Base classes** reduce boilerplate:
+- `AbstractGenericServiceTest` — shared hooks for service-level tests (findById, deleteById, save, findAll, not-found patterns)
+- `AbstractControllerWebMvcTest` — shared setUp() with ObjectMapper, MockMvc, GlobalExceptionHandler
+- `AbstractRepositoryAdapterDataJpaTest` — shared @SpringBootTest/@Transactional annotations and EntityManager
+- `ServiceLayerNotFoundExceptionTest` — interface for service-specific NotFoundException test paths
 
 ### Commands
 
 ```bash
-mvn test                           # Unit tests only
-mvn verify                         # Full verification
-mvn test -Dtest=ReceiptServiceTest # Single test
+mvn test                           # All tests (unit + integration + ArchUnit)
+mvn verify                         # Full verification (tests + SpotBugs + PMD CPD)
+mvn test -Dtest=ReceiptServiceTest # Single test class
+mvn test -DforkCount=0             # Disable forking (fixes MockitoSession issues)
 ```
 
 Tests use `@ActiveProfiles("test")` — H2 in-memory, Flyway disabled, LLM set to `local`.
+
+> **Note:** Spring Boot 4.0.6 custom build lacks `@DataJpaTest`, `@WebMvcTest`, and `@MockBean`. JPA tests use `@SpringBootTest` + `@Transactional`; web tests use `MockMvcBuilders.standaloneSetup()` + `@Mock`.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
