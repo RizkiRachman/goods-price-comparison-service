@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Map;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +24,7 @@ class LlmServiceCacheTest {
   @Test
   @DisplayName("Should cache LLM responses for same image")
   void shouldCacheResponsesForSameImage() {
-    if (!llmService.isAvailable()) {
-      System.out.println("Skipping test - provider not available");
-      return;
-    }
+    Assumptions.assumeTrue(llmService.isAvailable(), "LLM provider not available");
 
     String imageBase64 = "base64encodedimagedata123";
     Map<String, Object> result1 = llmService.extractReceipt(imageBase64);
