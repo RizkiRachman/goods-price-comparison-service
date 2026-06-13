@@ -237,3 +237,7 @@ docs/superpowers/
 
 # AI agent CI workflows
 .github/workflows/pr-agent-context.yml
+
+# Firecrawl CLI artifacts
+.firecrawl/
+benefit.md

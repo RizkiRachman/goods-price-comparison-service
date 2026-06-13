@@ -25,34 +25,6 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **Generic service abstraction (Phase 1A)**: `StoreService` and `PriceService` now extend `AbstractGenericService<StoreDomain, Long>` / `AbstractGenericService<PriceDomain, Long>` — eliminating duplicate `findById()`, `save()`, and `deleteById()` boilerplate. `StoreWebAdapter` and `PriceWebAdapter` now extend `AbstractCrudWebAdapter` for shared pagination/status resolution helpers. Product, Receipt, Alert, and PriceSummary intentionally excluded (domain complexity exceeds CRUD abstraction value).
 - **Null convention enforced project-wide**: All 34 raw `x == null` / `x != null` comparisons replaced with `Objects.isNull(x)` / `Objects.nonNull(x)` across 17 files — enforces the project null handling convention consistently
 - **Generic repository port pattern enforced**: 6 port interfaces now extend `GenericRepositoryPort<T, ID>` with typed domain/ID parameters instead of declaring duplicate CRUD methods. `AbstractRepositoryAdapter` gained a `findAll(PageRequestDto, String, String)` default implementation. Applies to Product, Store, Price, Alert, Receipt, PriceSummary. ReceiptItem skipped (no standalone ID).
-
-### Added
-- **Slice-style integration tests (Phase 1)**: Added 44 new integration tests across 4 core services (Category, Store, Unit, Product) — 8 test files covering JPA persistence (`@SpringBootTest`+`@Transactional` with H2) and controller HTTP mapping (`MockMvcBuilders.standaloneSetup()`+`@Mock`). Adapted to Spring Boot 4.0.6 which lacks `@DataJpaTest`/`@WebMvcTest`/`@MockBean`. Tests validate entity mapping, JPA query correctness, HTTP status codes, JSON serialization, and `GlobalExceptionHandler` error handling. 952 tests/0 failures.
-- **Slice-style integration tests (Phase 2)**: Added 72 new integration tests across 6 remaining services (Receipt, Price, Shopping, ActivityLog, Alert, FeedbackQuestion) — 11 test files. Receipt: UUID PK, MultipartFile upload, ReceiptStatus enum. Price: 7 custom JPA queries (most complex), date range filters. Shopping: single optimize endpoint. ActivityLog: read-only, SpecificationExecutor. Alert: String PK (manual). FeedbackQuestion: FeedbackQuestionType enum. 1024 tests/0 failures.
-- **ControllerResponse helper utility**: Created `ControllerResponse` with static `created()`, `ok()`, `noContent()` methods — adopted by all 8 controllers (Category, Store, Unit, FeedbackQuestion, ActivityLog, Price, Product, Receipt), removing inline `ResponseEntity.status(HttpStatus.CREATED).body(...)` patterns. 1 new file, 13 updated.
-- **Missing deleteById not-found tests**: Added `shouldThrowExceptionWhenDeletingNonExistentCategory` to `CategoryServiceTest` and `shouldThrowExceptionWhenDeletingNonExistentUnit` to `UnitServiceTest` — covering the `deleteById` NotFoundException path. 2 test files updated.
-- **Smoke test data cleanup**: New `Cleanup` folder in Postman collection deletes test-created entities (Price → Product → Store) in reverse dependency order after all tests complete, preventing dirty data in production
-- **Project-wide test coverage**: Coverage increased from 13.9% to 91.5% instruction (80.6% branch) — 846 tests passing across all quality gates
-- **Zero-coverage classes eliminated**: All 40 previously uncovered classes now have ≥1 test
-- **Narrowed JaCoCo exclusions**: Removed infrastructure/**, common/**, job/**, config/** exclusions; kept only boilerplate (entity, dto, constant, exception, domain model, Application)
-- **Parallel test implementation**: 6 agents dispatched across 12 service domains — Common utilities, Config/Security, Store, Product, Category, Unit, Price, Receipt, Activity, Alert, Shopping, Admin/System, LLM
-- **Infrastructure test coverage**: Persistence adapters (@DataJpaTest), web adapters/controllers (Mockito), event handlers, DTO mappers, LLM providers, AOP aspect, jobs, abstract infrastructure — across all domains
-- **Application layer test coverage**: Added 32 new unit tests across 7 modules — SystemService (3), AdminService (3), AlertService (4), ActivityLogService (5), LlmService (7), UnitService (5), FeedbackQuestionService (2)
-- **AdminService null validation**: `triggerJob()` now throws `IllegalArgumentException` for null job names
-- **Lombok annotation processing fix**: Configured `maven-compiler-plugin` `test-compile` goal to apply annotation processors to test sources
-- feat: Implemented criteria objects for ActivityLog ports
-- **ReceiptProcessedEventHandler**: New handler completing the event pipeline after LLM extraction
-- **Event-driven price summary updates**: `PriceSummaryEventOutPort` + adapter + handler decouples receipt↔price services
-- **DB indexes (V15)**: Missing indexes on `products.category`, `stores.name`, `receipts.status`, `receipts.receipt_date`
-- **Alert subscriptions table (V16)**: Persistent storage for price alert subscriptions
-- **Admin hexagonal refactor**: `AdminInPort` + `AdminService` — admin now follows hexagonal architecture
-- **System hexagonal refactor**: `SystemInPort` + `SystemService` — system now follows hexagonal architecture
-- **Alert persistence layer**: `AlertRepositoryPort` + entity + mapper + adapter for database-backed subscriptions
-- **AbstractRepositoryAdapter**: Generic CRUD base saving ~67 lines across 8 repository adapters
-- **AbstractCrudWebAdapter**: Utility base with shared pagination helpers for web adapters
-- **Unit tests (30 tests)**: 6 new test suites for CategoryService, UnitService, FeedbackQuestionService, ActivityLogService, StoreService, AlertService
-
-### Changed
 - **PriceWebAdapter**: Refactored `resolveRequest` to throw `IllegalArgumentException` for null product names and `NotFoundException` for missing products instead of returning null, and simplified `search`/`searchV2` by removing redundant null checks.
 - **ReceiptCorrectedPriceCalcHandler**: Now publishes event instead of directly importing `PriceSummaryBatchService`
 - **Admin/System controllers**: Moved to `infrastructure/adapter/web/` for hexagonal compliance
@@ -62,24 +34,17 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **Entity enums**: ReceiptStatus, ActivityLogType, ActivityLogAction unified — entity-specific duplicates removed
 - **ERD.md**: Updated with all 10 tables, new indexes, corrected migration listing
 - **JaCoCo gate**: Re-enabled at 30% INSTRUCTION / 20% BRANCH thresholds
-
-### Fixed
-- **Validation Exception Handling**: Added a global exception handler for `MethodArgumentNotValidException` in `GlobalExceptionHandler` to map Spring validation errors (like `@NotNull` violations on request bodies) to `400 Bad Request` instead of falling back to `500 Internal Server Error`.
-- **Orphan ReceiptProcessedEvent**: Now has a handler (was published but unhandled)
-- **Cross-service coupling**: Receipt handler no longer directly imports price domain service
-- **ProductDomain data loss risk**: MapStruct no longer silently drops price fields
-- **Inconsistent timestamps**: All entities now use consistent Hibernate annotation pattern
-- **Null isPromo on price update**: `PriceService.update()` now defaults `isPromo` to `false` via `ObjectUtils.defaultIfNull()` when null is passed — prevents `DataIntegrityViolationException` on `NOT NULL` column
-
-### Removed
-- `ReceiptStatusEntity.java` — unified with domain `ReceiptStatus`
-- `ActivityLogTypeEntity.java` — unified with domain `ActivityLogType`
-- `ActivityLogActionEntity.java` — unified with domain `ActivityLogAction`
-- `AdminController.java` — moved to `infrastructure/adapter/web/`
-- `AdminWebAdapter.java` — moved to `infrastructure/adapter/web/`
-- `SystemController.java` — moved to `infrastructure/adapter/web/`
-
-### Changed
+- **API spec**: Updated `goods-price-comparison-api` from `1.9.0` to `1.10.0`
+- **PMD ruleset**: Upgraded to PMD 7.7.0, renamed deprecated JUnit rules to `UnitTest*` equivalents, removed non-existent rules (`AtLeastOneConstructor`, `BeanMembersShouldSerialize`, `AvoidCatchingGenericException`, `AvoidRethrowingException`)
+- **Jackson config**: Replaced deprecated `Jackson2ObjectMapperBuilder` with explicit `ObjectMapper` bean for Spring Boot 4.0.5 compatibility; added `spring.http.converters.preferred-json-mapper=jackson2` for `JsonNullableModule` compatibility
+- **CI workflows**: Updated `ci-build`, `ci-publish`, `codeql` from JDK 17 to JDK 21
+- **ActivityLogService**: Extends `AbstractGenericService<ActivityLogDomain, UUID>` with `GenericRepositoryPort` for standard CRUD operations
+- **AsyncConfiguration**: Extracted `createExecutor()` factory method eliminating 90% duplication across 3 thread pool beans
+- **ActivityLogAspect**: Extracted hardcoded strings (method prefixes, class suffixes, field names) to `ActivityLogConstants`
+- **DB migration V13**: `type` and `action` columns converted from `VARCHAR` to PostgreSQL native enum types (`activity_log_type`, `activity_log_action`) in `V13__create_activity_logs_table.sql`
+- **Activity logs - enums**: `type` and `action` fields converted from `String` to typed enums (`ActivityLogType`, `ActivityLogAction`) across domain model, entity, ports, service, mapper, and AOP aspect
+- **Database config**: Production uses `ddl-auto=validate` (Flyway via Maven); local dev uses `ddl-auto=update` (H2); tests use `ddl-auto=create-drop` (H2)
+- **Test config**: Changed `spring.jpa.hibernate.ddl-auto` from `validate` to `create-drop` and disabled Flyway (H2 schema managed by Hibernate)
 - **FeedbackQuestion**: Refactored `findAll` method to use `FeedbackQuestionCriteria` across service, web adapter, and repository adapter.
 - **Category**: Refactored `findAll` method to use `CategoryCriteria` across in-port, service, web adapter, and repository port/adapter.
 - **LLM providers**: Extracted `AbstractRestLlmProvider` base class — eliminated ~95% code duplication between `GroqLlmProvider` (193→33 lines) and `SumopodLlmProvider` (204→33 lines). Shared prompt, parsing, availability logic.
@@ -99,65 +64,56 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **ShoppingOptimizer**: Changed `@Component` → `@Service` for ArchUnit compliance with hexagonal conventions
 - **LLM providers**: Injected shared `RestTemplate` bean with 10s connect / 30s read timeouts (was per-instance `new RestTemplate()` with no timeout)
 - **LlmConstants**: Removed 4 unused mock constants (`MOCK_STORE`, `MOCK_DATE`, etc.) — moved to `LocalLlmProvider` where used
+- **Bill split**: Refactored to hexagonal architecture with domain models (`BillSplitRequestDomain`, `BillSplitResponseDomain`, `BillSplitRequestOrderDomain`, `BillSplitOrderDetailDomain`, etc.) — `BillSplitInPort` decoupled from API spec JAR, new `BillSplitDtoMapper` for spec↔domain mapping, `BillSplitService` no longer depends on `ProductInPort`
+- **API spec**: Updated `goods-price-comparison-api` from `1.8.0` to `1.8.1`
+- **Exception handling**: Unified `NotFoundException` replaces per-entity exceptions — single `@ExceptionHandler` in `GlobalExceptionHandler`
+- **Hexagonal architecture restructuring**: Each service follows ports-and-adapters pattern
+- **API spec version**: Updated from `1.2.3` to `1.4.4`, then to `1.5.1`, then to `1.6.0`
+- **Package restructuring**: Moved from flat `module/` to hexagonal `service/application/` + `service/infrastructure/`
+- **Thread safety**: Replaced `HashMap` with `ConcurrentHashMap` in `JobRegistry` and `ShoppingOptimizer`
+- **Wildcard imports**: Replaced star imports with explicit imports (Checkstyle compliance)
+- **Shopping optimizer**: Converted imperative loops to Java 17 streams
 
 ### Added
+- **ServiceLayerNotFoundExceptionTest interface**: New interface with `@Test` default method for testing service-specific NotFoundException paths — 5 service tests (Price, BillSplit, Receipt, ReceiptApproval, Product) now implement the interface, eliminating 5 duplicated test methods
+- **Slice-style integration tests (Phase 1)**: Added 44 new integration tests across 4 core services (Category, Store, Unit, Product) — 8 test files covering JPA persistence (`@SpringBootTest`+`@Transactional` with H2) and controller HTTP mapping (`MockMvcBuilders.standaloneSetup()`+`@Mock`). Adapted to Spring Boot 4.0.6 which lacks `@DataJpaTest`/`@WebMvcTest`/`@MockBean`. Tests validate entity mapping, JPA query correctness, HTTP status codes, JSON serialization, and `GlobalExceptionHandler` error handling. 952 tests/0 failures.
+- **Slice-style integration tests (Phase 2)**: Added 72 new integration tests across 6 remaining services (Receipt, Price, Shopping, ActivityLog, Alert, FeedbackQuestion) — 11 test files. Receipt: UUID PK, MultipartFile upload, ReceiptStatus enum. Price: 7 custom JPA queries (most complex), date range filters. Shopping: single optimize endpoint. ActivityLog: read-only, SpecificationExecutor. Alert: String PK (manual). FeedbackQuestion: FeedbackQuestionType enum. 1024 tests/0 failures.
+- **ControllerResponse helper utility**: Created `ControllerResponse` with static `created()`, `ok()`, `noContent()` methods — adopted by all 8 controllers (Category, Store, Unit, FeedbackQuestion, ActivityLog, Price, Product, Receipt), removing inline `ResponseEntity.status(HttpStatus.CREATED).body(...)` patterns. 1 new file, 13 updated.
+- **Missing deleteById not-found tests**: Added `shouldThrowExceptionWhenDeletingNonExistentCategory` to `CategoryServiceTest` and `shouldThrowExceptionWhenDeletingNonExistentUnit` to `UnitServiceTest` — covering the `deleteById` NotFoundException path. 2 test files updated.
+- **Smoke test data cleanup**: New `Cleanup` folder in Postman collection deletes test-created entities (Price → Product → Store) in reverse dependency order after all tests complete, preventing dirty data in production
+- **Project-wide test coverage**: Coverage increased from 13.9% to 91.5% instruction (80.6% branch) — 1,024 tests passing across all quality gates
+- **Zero-coverage classes eliminated**: All 40 previously uncovered classes now have ≥1 test
+- **Narrowed JaCoCo exclusions**: Removed infrastructure/**, common/**, job/**, config/** exclusions; kept only boilerplate (entity, dto, constant, exception, domain model, Application)
+- **Parallel test implementation**: 6 agents dispatched across 12 service domains — Common utilities, Config/Security, Store, Product, Category, Unit, Price, Receipt, Activity, Alert, Shopping, Admin/System, LLM
+- **Infrastructure test coverage**: Persistence adapters (@DataJpaTest), web adapters/controllers (Mockito), event handlers, DTO mappers, LLM providers, AOP aspect, jobs, abstract infrastructure — across all domains
+- **Application layer test coverage**: Added 32 new unit tests across 7 modules — SystemService (3), AdminService (3), AlertService (4), ActivityLogService (5), LlmService (7), UnitService (5), FeedbackQuestionService (2)
+- **AdminService null validation**: `triggerJob()` now throws `IllegalArgumentException` for null job names
+- **Lombok annotation processing fix**: Configured `maven-compiler-plugin` `test-compile` goal to apply annotation processors to test sources
+- feat: Implemented criteria objects for ActivityLog ports
+- **ReceiptProcessedEventHandler**: New handler completing the event pipeline after LLM extraction
+- **Event-driven price summary updates**: `PriceSummaryEventOutPort` + adapter + handler decouples receipt↔price services
+- **DB indexes (V15)**: Missing indexes on `products.category`, `stores.name`, `receipts.status`, `receipts.receipt_date`
+- **Alert subscriptions table (V16)**: Persistent storage for price alert subscriptions
+- **Admin hexagonal refactor**: `AdminInPort` + `AdminService` — admin now follows hexagonal architecture
+- **System hexagonal refactor**: `SystemInPort` + `SystemService` — system now follows hexagonal architecture
+- **Alert persistence layer**: `AlertRepositoryPort` + entity + mapper + adapter for database-backed subscriptions
+- **AbstractRepositoryAdapter**: Generic CRUD base saving ~67 lines across 8 repository adapters
+- **AbstractCrudWebAdapter**: Utility base with shared pagination helpers for web adapters
+- **Unit tests (30 tests)**: 6 new test suites for CategoryService, UnitService, FeedbackQuestionService, ActivityLogService, StoreService, AlertService
 - **Activity Log Service**: New `activity` package under hexagonal architecture — stores CREATE/UPDATE/DELETE operations via `@ActivityLog` annotation with AOP interception, async event-driven persistence via `@TransactionalEventListener(AFTER_COMMIT)`
 - **Activity Logs API**: `GET /v1/activity-logs` — paginated, sortable, filterable by type/action/date range; `GET /v1/activity-logs/{id}` — single record. Implements generated `ActivityLogsApi` interface from API spec v1.10.0
 - **DB migrations**: `V13__create_activity_logs_table.sql`
 - **Feedback & Questions**: `POST/GET /v1/feedback-questions` — create feedback or questions, list with pagination/sorting, get by UUID. Uses generic service/repository pattern with `AbstractGenericService` and `GenericRepositoryPort`
 - **DB migrations**: `V12__create_feedback_questions_table.sql`
 - **Caffeine cache**: `feedback-questions` cache for `findById` and `save`
-
-### Changed
-- **API spec**: Updated `goods-price-comparison-api` from `1.9.0` to `1.10.0`
-- **PMD ruleset**: Upgraded to PMD 7.7.0, renamed deprecated JUnit rules to `UnitTest*` equivalents, removed non-existent rules (`AtLeastOneConstructor`, `BeanMembersShouldSerialize`, `AvoidCatchingGenericException`, `AvoidRethrowingException`)
-- **Jackson config**: Replaced deprecated `Jackson2ObjectMapperBuilder` with explicit `ObjectMapper` bean for Spring Boot 4.0.5 compatibility; added `spring.http.converters.preferred-json-mapper=jackson2` for `JsonNullableModule` compatibility
-- **CI workflows**: Updated `ci-build`, `ci-publish`, `codeql` from JDK 17 to JDK 21
-- **ActivityLogService**: Extends `AbstractGenericService<ActivityLogDomain, UUID>` with `GenericRepositoryPort` for standard CRUD operations
-- **AsyncConfiguration**: Extracted `createExecutor()` factory method eliminating 90% duplication across 3 thread pool beans
-- **ActivityLogAspect**: Extracted hardcoded strings (method prefixes, class suffixes, field names) to `ActivityLogConstants`
-- **DB migration V13**: `type` and `action` columns converted from `VARCHAR` to PostgreSQL native enum types (`activity_log_type`, `activity_log_action`) in `V13__create_activity_logs_table.sql`
-- **Activity logs - enums**: `type` and `action` fields converted from `String` to typed enums (`ActivityLogType`, `ActivityLogAction`) across domain model, entity, ports, service, mapper, and AOP aspect
-- **Database config**: Production uses `ddl-auto=validate` (Flyway via Maven); local dev uses `ddl-auto=update` (H2); tests use `ddl-auto=create-drop` (H2)
-- **Test config**: Changed `spring.jpa.hibernate.ddl-auto` from `validate` to `create-drop` and disabled Flyway (H2 schema managed by Hibernate)
-
-### Fixed
-- **Activity logs not recording**: AOP interceptor ran before `@Transactional` advisor — `eventOutPort.publishLogged()` was called after transaction already committed, so `@TransactionalEventListener(AFTER_COMMIT)` never fired. Changed to `@EventListener` — interceptor guarantees only successful operations reach the publish code.
-- **StaleObjectStateException in activity logs**: `ActivityLogMapper.toEntity()` pre-set UUID via `UUID.randomUUID()`, causing `merge()` instead of `persist()` in `REQUIRES_NEW` transaction. Removed ID generation — let `@GeneratedValue` handle it.
-- **400 VALIDATION_ERROR "Unexpected value 'ACTIVE'"**: `EntityStatus.fromValue("ACTIVE")` threw `IllegalArgumentException` for domain models using status `"ACTIVE"`. `ObjectUtils.getOrNull` now catches exceptions, returning null gracefully.
-- **Correction activity type wrong**: `ReceiptCorrectionService` resolved to `RECEIPTCORRECTIONSERVICE` instead of `RECEIPT`. Fixed CGLIB proxy name resolution (strip `$$` before `Service` suffix) and added entity type mapping for corrections.
-- **Jackson deserialization of JsonNullable**: Spring Boot 4.x uses Jackson 3.x by default but `jackson-databind-nullable` targets Jackson 2.x. Added `spring.http.converters.preferred-json-mapper=jackson2` to force Jackson 2.x HTTP converters.
-
-### Fixed
-- **FindSecBugs NPE**: Fix `CorsRegistryCORSDetector` crash by switching `allowedOrigins` to `allowedOriginPatterns` (different method name bypasses the detector) and removing unused `.allowedHeaders()` call
-
-### Added
 - **Category CRUD**: `GET/POST/PUT /v1/categories` — string ID-based category management (FOOD, DAIRY, SNACK)
 - **Unit CRUD**: `GET/POST/PUT /v1/units` — measurement unit management (KG, L, PCS) with type filter (WEIGHT/VOLUME/QUANTITY)
 - **Bill split**: `POST /v1/receipts/{receiptId}/bill-split` — RATIO (equal split) and SELECTION (item-based) modes, cached 15 min
 - **Generic service layer**: `common/exception/NotFoundException`, `common/repository/GenericRepositoryPort`, `common/service/AbstractGenericService` — shared CRUD boilerplate
 - **DB migrations**: `V10__create_categories_table.sql`, `V11__create_units_table.sql`
 - **Caffeine caches**: `categories`, `units`, `bill-splits` in `CacheConfiguration`
-
-### Security
-- **CORS configuration**: Global CORS via `WebMvcConfigurer` with configurable origins, methods, and credentials (`config/cors.properties`)
-- **Security headers**: `OncePerRequestFilter` adding `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, and `Cache-Control: no-store` on write methods
-
-### Changed
-- **Bill split**: Refactored to hexagonal architecture with domain models (`BillSplitRequestDomain`, `BillSplitResponseDomain`, `BillSplitRequestOrderDomain`, `BillSplitOrderDetailDomain`, etc.) — `BillSplitInPort` decoupled from API spec JAR, new `BillSplitDtoMapper` for spec↔domain mapping, `BillSplitService` no longer depends on `ProductInPort`
-- **API spec**: Updated `goods-price-comparison-api` from `1.8.0` to `1.8.1`
-- **Exception handling**: Unified `NotFoundException` replaces per-entity exceptions — single `@ExceptionHandler` in `GlobalExceptionHandler`
-
-### Added
 - **Bill split unit tests**: `BillSplitServiceTest` with 11 tests covering RATIO and SELECTION modes (matching items, unassigned participants, null/empty orders, unmatched details, null quantity)
 - **GlobalExceptionHandler**: 4 individual not-found handlers → 1 generic `NotFoundException` handler
-
-### Fixed
-- **Null pointer during create receipt**: `imageHash` now computed from items via `HashUtils.sha256` and stored on creation
-- **JsonUtils.hash256**: Centralized `hash256(List<?>)` method in `JsonUtils` for consistent hash computation from item lists
-- **SpotBugs build failure**: Set `failOnError=false` to handle FindSecBugs `CorsRegistryCORSDetector` NPE on Java 17+ bytecode (`config/spotbugs/exclude.xml`)
-
-### Added
 - **Create receipt API**: Direct receipt creation via `POST /api/v1/receipts/create` with store details and item list
 - **API spec**: Updated `goods-price-comparison-api` from `1.6.0` to `1.7.0`
 - **DateUtils**: Utility for formatting `LocalDate`/`LocalDateTime`/`OffsetDateTime`/`Date`
@@ -172,15 +128,35 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **ArchUnit tests**: 7 rules enforcing hexagonal layer boundaries
 - **Convention checker script**: `scripts/check-conventions.sh`
 
-### Changed
-- **Hexagonal architecture restructuring**: Each service follows ports-and-adapters pattern
-- **API spec version**: Updated from `1.2.3` to `1.4.4`, then to `1.5.1`, then to `1.6.0`
-- **Package restructuring**: Moved from flat `module/` to hexagonal `service/application/` + `service/infrastructure/`
-- **Thread safety**: Replaced `HashMap` with `ConcurrentHashMap` in `JobRegistry` and `ShoppingOptimizer`
-- **Wildcard imports**: Replaced star imports with explicit imports (Checkstyle compliance)
-- **Shopping optimizer**: Converted imperative loops to Java 17 streams
+### Fixed
+- **Test anti-pattern**: Replaced `System.out.println` skip pattern with `Assumptions.assumeTrue()` in LlmServiceCacheTest — proper JUnit 5 conditional test skipping
+- **Validation Exception Handling**: Added a global exception handler for `MethodArgumentNotValidException` in `GlobalExceptionHandler` to map Spring validation errors (like `@NotNull` violations on request bodies) to `400 Bad Request` instead of falling back to `500 Internal Server Error`.
+- **Orphan ReceiptProcessedEvent**: Now has a handler (was published but unhandled)
+- **Cross-service coupling**: Receipt handler no longer directly imports price domain service
+- **ProductDomain data loss risk**: MapStruct no longer silently drops price fields
+- **Inconsistent timestamps**: All entities now use consistent Hibernate annotation pattern
+- **Null isPromo on price update**: `PriceService.update()` now defaults `isPromo` to `false` via `ObjectUtils.defaultIfNull()` when null is passed — prevents `DataIntegrityViolationException` on `NOT NULL` column
+- **Activity logs not recording**: AOP interceptor ran before `@Transactional` advisor — `eventOutPort.publishLogged()` was called after transaction already committed, so `@TransactionalEventListener(AFTER_COMMIT)` never fired. Changed to `@EventListener` — interceptor guarantees only successful operations reach the publish code.
+- **StaleObjectStateException in activity logs**: `ActivityLogMapper.toEntity()` pre-set UUID via `UUID.randomUUID()`, causing `merge()` instead of `persist()` in `REQUIRES_NEW` transaction. Removed ID generation — let `@GeneratedValue` handle it.
+- **400 VALIDATION_ERROR "Unexpected value 'ACTIVE'"**: `EntityStatus.fromValue("ACTIVE")` threw `IllegalArgumentException` for domain models using status `"ACTIVE"`. `ObjectUtils.getOrNull` now catches exceptions, returning null gracefully.
+- **Correction activity type wrong**: `ReceiptCorrectionService` resolved to `RECEIPTCORRECTIONSERVICE` instead of `RECEIPT`. Fixed CGLIB proxy name resolution (strip `$$` before `Service` suffix) and added entity type mapping for corrections.
+- **Jackson deserialization of JsonNullable**: Spring Boot 4.x uses Jackson 3.x by default but `jackson-databind-nullable` targets Jackson 2.x. Added `spring.http.converters.preferred-json-mapper=jackson2` to force Jackson 2.x HTTP converters.
+- **FindSecBugs NPE**: Fix `CorsRegistryCORSDetector` crash by switching `allowedOrigins` to `allowedOriginPatterns` (different method name bypasses the detector) and removing unused `.allowedHeaders()` call
+- **Null pointer during create receipt**: `imageHash` now computed from items via `HashUtils.sha256` and stored on creation
+- **JsonUtils.hash256**: Centralized `hash256(List<?>)` method in `JsonUtils` for consistent hash computation from item lists
+- **SpotBugs build failure**: Set `failOnError=false` to handle FindSecBugs `CorsRegistryCORSDetector` NPE on Java 17+ bytecode (`config/spotbugs/exclude.xml`)
+
+### Security
+- **CORS configuration**: Global CORS via `WebMvcConfigurer` with configurable origins, methods, and credentials (`config/cors.properties`)
+- **Security headers**: `OncePerRequestFilter` adding `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, and `Cache-Control: no-store` on write methods
 
 ### Removed
+- `ReceiptStatusEntity.java` — unified with domain `ReceiptStatus`
+- `ActivityLogTypeEntity.java` — unified with domain `ActivityLogType`
+- `ActivityLogActionEntity.java` — unified with domain `ActivityLogAction`
+- `AdminController.java` — moved to `infrastructure/adapter/web/`
+- `AdminWebAdapter.java` — moved to `infrastructure/adapter/web/`
+- `SystemController.java` — moved to `infrastructure/adapter/web/`
 - Removed `controller/` package — controllers in respective service packages
 - Removed `module/` — replaced by hexagonal service packages
 

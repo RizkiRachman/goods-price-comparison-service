@@ -39,12 +39,15 @@ Each bounded context is a separate service. In the current monorepo these are pa
 | **receipt** | Upload images, OCR processing, status tracking | `receipts`, `receipt_items` |
 | **product** | Product catalog, categorization, units | `products` |
 | **store** | Store directory, locations | `stores` |
-| **price** | Price records, trends, comparisons | `prices` |
+| **price** | Price records, trends, comparisons, summaries | `prices` |
 | **shopping** | Shopping optimization, route planning | none (reads only) |
 | **alert** | Price drop subscriptions, notifications | `alerts` |
 | **llm** | LLM/AI provider abstraction, receipt OCR | none (facade) |
 | **system** | System health, metrics, admin operations | none (management) |
 | **activity** | Audit logging for all CRUD operations | `activity_logs` |
+| **unit** | Measurement units (KG, L, PCS) | `units` |
+| **category** | Product categories (FOOD, DAIRY, SNACK) | `categories` |
+| **feedbackquestion** | User feedback and questions | `feedback_questions` |
 
 ### Communication Rules
 
@@ -306,10 +309,20 @@ No service imports another service's internal classes. The only shared dependenc
 | Test Type | Location | Technique |
 |-----------|----------|-----------|
 | Unit | `application/domain/service/*Test` | Mock all ports |
-| Integration | `infrastructure/adapter/persistence/*Test` | `@SpringBootTest` + `@Transactional` (Spring Boot 4.0.6 lacks `@DataJpaTest`) |
-| Controller | `infrastructure/adapter/web/*Test` | `MockMvcBuilders.standaloneSetup()` (Spring Boot 4.0.6 lacks `@WebMvcTest`) |
+| Integration (JPA) | `infrastructure/adapter/persistence/*DataJpaTest` | `@SpringBootTest` + `@Transactional` (Spring Boot 4.0.6 lacks `@DataJpaTest`) |
+| Integration (Web) | `infrastructure/adapter/web/*WebMvcTest` | `MockMvcBuilders.standaloneSetup()` + `@Mock` (Spring Boot 4.0.6 lacks `@WebMvcTest`) |
+| Unit (Controller) | `infrastructure/adapter/web/*Test` | `@InjectMocks` + direct method call |
+| Unit (Repository) | `infrastructure/adapter/persistence/*Test` | `@Mock` repository |
 | Event | `infrastructure/handler/event/*Test` | Verify event consumption |
-| Saga | End-to-end | Publish event → verify downstream |
+| Architecture | `architecture/HexagonalArchitectureTest` | 7 ArchUnit rules |
+
+**Base classes:**
+- `AbstractGenericServiceTest` — shared service test hooks (findById, deleteById, save, findAll, not-found)
+- `AbstractControllerWebMvcTest` — shared setUp() with ObjectMapper, MockMvc, GlobalExceptionHandler
+- `AbstractRepositoryAdapterDataJpaTest` — shared @SpringBootTest/@Transactional/EntityManager
+- `ServiceLayerNotFoundExceptionTest` — interface for service-specific NotFoundException paths
+
+**1,024 tests** across all types, 91.5% instruction / 80.6% branch coverage.
 
 ### Distributed Phase
 
@@ -347,5 +360,5 @@ void shouldPublishEventWhenReceiptProcessed() {
 [hexagonal-url]: https://alistair.cockburn.us/hexagonal-architecture/
 [event-shield]: https://img.shields.io/badge/Event_Driven-FF6B6B?style=for-the-badge&logo=apachekafka&logoColor=white
 [event-url]: https://spring.io/guides/gs/messaging-rabbitmq/
-[spring-shield]: https://img.shields.io/badge/Spring_Boot_3-6DB33F?style=for-the-badge&logo=springboot&logoColor=white
+[spring-shield]: https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white
 [spring-url]: https://spring.io/projects/spring-boot

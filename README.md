@@ -5,6 +5,7 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
+[![CI - Build & Test][ci-shield]][ci-url]
 
 <br />
 <div align="center">
@@ -126,18 +127,21 @@ For detailed API documentation, see the [Developer Guide](docs/DEVELOPER_GUIDE.m
 - [x] Receipt OCR with Google Vision / Gemini
 - [x] Price database with historical tracking
 - [x] Multi-store price comparison
-- [x] Generic CRUD service abstraction (AbstractGenericService across 5 services)
+- [x] Generic CRUD service abstraction (AbstractGenericService across 11 services)
 - [x] Web adapter / controller consolidation (buildPageRequest helper, 1-liner patterns)
 - [x] Activity log service (AOP-based CRUD audit trail)
 - [x] Feedback & questions API
 - [x] Price drop alerts (subscription entity, async event-driven)
-- [x] Code quality: 91.5% INSTRUCTION / 80.6% BRANCH coverage, 860+ tests
-- [x] Code duplication reduced by ~428 lines across 6 patterns
+- [x] Code quality: 91.5% INSTRUCTION / 80.6% BRANCH coverage, 1,024 tests
+- [x] Code duplication reduced by ~727 lines across 8+ patterns (incl. test base classes)
 - [x] Java 21 optimization (HexFormat, getFirst, @Slf4j consolidation)
+- [x] Test infrastructure: @WebMvcTest-equivalent + @DataJpaTest-equivalent slice tests across all 8 services
+- [x] Test dedup: AbstractControllerWebMvcTest, AbstractRepositoryAdapterDataJpaTest, ServiceLayerNotFoundExceptionTest
+- [x] Production readiness: structured logging, correlation IDs, Prometheus metrics, LLM timeouts
 - [ ] Shopping route optimization
 - [ ] Mobile app integration
 
-See the [open issues](https://github.com/RizkiRachman/goods-price-comparison-service/issues) for a full list of proposed features.
+See the [Changelog](CHANGELOG.md) for full details. See the [open issues](https://github.com/RizkiRachman/goods-price-comparison-service/issues) for proposed features.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -174,6 +178,7 @@ Project Link: [https://github.com/RizkiRachman/goods-price-comparison-service](h
 - [Spring Boot](https://spring.io/projects/spring-boot)
 - [Img Shields](https://shields.io) for repository badges
 - [Best-README-Template](https://github.com/othneildrew/Best-README-Template) for the README structure
+- [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) for changelog format
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -203,3 +208,5 @@ Project Link: [https://github.com/RizkiRachman/goods-price-comparison-service](h
 [GoogleCloud-url]: https://cloud.google.com/
 [GitHub Actions]: https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions&logoColor=white
 [GitHubActions-url]: https://github.com/features/actions
+[ci-shield]: https://img.shields.io/github/actions/workflow/status/RizkiRachman/goods-price-comparison-service/ci-build.yml?branch=main&style=for-the-badge&label=CI
+[ci-url]: https://github.com/RizkiRachman/goods-price-comparison-service/actions/workflows/ci-build.yml
