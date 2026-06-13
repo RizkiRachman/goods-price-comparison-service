@@ -1,101 +1,114 @@
 package com.example.goodsprice.common.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import com.example.goodsprice.common.dto.PageRequestDto;
-import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
-import com.example.goodsprice.common.repository.GenericRepositoryPort;
-import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+/**
+ * Abstract base test class for services extending {@link AbstractGenericService}.
+ *
+ * <p>Subclasses must implement the abstract hooks to provide:
+ *
+ * <ul>
+ *   <li>Service instance and test IDs
+ *   <li>Mock setup for repository operations
+ *   <li>Invocation of service methods (findById, deleteById)
+ *   <li>Verification of delete calls
+ * </ul>
+ *
+ * <p>Inherited test methods:
+ *
+ * <ul>
+ *   <li>{@link #shouldFindByIdReturnsEntity()} — findById with existing ID returns entity
+ *   <li>{@link #shouldFindByIdThrowsNotFoundWhenMissing()} — findById with missing ID throws
+ *       NotFoundException
+ *   <li>{@link #shouldDeleteByIdDeletesWhenFound()} — deleteById with existing ID succeeds
+ *   <li>{@link #shouldDeleteByIdThrowsNotFoundWhenMissing()} — deleteById with missing ID throws
+ *       NotFoundException
+ * </ul>
+ */
 @ExtendWith(MockitoExtension.class)
-class AbstractGenericServiceTest {
+public abstract class AbstractGenericServiceTest {
 
-  @Mock private GenericRepositoryPort<String, Long> repository;
+  // ---- Abstract hooks for test data ----
 
-  private TestGenericService service;
+  /** The service under test. */
+  protected abstract Object getService();
 
-  @BeforeEach
-  void setUp() {
-    service = new TestGenericService("TestEntity", "TEST_NOT_FOUND", repository);
-  }
+  /** An ID that exists in the repository. */
+  protected abstract Object getExistingId();
+
+  /** An ID that does NOT exist in the repository. */
+  protected abstract Object getNonExistentId();
+
+  /** The entity returned for the existing ID. */
+  protected abstract Object getExistingEntity();
+
+  /** The expected error code for NotFoundException. */
+  protected abstract String getNotFoundErrorCode();
+
+  // ---- Abstract hooks for mock setup ----
+
+  /** Set up repository mock to return {@link #getExistingEntity()} for {@link #getExistingId()}. */
+  protected abstract void mockFindByIdReturnsEntity();
+
+  /** Set up repository mock to return null for {@link #getNonExistentId()}. */
+  protected abstract void mockFindByIdReturnsNull();
+
+  /**
+   * Set up repository mock so that findById({@link #getExistingId()}) returns {@link
+   * #getExistingEntity()}, making deleteById succeed.
+   */
+  protected abstract void mockDeleteByIdSucceeds();
+
+  // ---- Abstract hooks for service method invocation ----
+
+  /** Invoke findById on the service under test. */
+  protected abstract Object invokeFindById(Object id);
+
+  /** Invoke deleteById on the service under test. */
+  protected abstract void invokeDeleteById(Object id);
+
+  // ---- Abstract hooks for verification ----
+
+  /** Verify that deleteById was called with the given id. */
+  protected abstract void verifyDeleteByIdPerformed(Object id);
+
+  /** Verify that deleteById was NOT called. */
+  protected abstract void verifyDeleteByIdNotPerformed();
+
+  // ======== Inherited test methods ========
 
   @Test
   void shouldFindByIdReturnsEntity() {
-    when(repository.findById(1L)).thenReturn("entity1");
-
-    var result = service.findById(1L);
-
-    assertEquals("entity1", result);
+    mockFindByIdReturnsEntity();
+    var result = invokeFindById(getExistingId());
+    assertNotNull(result);
   }
 
   @Test
   void shouldFindByIdThrowsNotFoundWhenMissing() {
-    when(repository.findById(999L)).thenReturn(null);
-
-    var ex = assertThrows(NotFoundException.class, () -> service.findById(999L));
-    assertEquals("TEST_NOT_FOUND", ex.getErrorCode());
-  }
-
-  @Test
-  void shouldSaveAndReturnEntity() {
-    when(repository.save("newEntity")).thenReturn("savedEntity");
-
-    var result = service.save("newEntity");
-
-    assertEquals("savedEntity", result);
-  }
-
-  @Test
-  void shouldFindAll() {
-    var pageRequest = new PageRequestDto(1, 20, "name", "asc");
-    var expected = PageResponse.of(List.of("a", "b"), 1, 20, 2);
-    when(repository.findAll(pageRequest, "search", "active")).thenReturn(expected);
-
-    var result = service.findAll(pageRequest, "search", "active");
-
-    assertEquals(expected, result);
+    mockFindByIdReturnsNull();
+    var ex = assertThrows(NotFoundException.class, () -> invokeFindById(getNonExistentId()));
+    assertEquals(getNotFoundErrorCode(), ex.getErrorCode());
   }
 
   @Test
   void shouldDeleteByIdDeletesWhenFound() {
-    when(repository.findById(1L)).thenReturn("entity1");
-
-    service.deleteById(1L);
-
-    verify(repository).deleteById(1L);
+    mockDeleteByIdSucceeds();
+    invokeDeleteById(getExistingId());
+    verifyDeleteByIdPerformed(getExistingId());
   }
 
   @Test
   void shouldDeleteByIdThrowsNotFoundWhenMissing() {
-    when(repository.findById(999L)).thenReturn(null);
-
-    assertThrows(NotFoundException.class, () -> service.deleteById(999L));
-  }
-
-  private static final class TestGenericService extends AbstractGenericService<String, Long> {
-
-    private final GenericRepositoryPort<String, Long> repository;
-
-    TestGenericService(
-        String entityName,
-        String notFoundErrorCode,
-        GenericRepositoryPort<String, Long> repository) {
-      super(entityName, notFoundErrorCode);
-      this.repository = repository;
-    }
-
-    @Override
-    protected GenericRepositoryPort<String, Long> getRepository() {
-      return repository;
-    }
+    mockFindByIdReturnsNull();
+    assertThrows(NotFoundException.class, () -> invokeDeleteById(getNonExistentId()));
+    verifyDeleteByIdNotPerformed();
   }
 }

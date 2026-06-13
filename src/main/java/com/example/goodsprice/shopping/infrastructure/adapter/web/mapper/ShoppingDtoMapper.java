@@ -3,6 +3,7 @@ package com.example.goodsprice.shopping.infrastructure.adapter.web.mapper;
 import com.example.goodsprice.api.model.ShoppingItem;
 import com.example.goodsprice.api.model.ShoppingSavings;
 import com.example.goodsprice.api.model.StoreVisit;
+import com.example.goodsprice.common.web.mapper.DtoMapperSupport;
 import com.example.goodsprice.shopping.application.domain.model.ShoppingItemDomain;
 import com.example.goodsprice.shopping.application.domain.model.ShoppingSavingsDomain;
 import com.example.goodsprice.shopping.application.domain.model.StoreVisitDomain;
@@ -17,7 +18,7 @@ import org.mapstruct.ReportingPolicy;
     nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL,
     unmappedSourcePolicy = ReportingPolicy.IGNORE,
     unmappedTargetPolicy = ReportingPolicy.IGNORE)
-public interface ShoppingDtoMapper {
+public interface ShoppingDtoMapper extends DtoMapperSupport {
 
   StoreVisit toStoreVisit(StoreVisitDomain domain);
 

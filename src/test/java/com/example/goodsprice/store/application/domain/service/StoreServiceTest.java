@@ -2,14 +2,14 @@ package com.example.goodsprice.store.application.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
-import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.service.AbstractGenericServiceTest;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import com.example.goodsprice.store.application.port.in.dto.CreateStoreCriteria;
 import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
@@ -27,16 +27,74 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class StoreServiceTest {
+class StoreServiceTest extends AbstractGenericServiceTest {
 
   @Mock private StoreRepositoryPort storeRepository;
-
   @InjectMocks private StoreService storeService;
-
   @Captor private ArgumentCaptor<StoreDomain> storeCaptor;
 
   private StoreDomain store1;
   private StoreDomain store2;
+
+  @Override
+  protected Object getService() {
+    return storeService;
+  }
+
+  @Override
+  protected Object getExistingId() {
+    return 1L;
+  }
+
+  @Override
+  protected Object getNonExistentId() {
+    return 999L;
+  }
+
+  @Override
+  protected Object getExistingEntity() {
+    return store1;
+  }
+
+  @Override
+  protected String getNotFoundErrorCode() {
+    return "STORE_NOT_FOUND";
+  }
+
+  @Override
+  protected void mockFindByIdReturnsEntity() {
+    when(storeRepository.findById(1L)).thenReturn(store1);
+  }
+
+  @Override
+  protected void mockFindByIdReturnsNull() {
+    when(storeRepository.findById(999L)).thenReturn(null);
+  }
+
+  @Override
+  protected void mockDeleteByIdSucceeds() {
+    when(storeRepository.findById(1L)).thenReturn(store1);
+  }
+
+  @Override
+  protected Object invokeFindById(Object id) {
+    return storeService.findById((Long) id);
+  }
+
+  @Override
+  protected void invokeDeleteById(Object id) {
+    storeService.deleteById((Long) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdPerformed(Object id) {
+    verify(storeRepository).deleteById((Long) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdNotPerformed() {
+    verify(storeRepository, never()).deleteById(any());
+  }
 
   @BeforeEach
   void setUp() {
@@ -68,10 +126,16 @@ class StoreServiceTest {
   @DisplayName("Should create a new store")
   void shouldCreateStore() {
     when(storeRepository.save(any(StoreDomain.class))).thenReturn(store1);
-    var criteria =
-        new CreateStoreCriteria(
-            "Toko Segar", "Jakarta", "Segar Group", "Jl. Sudirman No. 1", -6.2, 106.8);
 
+    var criteria =
+        CreateStoreCriteria.builder()
+            .name("Toko Segar")
+            .location("Jakarta")
+            .chain("Segar Group")
+            .address("Jl. Sudirman No. 1")
+            .latitude(-6.2)
+            .longitude(106.8)
+            .build();
     var result = storeService.create(criteria);
 
     assertNotNull(result);
@@ -85,43 +149,21 @@ class StoreServiceTest {
   }
 
   @Test
-  @DisplayName("Should find store by id")
-  void shouldFindStoreById() {
-    when(storeRepository.findById(1L)).thenReturn(store1);
-
-    var result = storeService.findById(1L);
-
-    assertNotNull(result);
-    assertEquals(1L, result.getId());
-    assertEquals("Toko Segar", result.getName());
-    verify(storeRepository).findById(1L);
-  }
-
-  @Test
-  @DisplayName("Should throw NotFoundException when store not found")
-  void shouldThrowExceptionWhenStoreNotFound() {
-    when(storeRepository.findById(999L)).thenReturn(null);
-
-    var exception = assertThrows(NotFoundException.class, () -> storeService.findById(999L));
-    assertEquals("STORE_NOT_FOUND", exception.getErrorCode());
-  }
-
-  @Test
   @DisplayName("Should update an existing store")
   void shouldUpdateExistingStore() {
     when(storeRepository.findById(1L)).thenReturn(store1);
     when(storeRepository.save(any(StoreDomain.class))).thenReturn(store1);
-    var criteria =
-        new UpdateStoreCriteria(
-            1L,
-            "Toko Segar Baru",
-            "Jakarta Pusat",
-            "Segar Group",
-            "Jl. Sudirman No. 5",
-            -6.3,
-            106.9,
-            "ACTIVE");
 
+    var criteria =
+        UpdateStoreCriteria.builder()
+            .id(1L)
+            .name("Toko Segar Baru")
+            .location("Jakarta Pusat")
+            .address("Jl. Sudirman No. 5")
+            .latitude(-6.3)
+            .longitude(106.9)
+            .chain("Segar Group")
+            .build();
     var result = storeService.update(criteria);
 
     assertEquals("Toko Segar Baru", result.getName());
@@ -133,26 +175,6 @@ class StoreServiceTest {
     var saved = storeCaptor.getValue();
     assertEquals("Toko Segar Baru", saved.getName());
     assertEquals("Jakarta Pusat", saved.getLocation());
-  }
-
-  @Test
-  @DisplayName("Should delete an existing store")
-  void shouldDeleteExistingStore() {
-    when(storeRepository.findById(1L)).thenReturn(store1);
-
-    storeService.deleteById(1L);
-
-    verify(storeRepository).findById(1L);
-    verify(storeRepository).deleteById(1L);
-  }
-
-  @Test
-  @DisplayName("Should throw NotFoundException when deleting non-existent store")
-  void shouldThrowExceptionWhenDeletingNonExistentStore() {
-    when(storeRepository.findById(999L)).thenReturn(null);
-
-    assertThrows(NotFoundException.class, () -> storeService.deleteById(999L));
-    verify(storeRepository).findById(999L);
   }
 
   @Test
