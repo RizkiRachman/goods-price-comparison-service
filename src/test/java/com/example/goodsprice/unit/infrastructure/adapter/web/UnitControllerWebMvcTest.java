@@ -15,45 +15,22 @@ import com.example.goodsprice.api.model.Unit;
 import com.example.goodsprice.api.model.UnitListResponse;
 import com.example.goodsprice.api.model.UpdateUnitRequest;
 import com.example.goodsprice.common.exception.NotFoundException;
-import com.example.goodsprice.common.web.GlobalExceptionHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.junit.jupiter.api.BeforeEach;
+import com.example.goodsprice.common.web.AbstractControllerWebMvcTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ExtendWith(MockitoExtension.class)
-class UnitControllerWebMvcTest {
+class UnitControllerWebMvcTest extends AbstractControllerWebMvcTest {
 
   @Mock private UnitWebAdapter adapter;
 
-  private MockMvc mockMvc;
-  private ObjectMapper objectMapper;
-
-  @BeforeEach
-  void setUp() {
-    objectMapper =
-        Jackson2ObjectMapperBuilder.json()
-            .modules(new JsonNullableModule(), new JavaTimeModule())
-            .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .build();
-
-    var controller = new UnitController(adapter);
-    mockMvc =
-        MockMvcBuilders.standaloneSetup(controller)
-            .setControllerAdvice(new GlobalExceptionHandler())
-            .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
-            .build();
+  @Override
+  protected Object getController() {
+    return new UnitController(adapter);
   }
 
   private Unit createApiUnit() {
@@ -64,10 +41,6 @@ class UnitControllerWebMvcTest {
     unit.setType(Unit.TypeEnum.WEIGHT);
     unit.setStatus(EntityStatus.APPROVED);
     return unit;
-  }
-
-  private String toJson(Object obj) throws Exception {
-    return objectMapper.writeValueAsString(obj);
   }
 
   @Test

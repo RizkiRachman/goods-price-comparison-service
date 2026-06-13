@@ -8,50 +8,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.example.goodsprice.api.model.ShoppingOptimizeRequest;
 import com.example.goodsprice.api.model.ShoppingOptimizeResponse;
-import com.example.goodsprice.common.web.GlobalExceptionHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.example.goodsprice.common.web.AbstractControllerWebMvcTest;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ExtendWith(MockitoExtension.class)
-class ShoppingControllerWebMvcTest {
+class ShoppingControllerWebMvcTest extends AbstractControllerWebMvcTest {
 
   @Mock private ShoppingWebAdapter adapter;
 
-  private MockMvc mockMvc;
-  private ObjectMapper objectMapper;
-
-  @BeforeEach
-  void setUp() {
-    objectMapper =
-        Jackson2ObjectMapperBuilder.json()
-            .modules(new JsonNullableModule(), new JavaTimeModule())
-            .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .build();
-
-    var controller = new ShoppingController(adapter);
-    mockMvc =
-        MockMvcBuilders.standaloneSetup(controller)
-            .setControllerAdvice(new GlobalExceptionHandler())
-            .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
-            .build();
-  }
-
-  private String toJson(Object obj) throws Exception {
-    return objectMapper.writeValueAsString(obj);
+  @Override
+  protected Object getController() {
+    return new ShoppingController(adapter);
   }
 
   @Test
