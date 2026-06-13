@@ -21,46 +21,23 @@ import com.example.goodsprice.api.model.PriceSearchResponse;
 import com.example.goodsprice.api.model.PriceSearchResponseV2;
 import com.example.goodsprice.api.model.UpdatePriceRecordRequest;
 import com.example.goodsprice.common.exception.NotFoundException;
-import com.example.goodsprice.common.web.GlobalExceptionHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.example.goodsprice.common.web.AbstractControllerWebMvcTest;
 import java.time.OffsetDateTime;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ExtendWith(MockitoExtension.class)
-class PriceControllerWebMvcTest {
+class PriceControllerWebMvcTest extends AbstractControllerWebMvcTest {
 
   @Mock private PriceWebAdapter adapter;
 
-  private MockMvc mockMvc;
-  private ObjectMapper objectMapper;
-
-  @BeforeEach
-  void setUp() {
-    objectMapper =
-        Jackson2ObjectMapperBuilder.json()
-            .modules(new JsonNullableModule(), new JavaTimeModule())
-            .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .build();
-
-    var controller = new PriceController(adapter);
-    mockMvc =
-        MockMvcBuilders.standaloneSetup(controller)
-            .setControllerAdvice(new GlobalExceptionHandler())
-            .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
-            .build();
+  @Override
+  protected Object getController() {
+    return new PriceController(adapter);
   }
 
   private PriceRecord createPriceRecord() {
@@ -69,10 +46,6 @@ class PriceControllerWebMvcTest {
     record.setPrice(15000.0);
     record.setStoreId(10L);
     return record;
-  }
-
-  private String toJson(Object obj) throws Exception {
-    return objectMapper.writeValueAsString(obj);
   }
 
   @Test

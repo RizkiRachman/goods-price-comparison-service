@@ -12,48 +12,26 @@ import com.example.goodsprice.api.model.CreateFeedbackQuestionRequest;
 import com.example.goodsprice.api.model.FeedbackQuestion;
 import com.example.goodsprice.api.model.FeedbackQuestionListResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
-import com.example.goodsprice.common.web.GlobalExceptionHandler;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.example.goodsprice.common.web.AbstractControllerWebMvcTest;
 import java.time.OffsetDateTime;
 import java.util.UUID;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.openapitools.jackson.nullable.JsonNullableModule;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 @ExtendWith(MockitoExtension.class)
-class FeedbackQuestionControllerWebMvcTest {
+class FeedbackQuestionControllerWebMvcTest extends AbstractControllerWebMvcTest {
 
   @Mock private FeedbackQuestionWebAdapter adapter;
 
-  private MockMvc mockMvc;
-  private ObjectMapper objectMapper;
   private final UUID questionId = UUID.randomUUID();
 
-  @BeforeEach
-  void setUp() {
-    objectMapper =
-        Jackson2ObjectMapperBuilder.json()
-            .modules(new JsonNullableModule(), new JavaTimeModule())
-            .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .build();
-
-    var controller = new FeedbackQuestionController(adapter);
-    mockMvc =
-        MockMvcBuilders.standaloneSetup(controller)
-            .setControllerAdvice(new GlobalExceptionHandler())
-            .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
-            .build();
+  @Override
+  protected Object getController() {
+    return new FeedbackQuestionController(adapter);
   }
 
   private FeedbackQuestion createApiFeedbackQuestion() {
@@ -66,10 +44,6 @@ class FeedbackQuestionControllerWebMvcTest {
     question.setCreatedAt(OffsetDateTime.parse("2026-01-01T00:00:00Z"));
     question.setUpdatedAt(OffsetDateTime.parse("2026-03-29T10:00:00Z"));
     return question;
-  }
-
-  private String toJson(Object obj) throws Exception {
-    return objectMapper.writeValueAsString(obj);
   }
 
   @Test

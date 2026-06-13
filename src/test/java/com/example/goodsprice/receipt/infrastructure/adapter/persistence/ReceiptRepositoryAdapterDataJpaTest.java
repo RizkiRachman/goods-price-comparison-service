@@ -6,28 +6,24 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.example.goodsprice.common.persistence.AbstractRepositoryAdapterDataJpaTest;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptStatus;
 import com.example.goodsprice.receipt.infrastructure.adapter.persistence.entity.ReceiptEntity;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-class ReceiptRepositoryAdapterDataJpaTest {
+class ReceiptRepositoryAdapterDataJpaTest extends AbstractRepositoryAdapterDataJpaTest {
 
   @Autowired private JpaReceiptRepository repository;
 
-  @PersistenceContext private EntityManager entityManager;
+  @Override
+  protected Object getRepository() {
+    return repository;
+  }
 
   @Test
   @DisplayName("Should persist and retrieve receipt with all fields")

@@ -6,25 +6,21 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.example.goodsprice.category.infrastructure.adapter.persistence.entity.CategoryEntity;
+import com.example.goodsprice.common.persistence.AbstractRepositoryAdapterDataJpaTest;
 import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-class CategoryRepositoryAdapterDataJpaTest {
+class CategoryRepositoryAdapterDataJpaTest extends AbstractRepositoryAdapterDataJpaTest {
 
   @Autowired private JpaCategoryRepository repository;
 
-  @PersistenceContext private EntityManager entityManager;
+  @Override
+  protected Object getRepository() {
+    return repository;
+  }
 
   @Test
   @DisplayName("Should persist and retrieve category with all fields")

@@ -6,24 +6,20 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.example.goodsprice.alert.infrastructure.adapter.persistence.entity.AlertSubscriptionEntity;
+import com.example.goodsprice.common.persistence.AbstractRepositoryAdapterDataJpaTest;
 import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
-class AlertRepositoryAdapterDataJpaTest {
+class AlertRepositoryAdapterDataJpaTest extends AbstractRepositoryAdapterDataJpaTest {
 
   @Autowired private JpaAlertSubscriptionRepository repository;
 
-  @PersistenceContext private EntityManager entityManager;
+  @Override
+  protected Object getRepository() {
+    return repository;
+  }
 
   @Test
   @DisplayName("Should persist and retrieve alert subscription with all fields")

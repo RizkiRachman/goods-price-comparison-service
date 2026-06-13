@@ -306,8 +306,8 @@ No service imports another service's internal classes. The only shared dependenc
 | Test Type | Location | Technique |
 |-----------|----------|-----------|
 | Unit | `application/domain/service/*Test` | Mock all ports |
-| Integration | `infrastructure/adapter/persistence/*Test` | `@DataJpaTest` |
-| Controller | `infrastructure/adapter/web/*Test` | `@WebMvcTest` |
+| Integration | `infrastructure/adapter/persistence/*Test` | `@SpringBootTest` + `@Transactional` (Spring Boot 4.0.6 lacks `@DataJpaTest`) |
+| Controller | `infrastructure/adapter/web/*Test` | `MockMvcBuilders.standaloneSetup()` (Spring Boot 4.0.6 lacks `@WebMvcTest`) |
 | Event | `infrastructure/handler/event/*Test` | Verify event consumption |
 | Saga | End-to-end | Publish event → verify downstream |
 
