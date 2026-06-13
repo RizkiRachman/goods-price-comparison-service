@@ -11,6 +11,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.service.AbstractGenericServiceTest;
 import com.example.goodsprice.common.util.JsonUtils;
 import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
@@ -36,7 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ReceiptServiceTest {
+class ReceiptServiceTest extends AbstractGenericServiceTest {
 
   @Mock private ReceiptRepositoryPort receiptRepository;
   @Mock private ReceiptEventOutPort eventOutPort;
@@ -50,10 +51,76 @@ class ReceiptServiceTest {
 
   private ReceiptCreateDomain createRequest;
   private final Map<UUID, ReceiptDomain> store = new HashMap<>();
+  private UUID existingReceiptId;
+  private ReceiptDomain existingReceipt;
+
+  @Override
+  protected Object getService() {
+    return receiptService;
+  }
+
+  @Override
+  protected Object getExistingId() {
+    return existingReceiptId;
+  }
+
+  @Override
+  protected Object getNonExistentId() {
+    return UUID.fromString("00000000-0000-0000-0000-000000000001");
+  }
+
+  @Override
+  protected Object getExistingEntity() {
+    return existingReceipt;
+  }
+
+  @Override
+  protected String getNotFoundErrorCode() {
+    return "RECEIPT_NOT_FOUND";
+  }
+
+  @Override
+  protected void mockFindByIdReturnsEntity() {
+    when(receiptRepository.findById(existingReceiptId)).thenReturn(existingReceipt);
+  }
+
+  @Override
+  protected void mockFindByIdReturnsNull() {
+    when(receiptRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000001")))
+        .thenReturn(null);
+  }
+
+  @Override
+  protected void mockDeleteByIdSucceeds() {
+    when(receiptRepository.findById(existingReceiptId)).thenReturn(existingReceipt);
+  }
+
+  @Override
+  protected Object invokeFindById(Object id) {
+    return receiptService.findById((UUID) id);
+  }
+
+  @Override
+  protected void invokeDeleteById(Object id) {
+    receiptService.deleteById((UUID) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdPerformed(Object id) {
+    verify(receiptRepository).deleteById((UUID) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdNotPerformed() {
+    verify(receiptRepository, never()).deleteById(any());
+  }
 
   @BeforeEach
   void setUp() {
     store.clear();
+    existingReceiptId = UUID.randomUUID();
+    existingReceipt = ReceiptDomain.builder().id(existingReceiptId).storeName("Toko Segar").build();
+
     lenient()
         .doAnswer(
             invocation -> {
@@ -68,6 +135,7 @@ class ReceiptServiceTest {
             })
         .when(receiptApprovalInPort)
         .approve(any());
+
     var item =
         ReceiptItemDomain.builder()
             .productName("Apple")
@@ -212,26 +280,6 @@ class ReceiptServiceTest {
     assertEquals(ReceiptStatus.APPROVED, result.getStatus());
     assertEquals("Toko Segar", result.getStoreName());
     assertNotNull(result.getId());
-  }
-
-  @Test
-  void shouldFindReceiptById() {
-    var id = UUID.randomUUID();
-    var receipt = ReceiptDomain.builder().id(id).storeName("Toko Segar").build();
-    when(receiptRepository.findById(id)).thenReturn(receipt);
-
-    var result = receiptService.findById(id);
-
-    assertNotNull(result);
-    assertEquals("Toko Segar", result.getStoreName());
-  }
-
-  @Test
-  void shouldThrowNotFoundWhenReceiptNotFound() {
-    var id = UUID.randomUUID();
-    when(receiptRepository.findById(id)).thenReturn(null);
-
-    assertThrows(NotFoundException.class, () -> receiptService.findById(id));
   }
 
   @Test

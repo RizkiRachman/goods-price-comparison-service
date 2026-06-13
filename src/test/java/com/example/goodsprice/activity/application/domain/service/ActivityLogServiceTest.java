@@ -2,8 +2,8 @@ package com.example.goodsprice.activity.application.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,7 +14,7 @@ import com.example.goodsprice.activity.application.port.in.dto.ActivityLogCriter
 import com.example.goodsprice.activity.application.port.out.ActivityLogRepositoryPort;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
-import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.service.AbstractGenericServiceTest;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -31,7 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ActivityLogServiceTest {
+class ActivityLogServiceTest extends AbstractGenericServiceTest {
 
   @Mock private ActivityLogRepositoryPort activityLogRepository;
 
@@ -41,6 +41,69 @@ class ActivityLogServiceTest {
 
   private ActivityLogDomain activityLog;
   private UUID logId;
+
+  @Override
+  protected Object getService() {
+    return activityLogService;
+  }
+
+  @Override
+  protected Object getExistingId() {
+    return logId;
+  }
+
+  private static final UUID NON_EXISTENT_UUID =
+      UUID.fromString("00000000-0000-0000-0000-000000000001");
+
+  @Override
+  protected Object getNonExistentId() {
+    return NON_EXISTENT_UUID;
+  }
+
+  @Override
+  protected Object getExistingEntity() {
+    return activityLog;
+  }
+
+  @Override
+  protected String getNotFoundErrorCode() {
+    return "ACTIVITY_LOG_NOT_FOUND";
+  }
+
+  @Override
+  protected void mockFindByIdReturnsEntity() {
+    when(activityLogRepository.findById(logId)).thenReturn(activityLog);
+  }
+
+  @Override
+  protected void mockFindByIdReturnsNull() {
+    when(activityLogRepository.findById(NON_EXISTENT_UUID)).thenReturn(null);
+  }
+
+  @Override
+  protected void mockDeleteByIdSucceeds() {
+    when(activityLogRepository.findById(logId)).thenReturn(activityLog);
+  }
+
+  @Override
+  protected Object invokeFindById(Object id) {
+    return activityLogService.findById((UUID) id);
+  }
+
+  @Override
+  protected void invokeDeleteById(Object id) {
+    activityLogService.deleteById((UUID) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdPerformed(Object id) {
+    verify(activityLogRepository).deleteById((UUID) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdNotPerformed() {
+    verify(activityLogRepository, never()).deleteById(any());
+  }
 
   @BeforeEach
   void setUp() {
@@ -123,16 +186,5 @@ class ActivityLogServiceTest {
     assertNotNull(result);
     assertEquals(1, result.totalElements());
     verify(activityLogRepository).findAll(any(ActivityLogCriteria.class));
-  }
-
-  @Test
-  @DisplayName("Should throw NotFoundException when activity log not found")
-  void shouldThrowExceptionWhenActivityLogNotFound() {
-    var unknownId = UUID.randomUUID();
-    when(activityLogRepository.findById(unknownId)).thenReturn(null);
-
-    var exception =
-        assertThrows(NotFoundException.class, () -> activityLogService.findById(unknownId));
-    assertEquals("ACTIVITY_LOG_NOT_FOUND", exception.getErrorCode());
   }
 }

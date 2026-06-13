@@ -2,14 +2,14 @@ package com.example.goodsprice.unit.application.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
-import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.service.AbstractGenericServiceTest;
 import com.example.goodsprice.unit.application.domain.model.UnitDomain;
 import com.example.goodsprice.unit.application.domain.model.UnitType;
 import com.example.goodsprice.unit.application.port.in.dto.UnitCriteria;
@@ -26,7 +26,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class UnitServiceTest {
+class UnitServiceTest extends AbstractGenericServiceTest {
 
   @Mock private UnitRepositoryPort unitRepository;
 
@@ -35,6 +35,66 @@ class UnitServiceTest {
   @Captor private ArgumentCaptor<UnitDomain> unitCaptor;
 
   private UnitDomain kgUnit;
+
+  @Override
+  protected Object getService() {
+    return unitService;
+  }
+
+  @Override
+  protected Object getExistingId() {
+    return "KG";
+  }
+
+  @Override
+  protected Object getNonExistentId() {
+    return "NONEXISTENT";
+  }
+
+  @Override
+  protected Object getExistingEntity() {
+    return kgUnit;
+  }
+
+  @Override
+  protected String getNotFoundErrorCode() {
+    return "UNIT_NOT_FOUND";
+  }
+
+  @Override
+  protected void mockFindByIdReturnsEntity() {
+    when(unitRepository.findById("KG")).thenReturn(kgUnit);
+  }
+
+  @Override
+  protected void mockFindByIdReturnsNull() {
+    when(unitRepository.findById("NONEXISTENT")).thenReturn(null);
+  }
+
+  @Override
+  protected void mockDeleteByIdSucceeds() {
+    when(unitRepository.findById("KG")).thenReturn(kgUnit);
+  }
+
+  @Override
+  protected Object invokeFindById(Object id) {
+    return unitService.findById((String) id);
+  }
+
+  @Override
+  protected void invokeDeleteById(Object id) {
+    unitService.deleteById((String) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdPerformed(Object id) {
+    verify(unitRepository).deleteById((String) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdNotPerformed() {
+    verify(unitRepository, never()).deleteById(any());
+  }
 
   @BeforeEach
   void setUp() {
@@ -134,25 +194,5 @@ class UnitServiceTest {
     assertEquals(UnitType.VOLUME, result.getType());
     verify(unitRepository).save(unitCaptor.capture());
     assertEquals(UnitType.VOLUME, unitCaptor.getValue().getType());
-  }
-
-  @Test
-  @DisplayName("Should throw NotFoundException when deleting non-existent unit")
-  void shouldThrowExceptionWhenDeletingNonExistentUnit() {
-    when(unitRepository.findById("NONEXISTENT")).thenReturn(null);
-
-    var exception =
-        assertThrows(NotFoundException.class, () -> unitService.deleteById("NONEXISTENT"));
-    assertEquals("UNIT_NOT_FOUND", exception.getErrorCode());
-  }
-
-  @Test
-  @DisplayName("Should throw NotFoundException when unit not found")
-  void shouldThrowExceptionWhenUnitNotFound() {
-    when(unitRepository.findById("NONEXISTENT")).thenReturn(null);
-
-    var exception =
-        assertThrows(NotFoundException.class, () -> unitService.findById("NONEXISTENT"));
-    assertEquals("UNIT_NOT_FOUND", exception.getErrorCode());
   }
 }

@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.service.AbstractGenericServiceTest;
 import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.dto.PriceCriteria;
@@ -30,7 +31,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PriceServiceTest {
+class PriceServiceTest extends AbstractGenericServiceTest {
 
   @Mock private PriceRepositoryPort priceRepository;
   @Mock private ProductInPort productInPort;
@@ -39,6 +40,66 @@ class PriceServiceTest {
 
   private PriceDomain price1;
   private PriceDomain price2;
+
+  @Override
+  protected Object getService() {
+    return priceService;
+  }
+
+  @Override
+  protected Object getExistingId() {
+    return 1L;
+  }
+
+  @Override
+  protected Object getNonExistentId() {
+    return 999L;
+  }
+
+  @Override
+  protected Object getExistingEntity() {
+    return price1;
+  }
+
+  @Override
+  protected String getNotFoundErrorCode() {
+    return "PRICE_NOT_FOUND";
+  }
+
+  @Override
+  protected void mockFindByIdReturnsEntity() {
+    when(priceRepository.findById(1L)).thenReturn(price1);
+  }
+
+  @Override
+  protected void mockFindByIdReturnsNull() {
+    when(priceRepository.findById(999L)).thenReturn(null);
+  }
+
+  @Override
+  protected void mockDeleteByIdSucceeds() {
+    when(priceRepository.findById(1L)).thenReturn(price1);
+  }
+
+  @Override
+  protected Object invokeFindById(Object id) {
+    return priceService.findById((Long) id);
+  }
+
+  @Override
+  protected void invokeDeleteById(Object id) {
+    priceService.deleteById((Long) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdPerformed(Object id) {
+    verify(priceRepository).deleteById((Long) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdNotPerformed() {
+    verify(priceRepository, never()).deleteById(any());
+  }
 
   @BeforeEach
   void setUp() {
@@ -97,26 +158,6 @@ class PriceServiceTest {
 
     assertNotNull(result);
     verify(priceRepository).save(any(PriceDomain.class));
-  }
-
-  @Test
-  @DisplayName("Should find price by id")
-  void shouldFindPriceById() {
-    when(priceRepository.findById(1L)).thenReturn(price1);
-
-    var result = priceService.findById(1L);
-
-    assertNotNull(result);
-    assertEquals(1L, result.getId());
-    assertEquals(15000.0, result.getPrice());
-  }
-
-  @Test
-  @DisplayName("Should throw NotFoundException when price not found by id")
-  void shouldThrowExceptionWhenPriceNotFound() {
-    when(priceRepository.findById(999L)).thenReturn(null);
-
-    assertThrows(NotFoundException.class, () -> priceService.findById(999L));
   }
 
   @Test
@@ -267,25 +308,6 @@ class PriceServiceTest {
 
     verify(priceRepository).saveAll(any());
     verify(productInPort).updateLastPriceUpdate(eq(100L), any());
-  }
-
-  @Test
-  @DisplayName("Should delete price by id")
-  void shouldDeletePriceById() {
-    when(priceRepository.findById(1L)).thenReturn(price1);
-
-    priceService.deleteById(1L);
-
-    verify(priceRepository).deleteById(1L);
-  }
-
-  @Test
-  @DisplayName("Should throw NotFoundException when deleting non-existent")
-  void shouldThrowWhenDeletingNonExistent() {
-    when(priceRepository.findById(999L)).thenReturn(null);
-
-    assertThrows(NotFoundException.class, () -> priceService.deleteById(999L));
-    verify(priceRepository, never()).deleteById(999L);
   }
 
   @Test

@@ -2,8 +2,8 @@ package com.example.goodsprice.store.infrastructure.adapter.web.mapper;
 
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Store;
+import com.example.goodsprice.common.web.mapper.DtoMapperSupport;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
-import java.util.Objects;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -16,14 +16,13 @@ import org.mapstruct.ReportingPolicy;
     unmappedSourcePolicy = ReportingPolicy.IGNORE,
     unmappedTargetPolicy = ReportingPolicy.IGNORE)
 @SuppressWarnings("PMD.ImplicitFunctionalInterface")
-public interface StoreDtoMapper {
+public interface StoreDtoMapper extends DtoMapperSupport {
 
   @Mapping(target = "status", qualifiedByName = "mapStatus")
   Store toApiStore(StoreDomain domain);
 
   @Named("mapStatus")
   default EntityStatus mapStatus(String status) {
-    if (Objects.isNull(status)) return null;
-    return EntityStatus.fromValue(status);
+    return resolveStatusValue(status);
   }
 }

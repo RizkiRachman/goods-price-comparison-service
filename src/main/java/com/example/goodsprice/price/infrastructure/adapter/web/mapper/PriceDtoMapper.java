@@ -7,13 +7,14 @@ import com.example.goodsprice.api.model.PriceRecord.AvailabilityEnum;
 import com.example.goodsprice.api.model.PriceResult;
 import com.example.goodsprice.api.model.PriceResultV2;
 import com.example.goodsprice.common.util.ObjectUtils;
+import com.example.goodsprice.common.web.mapper.DtoMapperSupport;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import java.time.ZoneOffset;
 import org.mapstruct.Mapper;
 
 @Mapper(componentModel = "spring")
-public interface PriceDtoMapper {
+public interface PriceDtoMapper extends DtoMapperSupport {
 
   default PriceRecord toPriceRecord(PriceDomain price, StoreDomain store) {
     var record = new PriceRecord();

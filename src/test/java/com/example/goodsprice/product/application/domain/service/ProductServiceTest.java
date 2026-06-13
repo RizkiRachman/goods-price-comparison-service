@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -13,6 +12,7 @@ import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.service.AbstractGenericServiceTest;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
@@ -29,7 +29,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ProductServiceTest {
+class ProductServiceTest extends AbstractGenericServiceTest {
 
   @Mock private ProductRepositoryPort productRepository;
   @Mock private ProductPriceQueryInPort productPriceQueryInPort;
@@ -38,6 +38,66 @@ class ProductServiceTest {
   @InjectMocks private ProductService productService;
 
   private ProductDomain product;
+
+  @Override
+  protected Object getService() {
+    return productService;
+  }
+
+  @Override
+  protected Object getExistingId() {
+    return 1L;
+  }
+
+  @Override
+  protected Object getNonExistentId() {
+    return 999L;
+  }
+
+  @Override
+  protected Object getExistingEntity() {
+    return product;
+  }
+
+  @Override
+  protected String getNotFoundErrorCode() {
+    return "PRODUCT_NOT_FOUND";
+  }
+
+  @Override
+  protected void mockFindByIdReturnsEntity() {
+    when(productRepository.findById(1L)).thenReturn(product);
+  }
+
+  @Override
+  protected void mockFindByIdReturnsNull() {
+    when(productRepository.findById(999L)).thenReturn(null);
+  }
+
+  @Override
+  protected void mockDeleteByIdSucceeds() {
+    when(productRepository.findById(1L)).thenReturn(product);
+  }
+
+  @Override
+  protected Object invokeFindById(Object id) {
+    return productService.findById((Long) id);
+  }
+
+  @Override
+  protected void invokeDeleteById(Object id) {
+    productService.deleteById((Long) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdPerformed(Object id) {
+    verify(productRepository).deleteById((Long) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdNotPerformed() {
+    verify(productRepository, never()).deleteById(any());
+  }
 
   @BeforeEach
   void setUp() {
@@ -91,23 +151,6 @@ class ProductServiceTest {
     assertNotNull(result);
     assertEquals("Susu Kotak", result.getName());
     verify(productRepository, never()).save(any());
-  }
-
-  @Test
-  void shouldFindById() {
-    when(productRepository.findById(1L)).thenReturn(product);
-
-    var result = productService.findById(1L);
-
-    assertNotNull(result);
-    assertEquals(1L, result.getId());
-  }
-
-  @Test
-  void shouldThrowNotFoundWhenFindByIdFails() {
-    when(productRepository.findById(999L)).thenReturn(null);
-
-    assertThrows(NotFoundException.class, () -> productService.findById(999L));
   }
 
   @Test
@@ -181,23 +224,6 @@ class ProductServiceTest {
     productService.updateLastPriceUpdate(1L, now);
 
     verify(productRepository).updateLastPriceUpdate(1L, now);
-  }
-
-  @Test
-  void shouldDeleteById() {
-    when(productRepository.findById(1L)).thenReturn(product);
-
-    productService.deleteById(1L);
-
-    verify(productRepository).deleteById(1L);
-  }
-
-  @Test
-  void shouldThrowNotFoundWhenDeleteFails() {
-    when(productRepository.findById(999L)).thenReturn(null);
-
-    assertThrows(NotFoundException.class, () -> productService.deleteById(999L));
-    verify(productRepository, never()).deleteById(999L);
   }
 
   @Test

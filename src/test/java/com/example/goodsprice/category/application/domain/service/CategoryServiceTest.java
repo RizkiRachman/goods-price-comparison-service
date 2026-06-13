@@ -2,8 +2,8 @@ package com.example.goodsprice.category.application.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -12,7 +12,7 @@ import com.example.goodsprice.category.application.port.in.dto.CategoryCriteria;
 import com.example.goodsprice.category.application.port.out.CategoryRepositoryPort;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
-import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.service.AbstractGenericServiceTest;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -25,15 +25,73 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class CategoryServiceTest {
+class CategoryServiceTest extends AbstractGenericServiceTest {
 
   @Mock private CategoryRepositoryPort categoryRepository;
-
   @InjectMocks private CategoryService categoryService;
-
   @Captor private ArgumentCaptor<CategoryDomain> categoryCaptor;
 
   private CategoryDomain existingCategory;
+
+  @Override
+  protected Object getService() {
+    return categoryService;
+  }
+
+  @Override
+  protected Object getExistingId() {
+    return "FRUIT";
+  }
+
+  @Override
+  protected Object getNonExistentId() {
+    return "NONEXISTENT";
+  }
+
+  @Override
+  protected Object getExistingEntity() {
+    return existingCategory;
+  }
+
+  @Override
+  protected String getNotFoundErrorCode() {
+    return "CATEGORY_NOT_FOUND";
+  }
+
+  @Override
+  protected void mockFindByIdReturnsEntity() {
+    when(categoryRepository.findById("FRUIT")).thenReturn(existingCategory);
+  }
+
+  @Override
+  protected void mockFindByIdReturnsNull() {
+    when(categoryRepository.findById("NONEXISTENT")).thenReturn(null);
+  }
+
+  @Override
+  protected void mockDeleteByIdSucceeds() {
+    when(categoryRepository.findById("FRUIT")).thenReturn(existingCategory);
+  }
+
+  @Override
+  protected Object invokeFindById(Object id) {
+    return categoryService.findById((String) id);
+  }
+
+  @Override
+  protected void invokeDeleteById(Object id) {
+    categoryService.deleteById((String) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdPerformed(Object id) {
+    verify(categoryRepository).deleteById((String) id);
+  }
+
+  @Override
+  protected void verifyDeleteByIdNotPerformed() {
+    verify(categoryRepository, never()).deleteById(any());
+  }
 
   @BeforeEach
   void setUp() {
@@ -68,16 +126,6 @@ class CategoryServiceTest {
   }
 
   @Test
-  @DisplayName("Should throw NotFoundException when category not found")
-  void shouldThrowExceptionWhenCategoryNotFound() {
-    when(categoryRepository.findById("NONEXISTENT")).thenReturn(null);
-
-    var exception =
-        assertThrows(NotFoundException.class, () -> categoryService.findById("NONEXISTENT"));
-    assertEquals("CATEGORY_NOT_FOUND", exception.getErrorCode());
-  }
-
-  @Test
   @DisplayName("Should update an existing category")
   void shouldUpdateExistingCategory() {
     when(categoryRepository.findById("FRUIT")).thenReturn(existingCategory);
@@ -102,17 +150,7 @@ class CategoryServiceTest {
   }
 
   @Test
-  @DisplayName("Should throw NotFoundException when deleting non-existent category")
-  void shouldThrowExceptionWhenDeletingNonExistentCategory() {
-    when(categoryRepository.findById("NONEXISTENT")).thenReturn(null);
-
-    var exception =
-        assertThrows(NotFoundException.class, () -> categoryService.deleteById("NONEXISTENT"));
-    assertEquals("CATEGORY_NOT_FOUND", exception.getErrorCode());
-  }
-
-  @Test
-  @DisplayName("Should return all categories with pagination")
+  @DisplayName("Should get all categories with pagination")
   void shouldReturnAllCategories() {
     var categories = List.of(existingCategory);
     var pageResponse = PageResponse.of(categories, 0, 10, categories.size());
