@@ -3,7 +3,6 @@ package com.example.goodsprice.price.application.domain.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -13,8 +12,8 @@ import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
-import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.service.AbstractGenericServiceTest;
+import com.example.goodsprice.common.service.ServiceLayerNotFoundExceptionTest;
 import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.dto.PriceCriteria;
@@ -26,12 +25,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PriceServiceTest extends AbstractGenericServiceTest {
+class PriceServiceTest extends AbstractGenericServiceTest
+    implements ServiceLayerNotFoundExceptionTest {
 
   @Mock private PriceRepositoryPort priceRepository;
   @Mock private ProductInPort productInPort;
@@ -62,8 +63,19 @@ class PriceServiceTest extends AbstractGenericServiceTest {
   }
 
   @Override
-  protected String getNotFoundErrorCode() {
+  public String getNotFoundErrorCode() {
     return "PRICE_NOT_FOUND";
+  }
+
+  @Override
+  public void mockRepositoryReturnsNull() {
+    when(priceRepository.findById(999L)).thenReturn(null);
+  }
+
+  @Override
+  public Executable serviceMethodThatShouldThrowNotFound() {
+    var updateDomain = PriceDomain.builder().price(100.0).build();
+    return () -> priceService.update(999L, updateDomain);
   }
 
   @Override
@@ -343,15 +355,6 @@ class PriceServiceTest extends AbstractGenericServiceTest {
     assertEquals(15000.0, result.getPrice());
     assertEquals(15000.0, result.getUnitPrice());
     verify(priceRepository).save(any(PriceDomain.class));
-  }
-
-  @Test
-  @DisplayName("Should throw NotFoundException when updating non-existent")
-  void shouldThrowWhenUpdatingNonExistent() {
-    var updateDomain = PriceDomain.builder().price(100.0).build();
-    when(priceRepository.findById(999L)).thenReturn(null);
-
-    assertThrows(NotFoundException.class, () -> priceService.update(999L, updateDomain));
   }
 
   private void assertAllDateRangeFallbacks() {

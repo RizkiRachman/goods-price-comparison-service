@@ -10,8 +10,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.service.AbstractGenericServiceTest;
+import com.example.goodsprice.common.service.ServiceLayerNotFoundExceptionTest;
 import com.example.goodsprice.common.util.JsonUtils;
 import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
 import com.example.goodsprice.receipt.application.domain.model.ReceiptCreateDomain;
@@ -30,6 +30,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
@@ -37,7 +38,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ReceiptServiceTest extends AbstractGenericServiceTest {
+class ReceiptServiceTest extends AbstractGenericServiceTest
+    implements ServiceLayerNotFoundExceptionTest {
 
   @Mock private ReceiptRepositoryPort receiptRepository;
   @Mock private ReceiptEventOutPort eventOutPort;
@@ -54,6 +56,18 @@ class ReceiptServiceTest extends AbstractGenericServiceTest {
   private UUID existingReceiptId;
   private ReceiptDomain existingReceipt;
 
+  private static final UUID NOT_FOUND_ID = UUID.fromString("00000000-0000-0000-0000-000000000001");
+
+  @Override
+  public void mockRepositoryReturnsNull() {
+    when(receiptRepository.findById(NOT_FOUND_ID)).thenReturn(null);
+  }
+
+  @Override
+  public Executable serviceMethodThatShouldThrowNotFound() {
+    return () -> receiptService.getStatus(NOT_FOUND_ID);
+  }
+
   @Override
   protected Object getService() {
     return receiptService;
@@ -66,7 +80,7 @@ class ReceiptServiceTest extends AbstractGenericServiceTest {
 
   @Override
   protected Object getNonExistentId() {
-    return UUID.fromString("00000000-0000-0000-0000-000000000001");
+    return NOT_FOUND_ID;
   }
 
   @Override
@@ -75,7 +89,7 @@ class ReceiptServiceTest extends AbstractGenericServiceTest {
   }
 
   @Override
-  protected String getNotFoundErrorCode() {
+  public String getNotFoundErrorCode() {
     return "RECEIPT_NOT_FOUND";
   }
 
@@ -86,8 +100,7 @@ class ReceiptServiceTest extends AbstractGenericServiceTest {
 
   @Override
   protected void mockFindByIdReturnsNull() {
-    when(receiptRepository.findById(UUID.fromString("00000000-0000-0000-0000-000000000001")))
-        .thenReturn(null);
+    when(receiptRepository.findById(NOT_FOUND_ID)).thenReturn(null);
   }
 
   @Override
@@ -291,14 +304,6 @@ class ReceiptServiceTest extends AbstractGenericServiceTest {
     var result = receiptService.getStatus(id);
 
     assertEquals(ReceiptStatus.APPROVED, result);
-  }
-
-  @Test
-  void shouldThrowNotFoundWhenReceiptDoesNotExistInGetStatus() {
-    var id = UUID.randomUUID();
-    when(receiptRepository.findById(id)).thenReturn(null);
-
-    assertThrows(NotFoundException.class, () -> receiptService.getStatus(id));
   }
 
   @Test
