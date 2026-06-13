@@ -3,7 +3,6 @@ package com.example.goodsprice.product.application.domain.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -11,8 +10,8 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.common.dto.PageResponse;
-import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.service.AbstractGenericServiceTest;
+import com.example.goodsprice.common.service.ServiceLayerNotFoundExceptionTest;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
 import com.example.goodsprice.product.application.port.in.ProductInPort;
@@ -24,12 +23,14 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ProductServiceTest extends AbstractGenericServiceTest {
+class ProductServiceTest extends AbstractGenericServiceTest
+    implements ServiceLayerNotFoundExceptionTest {
 
   @Mock private ProductRepositoryPort productRepository;
   @Mock private ProductPriceQueryInPort productPriceQueryInPort;
@@ -60,8 +61,19 @@ class ProductServiceTest extends AbstractGenericServiceTest {
   }
 
   @Override
-  protected String getNotFoundErrorCode() {
+  public String getNotFoundErrorCode() {
     return "PRODUCT_NOT_FOUND";
+  }
+
+  @Override
+  public void mockRepositoryReturnsNull() {
+    when(productRepository.findById(999L)).thenReturn(null);
+  }
+
+  @Override
+  public Executable serviceMethodThatShouldThrowNotFound() {
+    var input = ProductDomain.builder().name("x").category("x").brand("x").unit("x").build();
+    return () -> productService.update(999L, input);
   }
 
   @Override
@@ -208,14 +220,6 @@ class ProductServiceTest extends AbstractGenericServiceTest {
     assertNotNull(result);
     assertEquals("Updated", result.getName());
     verify(productRepository).save(any(ProductDomain.class));
-  }
-
-  @Test
-  void shouldThrowNotFoundWhenUpdateFails() {
-    when(productRepository.findById(999L)).thenReturn(null);
-
-    var input = ProductDomain.builder().name("x").category("x").brand("x").unit("x").build();
-    assertThrows(NotFoundException.class, () -> productService.update(999L, input));
   }
 
   @Test

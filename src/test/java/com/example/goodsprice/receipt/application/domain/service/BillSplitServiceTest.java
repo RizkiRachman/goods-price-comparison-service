@@ -2,10 +2,9 @@ package com.example.goodsprice.receipt.application.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-import com.example.goodsprice.common.exception.NotFoundException;
+import com.example.goodsprice.common.service.ServiceLayerNotFoundExceptionTest;
 import com.example.goodsprice.receipt.application.domain.model.BillSplitOrderDetailDomain;
 import com.example.goodsprice.receipt.application.domain.model.BillSplitParticipantDomain;
 import com.example.goodsprice.receipt.application.domain.model.BillSplitRequestDomain;
@@ -22,12 +21,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class BillSplitServiceTest {
+class BillSplitServiceTest implements ServiceLayerNotFoundExceptionTest {
 
   @Mock private ReceiptInPort receiptInPort;
   @Mock private ReceiptItemRepositoryPort receiptItemRepository;
@@ -37,6 +37,18 @@ class BillSplitServiceTest {
   private final UUID receiptId = UUID.randomUUID();
 
   private ReceiptDomain receipt;
+
+  @Override
+  public void mockRepositoryReturnsNull() {
+    when(receiptInPort.findById(receiptId)).thenReturn(null);
+  }
+
+  @Override
+  public Executable serviceMethodThatShouldThrowNotFound() {
+    var request =
+        BillSplitRequestDomain.builder().type(BillSplitType.RATIO).numberOfParticipants(2).build();
+    return () -> billSplitService.splitBill(receiptId, request);
+  }
 
   @BeforeEach
   void setUp() {
@@ -74,18 +86,6 @@ class BillSplitServiceTest {
       assertEquals("Participant 2", participants.get(1).getName());
       assertEquals("Participant 3", participants.get(2).getName());
       assertEquals("Participant 4", participants.get(3).getName());
-    }
-
-    @Test
-    void shouldThrowNotFoundExceptionWhenReceiptNotFound() {
-      when(receiptInPort.findById(receiptId)).thenReturn(null);
-      var request =
-          BillSplitRequestDomain.builder()
-              .type(BillSplitType.RATIO)
-              .numberOfParticipants(2)
-              .build();
-
-      assertThrows(NotFoundException.class, () -> billSplitService.splitBill(receiptId, request));
     }
 
     @Test
