@@ -44,7 +44,7 @@
         <mapstruct.version>1.6.3</mapstruct.version>
 
         <!-- Observability -->
-        <logstash-logback.version>8.0</logstash-logback.version>
+        <logstash-logback.version>9.0</logstash-logback.version>
     </properties>
 
     <repositories>
