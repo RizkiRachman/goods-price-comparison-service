@@ -1,1 +1,0 @@
-toolkit/template/state.md
