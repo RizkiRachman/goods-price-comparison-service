@@ -148,14 +148,16 @@ gh pr create --title "feat: your feature title" --body "Description of changes"
 Ensure the following checks pass:
 
 - [ ] `mvn spotless:apply` - Formatting is clean (Google Java Style)
-- [ ] `mvn clean test` - All tests pass (0 failures), ArchUnit (7 rules)
+- [ ] `mvn clean test` - All tests pass (0 failures, 1,041+ tests), ArchUnit (7 rules)
 - [ ] `mvn clean verify` - Full quality gates pass (SpotBugs, PMD CPD, JaCoCo ≥90% INSTRUCTION / ≥80% BRANCH)
-- [ ] `./scripts/check-conventions.sh` - Convention checks pass
+- [ ] `./scripts/check-conventions.sh` - Convention checks pass (no log injection, no JPA in domain)
 - [ ] `npx newman run "postman/Goods Price Comparison Service.postman_collection.json"` - Smoke tests pass (requires app running on localhost:8080)
 - [ ] `mvn verify -P security-check` - OWASP Dependency-Check passes (no CVSS >= 7)
+- [ ] User-controlled values sanitized before log/exception output (Log Injection prevention)
 - [ ] New code has unit tests (100% coverage for new code)
 - [ ] Documentation updated (CHANGELOG.md, README.md, docs/ if applicable)
 - [ ] CHANGELOG.md updated under `[Unreleased]`
+- [ ] CI checks pass: Build & Test, CodeQL, Dependency Review (all visible on PR page)
 
 ### PR Requirements
 
