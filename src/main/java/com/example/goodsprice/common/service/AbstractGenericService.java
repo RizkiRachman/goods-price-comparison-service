@@ -27,7 +27,7 @@ public abstract class AbstractGenericService<T, ID> {
     var entity = getRepository().findById(id);
     if (Objects.isNull(entity))
       throw new NotFoundException(
-          notFoundErrorCode, "%s not found with id: %s".formatted(entityName, id));
+          notFoundErrorCode, "%s not found with id: %s".formatted(entityName, sanitize(id)));
     return entity;
   }
 
@@ -55,7 +55,7 @@ public abstract class AbstractGenericService<T, ID> {
     var existing = findById(id); // throws NotFoundException if not found
     merger.accept(existing, updateWith);
     var saved = save(existing);
-    log.info("{} updated: {}", entityName, id);
+    log.info("{} updated: {}", entityName, sanitize(id));
     return saved;
   }
 
@@ -68,6 +68,18 @@ public abstract class AbstractGenericService<T, ID> {
   public void deleteById(ID id) {
     findById(id); // throws NotFoundException if not found
     getRepository().deleteById(id);
-    log.info("{} deleted with id: {}", entityName, id);
+    log.info("{} deleted with id: {}", entityName, sanitize(id));
+  }
+
+  /**
+   * Sanitizes a value for safe logging by replacing control characters that could be used for log
+   * injection (newlines, carriage returns, tabs) with underscores.
+   *
+   * @param value the value to sanitize (may be null)
+   * @return sanitized string, or "null" if value is null
+   */
+  private static String sanitize(Object value) {
+    if (value == null) return "null";
+    return value.toString().replaceAll("[\\r\\n\\t]", "_");
   }
 }

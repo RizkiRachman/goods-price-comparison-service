@@ -130,6 +130,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **Convention checker script**: `scripts/check-conventions.sh`
 
 ### Fixed
+- **Log Injection (GHAS/CodeQL):** `AbstractGenericService` now sanitizes user-controlled `id` before logging (`\r`, `\n`, `\t` replaced with `_`) in `findById()`, `update()`, and `deleteById()` methods. Added `sanitize(Object)` utility helper.
 - **Test anti-pattern**: Replaced `System.out.println` skip pattern with `Assumptions.assumeTrue()` in LlmServiceCacheTest — proper JUnit 5 conditional test skipping
 - **Validation Exception Handling**: Added a global exception handler for `MethodArgumentNotValidException` in `GlobalExceptionHandler` to map Spring validation errors (like `@NotNull` violations on request bodies) to `400 Bad Request` instead of falling back to `500 Internal Server Error`.
 - **Orphan ReceiptProcessedEvent**: Now has a handler (was published but unhandled)
