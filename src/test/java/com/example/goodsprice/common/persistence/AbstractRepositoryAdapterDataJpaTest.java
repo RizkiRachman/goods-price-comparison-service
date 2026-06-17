@@ -43,9 +43,9 @@ public abstract class AbstractRepositoryAdapterDataJpaTest {
    * @param entityClass the entity class type
    * @param id the expected ID after persist (may be generated)
    * @param <E> entity type
-   * @param <ID> ID type
+   * @param <I> ID type
    */
-  protected <E, ID> void assertPersistAndRetrieve(E entity, Class<E> entityClass, ID id) {
+  protected <E, I> void assertPersistAndRetrieve(E entity, Class<E> entityClass, I id) {
     entityManager.persist(entity);
     entityManager.flush();
     var found = entityManager.find(entityClass, id);
@@ -76,9 +76,9 @@ public abstract class AbstractRepositoryAdapterDataJpaTest {
    * @param entityClass the entity class type
    * @param id the entity ID
    * @param <E> entity type
-   * @param <ID> ID type
+   * @param <I> ID type
    */
-  protected <E, ID> void assertDelete(E entity, Class<E> entityClass, ID id) {
+  protected <E, I> void assertDelete(E entity, Class<E> entityClass, I id) {
     entityManager.persist(entity);
     entityManager.flush();
     var managed = entityManager.find(entityClass, id);

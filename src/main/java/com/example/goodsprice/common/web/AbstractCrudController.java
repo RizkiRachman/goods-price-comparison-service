@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
  * <p>Subclasses define their own public API methods to satisfy the generated OpenAPI interface, but
  * delegate to these helpers for response wrapping.
  */
-public abstract class AbstractCrudController {
+public class AbstractCrudController {
 
   protected static <T> ResponseEntity<T> created(T body) {
     return ControllerResponse.created(body);
