@@ -43,17 +43,19 @@ public class UnitService extends AbstractGenericService<UnitDomain, String> impl
   }
 
   @Override
-  @Transactional
   @ActivityLog
   public UnitDomain update(String id, UnitDomain domain) {
-    var existing = findById(id);
-    existing.setName(domain.getName());
-    existing.setSymbol(domain.getSymbol());
-    if (Objects.nonNull(domain.getType())) {
-      existing.setType(domain.getType());
-    }
-    existing.setDescription(domain.getDescription());
-    existing.setStatus(domain.getStatus());
-    return save(existing);
+    return update(
+        id,
+        (existing, update) -> {
+          existing.setName(update.getName());
+          existing.setSymbol(update.getSymbol());
+          if (Objects.nonNull(update.getType())) {
+            existing.setType(update.getType());
+          }
+          existing.setDescription(update.getDescription());
+          existing.setStatus(update.getStatus());
+        },
+        domain);
   }
 }

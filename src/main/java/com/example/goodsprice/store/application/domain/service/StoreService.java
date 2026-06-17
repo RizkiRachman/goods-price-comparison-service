@@ -56,20 +56,20 @@ public class StoreService extends AbstractGenericService<StoreDomain, Long> impl
   }
 
   @Override
-  @Transactional
   @ActivityLog
   public StoreDomain update(UpdateStoreCriteria criteria) {
-    var existing = findById(criteria.getId());
-    existing.setName(criteria.getName());
-    existing.setLocation(criteria.getLocation());
-    existing.setChain(criteria.getChain());
-    existing.setAddress(criteria.getAddress());
-    existing.setLatitude(criteria.getLatitude());
-    existing.setLongitude(criteria.getLongitude());
-    existing.setStatus(criteria.getStatus());
-    existing = save(existing);
-    log.info("Store updated: {} (id: {})", existing.getName(), criteria.getId());
-    return existing;
+    return update(
+        criteria.getId(),
+        (existing, update) -> {
+          existing.setName(update.getName());
+          existing.setLocation(update.getLocation());
+          existing.setChain(update.getChain());
+          existing.setAddress(update.getAddress());
+          existing.setLatitude(update.getLatitude());
+          existing.setLongitude(update.getLongitude());
+          existing.setStatus(update.getStatus());
+        },
+        criteria);
   }
 
   @Override

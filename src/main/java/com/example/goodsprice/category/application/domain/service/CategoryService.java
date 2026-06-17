@@ -46,14 +46,16 @@ public class CategoryService extends AbstractGenericService<CategoryDomain, Stri
   }
 
   @Override
-  @Transactional
   @ActivityLog
   @CacheEvict(value = CacheConfiguration.CATEGORIES_CACHE, allEntries = true)
   public CategoryDomain update(String id, CategoryDomain domain) {
-    var existing = findById(id);
-    existing.setName(domain.getName());
-    existing.setDescription(domain.getDescription());
-    existing.setStatus(domain.getStatus());
-    return save(existing);
+    return update(
+        id,
+        (existing, update) -> {
+          existing.setName(update.getName());
+          existing.setDescription(update.getDescription());
+          existing.setStatus(update.getStatus());
+        },
+        domain);
   }
 }

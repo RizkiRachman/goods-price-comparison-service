@@ -1,6 +1,5 @@
 package com.example.goodsprice.price.infrastructure.handler.event;
 
-import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.event.TransactionPhase;
@@ -17,7 +16,12 @@ public abstract class AbstractAsyncPriceCalcHandler<T> {
       doExecute(event);
       log.info("Price calculation completed successfully: {}", event);
     } catch (Exception e) {
-      log.error("Price calculation failed: {}", Objects.toString(event), e);
+      log.error(
+          "Failed to process {} event: {}. Error: {}",
+          event.getClass().getSimpleName(),
+          event,
+          e.getMessage(),
+          e);
     }
   }
 

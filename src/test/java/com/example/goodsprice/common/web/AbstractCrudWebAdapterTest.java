@@ -1,11 +1,16 @@
 package com.example.goodsprice.common.web;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.example.goodsprice.api.model.EntityStatus;
+import com.example.goodsprice.api.model.Pagination;
 import com.example.goodsprice.common.dto.PageRequestDto;
+import com.example.goodsprice.common.dto.PageResponse;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class AbstractCrudWebAdapterTest {
@@ -102,6 +107,44 @@ class AbstractCrudWebAdapterTest {
     assertEquals(30, pageRequest.size());
     assertEquals("name", pageRequest.sortBy());
     assertEquals("asc", pageRequest.sortDirection());
+  }
+
+  @Test
+  @DisplayName("Should build typed list response")
+  void shouldBuildTypedListResponse() {
+    var domains = List.of(new TestDomain("A"), new TestDomain("B"));
+    var pageResponse = PageResponse.of(domains, 1, 10, 2);
+
+    var result =
+        adapter.buildTypedListResponse(pageResponse, TestDomain::name, TestListResponse::new);
+
+    assertNotNull(result);
+    assertEquals(List.of("A", "B"), result.getData());
+    assertNotNull(result.getPagination());
+    assertEquals(1, result.getPagination().getPage());
+  }
+
+  private record TestDomain(String name) {}
+
+  private static class TestListResponse {
+    private List<String> data;
+    private Pagination pagination;
+
+    public void setData(List<String> data) {
+      this.data = data;
+    }
+
+    public List<String> getData() {
+      return data;
+    }
+
+    public void setPagination(Pagination pagination) {
+      this.pagination = pagination;
+    }
+
+    public Pagination getPagination() {
+      return pagination;
+    }
   }
 
   private static final class TestCrudWebAdapter extends AbstractCrudWebAdapter {

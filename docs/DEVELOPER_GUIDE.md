@@ -88,10 +88,13 @@ mvn spring-boot:run
 src/main/java/com/example/goodsprice/
 ├── common/                    # Shared utilities, constants, events
 │   ├── constant/             # AppConstants, ErrorCodes
-│   ├── exception/            # Custom exceptions (NotFoundException)
-│   ├── repository/           # GenericRepositoryPort
-│   ├── service/              # AbstractGenericService
-│   └── util/                 # ObjectUtils, NumberUtils, JsonUtils, Pipeline
+│   ├── dto/                  # PageRequestDto, PageResponse
+│   ├── exception/            # Custom exceptions (NotFoundException — static factories)
+│   ├── persistence/          # PaginationHelper, AbstractRepositoryAdapterDataJpaTest
+│   ├── repository/           # GenericRepositoryPort<T, ID>
+│   ├── service/              # AbstractGenericService<T, ID> (+ update() template)
+│   ├── util/                 # ObjectUtils, NumberUtils, JsonUtils, Pipeline, PaginationUtils
+│   └── web/                  # AbstractCrudController, AbstractCrudWebAdapter
 │
 ├── receipt/                   # Receipt service
 │   ├── application/
@@ -212,6 +215,19 @@ NumberUtils.toDouble(obj)
 StringUtils.isBlank(str)
 ```
 
+### Log Injection Prevention
+
+Always sanitize user-controlled values (IDs, search terms, input parameters) before including them in log messages or exception messages. The `AbstractGenericService` provides a reference pattern:
+
+```java
+private static String sanitize(Object value) {
+    if (value == null) return "null";
+    return value.toString().replaceAll("[\\r\\n\\t]", "_");
+}
+```
+
+Apply this wherever user-provided data enters a `log.info()`, `log.warn()`, or `log.error()` call. Failure to do so is flagged as a **HIGH-severity CodeQL finding** in CI (Log Injection).
+
 ### Modern Java 21
 
 ```java
@@ -266,10 +282,12 @@ mvn flyway:migrate -Pflyway
 | Architecture | `architecture/HexagonalArchitectureTest` | ArchUnit rules (7 rules) |
 
 **Base classes** reduce boilerplate:
-- `AbstractGenericServiceTest` — shared hooks for service-level tests (findById, deleteById, save, findAll, not-found patterns)
+- `AbstractGenericServiceTest` — shared hooks for service-level tests (12 → **6 hooks**, ~50% reduction)
 - `AbstractControllerWebMvcTest` — shared setUp() with ObjectMapper, MockMvc, GlobalExceptionHandler
-- `AbstractRepositoryAdapterDataJpaTest` — shared @SpringBootTest/@Transactional annotations and EntityManager
+- `AbstractRepositoryAdapterDataJpaTest` — shared `@SpringBootTest`/`@Transactional` annotations, `EntityManager`, and 3 reusable helpers (`assertPersistAndRetrieve`, `assertUniqueConstraintViolation`, `assertDelete`)
 - `ServiceLayerNotFoundExceptionTest` — interface for service-specific NotFoundException test paths
+
+**Latest:** 1,041 tests, 0 failures, `mvn verify` clean across Spotless, Checkstyle, PMD CPD, SpotBugs, and JaCoCo coverage gates.
 
 ### Commands
 
@@ -296,10 +314,13 @@ Run these in order. Each must pass before the next.
 | Architecture | `mvn test` (ArchUnit) | Package dependency violations |
 | Static Analysis | `mvn verify` | SpotBugs bugs, PMD CPD duplicates |
 | Coverage | `mvn verify` (JaCoCo) | ≥90% INSTRUCTION / ≥80% BRANCH |
-| Conventions | `./scripts/check-conventions.sh` | getOrNull usage, method refs, no JPA in domain |
+| Log Injection | `./scripts/check-conventions.sh` | Un-sanitized user input in log/error messages |
 | Full Test | `mvn test && mvn verify` | All tests pass, 0 failures |
 | Smoke Tests | `npx newman run "postman/Goods Price Comparison Service.postman_collection.json"` | API endpoint integration (requires app running on localhost:8080) |
 | Security | `mvn verify -P security-check` | OWASP dependency vulnerabilities |
+| SAST (CI) | CodeQL analysis (`.github/workflows/codeql.yml`) | Code injection, log injection, XSS, path traversal |
+| CI Build | GitHub Actions (`.github/workflows/ci-build.yml`) | Full build + cache + test on every push/PR |
+| Dependency Review | GitHub Actions | License compliance, known vulnerabilities in dependencies |
 
 ```bash
 mvn spotless:apply              # Quick fix
@@ -405,6 +426,23 @@ public class ProductRepositoryAdapter implements ProductRepositoryPort {
 6. Events (*EventOutPort, *EventAdapter, handler)
 7. Tests (unit + ArchUnit compliance)
 ```
+
+### Leveraging Existing Abstractions
+
+Before writing boilerplate, check if the `common/` layer has what you need:
+
+| Abstraction | Use Case |
+|-------------|----------|
+| `AbstractGenericService<T, ID>` | CRUD service with `findById`, `save`, `update(id, merger, updateWith)`, `deleteById` |
+| `AbstractCrudController` | Controller response helpers: `created()`, `ok()`, `noContent()` |
+| `AbstractCrudWebAdapter` | `buildTypedListResponse()` for paginated list endpoints |
+| `AbstractRepositoryAdapter<T, ID, E>` | JPA CRUD adapter with Page/Sort support |
+| `PaginationUtils` | `resolveSort()`, `resolveSortBy()`, `resolveSortOrder()` — unified pagination |
+| `SpecificationBuilder` | Dynamic JPA `Specification` from filter criteria |
+| `GlobalExceptionHandler` | Unified exception → HTTP status mapping (404, 400, 500) |
+| `DtoMapperSupport` | Common mapper utilities (page → page dto) |
+
+**Convention:** If your feature follows a CRUD pattern, extend these abstractions rather than writing custom code from scratch.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

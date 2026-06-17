@@ -51,15 +51,7 @@ public class CategoryWebAdapter extends AbstractCrudWebAdapter {
             pageRequest, search, ObjectUtils.getOrNull(status, EntityStatus::getValue));
     var pageResponse = categoryInPort.findAll(criteria);
 
-    return buildCompleteListResponse(
-        pageResponse,
-        mapper::toApiCategory,
-        (data, pagination) -> {
-          var r = new CategoryListResponse();
-          r.setData(data);
-          r.setPagination(pagination);
-          return r;
-        });
+    return buildTypedListResponse(pageResponse, mapper::toApiCategory, CategoryListResponse::new);
   }
 
   public Category update(String id, UpdateCategoryRequest request) {

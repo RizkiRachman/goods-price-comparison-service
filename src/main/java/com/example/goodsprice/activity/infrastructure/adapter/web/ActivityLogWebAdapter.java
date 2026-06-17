@@ -46,15 +46,7 @@ public class ActivityLogWebAdapter extends AbstractCrudWebAdapter {
     var criteria = new ActivityLogCriteria(pageRequest, typeEnum, actionEnum, startDate, endDate);
     var pageResponse = activityLogInPort.findAll(criteria);
 
-    return buildCompleteListResponse(
-        pageResponse,
-        mapper::toApiModel,
-        (data, pagination) -> {
-          var r = new ActivityLogListResponse();
-          r.setData(data);
-          r.setPagination(pagination);
-          return r;
-        });
+    return buildTypedListResponse(pageResponse, mapper::toApiModel, ActivityLogListResponse::new);
   }
 
   private static ActivityLogType parseType(String type) {

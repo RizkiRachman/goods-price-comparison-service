@@ -14,6 +14,7 @@ import com.example.goodsprice.common.util.ObjectUtils;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Utility base for web adapters reducing pagination and response boilerplate. Not fully generic due
@@ -94,5 +95,41 @@ public class AbstractCrudWebAdapter {
       BiFunction<List<R>, Pagination, S> responseFactory) {
     var dp = buildListResponse(pageResponse, mapper);
     return responseFactory.apply(dp.data(), dp.pagination());
+  }
+
+  /**
+   * Generic list response builder that creates a typed paginated response.
+   *
+   * <p>Eliminates the repetitive response factory lambda in each web adapter where the only
+   * variation is the concrete response class. Callers provide a {@link Supplier} for their specific
+   * response type (e.g. {@code XxxListResponse::new}), and the method internally populates the
+   * standard {@code setData} and {@code setPagination} fields via reflection, since all generated
+   * OpenAPI {@code *ListResponse} DTOs share the same property shape without a common interface.
+   *
+   * @param pageResponse paginated domain data
+   * @param mapper domain-to-API mapping function
+   * @param responseFactory supplier for the specific response type
+   * @param <D> domain type
+   * @param <R> API DTO type
+   * @param <P> response list type
+   * @return the populated list response
+   */
+  @SuppressWarnings("unchecked")
+  protected <D, R, P> P buildTypedListResponse(
+      PageResponse<D> pageResponse, Function<D, R> mapper, Supplier<P> responseFactory) {
+    var dp = buildListResponse(pageResponse, mapper);
+    var response = responseFactory.get();
+    try {
+      var dataMethod = response.getClass().getMethod("setData", List.class);
+      dataMethod.invoke(response, dp.data());
+      var paginationMethod = response.getClass().getMethod("setPagination", Pagination.class);
+      paginationMethod.invoke(response, dp.pagination());
+    } catch (Exception e) {
+      throw new RuntimeException(
+          "Failed to populate list response — ensure the response type has setData(List) and"
+              + " setPagination(Pagination)",
+          e);
+    }
+    return (P) response;
   }
 }

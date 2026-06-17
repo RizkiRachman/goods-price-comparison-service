@@ -49,6 +49,26 @@ Key capabilities:
 - Optimize multi-item shopping routes
 - Track price trends and receive drop alerts
 
+### Architecture
+
+Hexagonal (ports & adapters) architecture with **8 service domains** sharing a common infrastructure layer:
+
+```
+common/ ← shared abstractions (services, web adapters, persistence, pagination)
+├── service/     → AbstractGenericService<T, ID> (9 CRUD services)
+├── web/         → AbstractCrudController, AbstractCrudWebAdapter (6 controllers/adapters)
+├── repository/  → AbstractRepositoryAdapter<T, ID, E> (10 adapters)
+├── persistence/ → PaginationHelper, DataJpa test helpers
+└── util/        → PaginationUtils, SpecificationBuilder
+```
+
+### Recent Improvements
+
+- **~450 LOC saved** across 5 duplication patterns — generic `update()` template, controller base class, web adapter list-response factory, pagination consolidation, test hook reduction (12→6 hooks)
+- **Security:** Log Injection fix (GHAS/CodeQL) — user-controlled IDs sanitized before logging in all CRUD operations
+- **CI/CD:** CodeQL v4, Maven caching, Dependency Review, GitHub Packages auth — all gates passing
+- **Test infrastructure:** 1,041 tests, DataJpaTest helpers (`assertPersistAndRetrieve`, `assertUniqueConstraintViolation`, `assertDelete`), service test boilerplate halved
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Built With
@@ -132,7 +152,9 @@ For detailed API documentation, see the [Developer Guide](docs/DEVELOPER_GUIDE.m
 - [x] Activity log service (AOP-based CRUD audit trail)
 - [x] Feedback & questions API
 - [x] Price drop alerts (subscription entity, async event-driven)
-- [x] Code quality: 91.5% INSTRUCTION / 80.6% BRANCH coverage, 1,024 tests
+- [x] Code quality: 91.5% INSTRUCTION / 80.6% BRANCH coverage, 1,041 tests
+- [x] Code duplication reduced by ~450 LOC across 5 patterns (update() template, AbstractCrudController, buildTypedListResponse(), PaginationUtils consolidation, test hook reduction)
+- [x] Security: Log Injection sanitization across all CRUD operations (GHAS/CodeQL)
 - [x] Code duplication reduced by ~727 lines across 8+ patterns (incl. test base classes)
 - [x] Java 21 optimization (HexFormat, getFirst, @Slf4j consolidation)
 - [x] Test infrastructure: @WebMvcTest-equivalent + @DataJpaTest-equivalent slice tests across all 8 services

@@ -1,6 +1,0 @@
--- Benefit
--- Leave
-    - 16 / year 
-    - carry up to maret next year
-    - Ada cuti bersama
--- 

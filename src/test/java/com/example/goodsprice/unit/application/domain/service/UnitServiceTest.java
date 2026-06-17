@@ -3,12 +3,13 @@ package com.example.goodsprice.unit.application.domain.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.repository.GenericRepositoryPort;
+import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.common.service.AbstractGenericServiceTest;
 import com.example.goodsprice.unit.application.domain.model.UnitDomain;
 import com.example.goodsprice.unit.application.domain.model.UnitType;
@@ -37,7 +38,7 @@ class UnitServiceTest extends AbstractGenericServiceTest {
   private UnitDomain kgUnit;
 
   @Override
-  protected Object getService() {
+  protected AbstractGenericService getService() {
     return unitService;
   }
 
@@ -62,38 +63,8 @@ class UnitServiceTest extends AbstractGenericServiceTest {
   }
 
   @Override
-  protected void mockFindByIdReturnsEntity() {
-    when(unitRepository.findById("KG")).thenReturn(kgUnit);
-  }
-
-  @Override
-  protected void mockFindByIdReturnsNull() {
-    when(unitRepository.findById("NONEXISTENT")).thenReturn(null);
-  }
-
-  @Override
-  protected void mockDeleteByIdSucceeds() {
-    when(unitRepository.findById("KG")).thenReturn(kgUnit);
-  }
-
-  @Override
-  protected Object invokeFindById(Object id) {
-    return unitService.findById((String) id);
-  }
-
-  @Override
-  protected void invokeDeleteById(Object id) {
-    unitService.deleteById((String) id);
-  }
-
-  @Override
-  protected void verifyDeleteByIdPerformed(Object id) {
-    verify(unitRepository).deleteById((String) id);
-  }
-
-  @Override
-  protected void verifyDeleteByIdNotPerformed() {
-    verify(unitRepository, never()).deleteById(any());
+  protected GenericRepositoryPort getRepository() {
+    return unitRepository;
   }
 
   @BeforeEach

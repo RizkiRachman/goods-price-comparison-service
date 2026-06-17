@@ -3,7 +3,7 @@ package com.example.goodsprice.activity.infrastructure.adapter.web;
 import com.example.goodsprice.api.controller.ActivityLogsApi;
 import com.example.goodsprice.api.model.ActivityLog;
 import com.example.goodsprice.api.model.ActivityLogListResponse;
-import com.example.goodsprice.common.web.ControllerResponse;
+import com.example.goodsprice.common.web.AbstractCrudController;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -12,13 +12,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class ActivityLogController implements ActivityLogsApi {
+public class ActivityLogController extends AbstractCrudController implements ActivityLogsApi {
 
   private final ActivityLogWebAdapter adapter;
 
   @Override
   public ResponseEntity<ActivityLog> getActivityLog(UUID id) {
-    return ControllerResponse.ok(adapter.getById(id));
+    return ok(adapter.getById(id));
   }
 
   @Override
@@ -31,7 +31,6 @@ public class ActivityLogController implements ActivityLogsApi {
       OffsetDateTime to,
       String sortBy,
       String sortOrder) {
-    return ControllerResponse.ok(
-        adapter.list(page, pageSize, sortBy, sortOrder, type, action, from, to));
+    return ok(adapter.list(page, pageSize, sortBy, sortOrder, type, action, from, to));
   }
 }

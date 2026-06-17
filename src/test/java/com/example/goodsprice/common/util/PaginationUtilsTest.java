@@ -1,8 +1,10 @@
 package com.example.goodsprice.common.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 class PaginationUtilsTest {
@@ -140,5 +142,33 @@ class PaginationUtilsTest {
   @Test
   void shouldResolveSortOrderReturnsSameWhenValid() {
     assertEquals("desc", PaginationUtils.resolveSortOrder("desc", "asc"));
+  }
+
+  @Test
+  @DisplayName("Should resolve sort ascending when direction is asc")
+  void shouldResolveSortAscending() {
+    var sort = PaginationUtils.resolveSort("name", "asc", "id");
+    assertTrue(sort.getOrderFor("name").isAscending());
+  }
+
+  @Test
+  @DisplayName("Should resolve sort descending when direction is desc")
+  void shouldResolveSortDescending() {
+    var sort = PaginationUtils.resolveSort("name", "desc", "id");
+    assertTrue(sort.getOrderFor("name").isDescending());
+  }
+
+  @Test
+  @DisplayName("Should resolve sort with default field when sortBy is null")
+  void shouldResolveSortWithDefaultField() {
+    var sort = PaginationUtils.resolveSort(null, "asc", "id");
+    assertTrue(sort.getOrderFor("id").isAscending());
+  }
+
+  @Test
+  @DisplayName("Should resolve sort with default field when sortBy is blank")
+  void shouldResolveSortWithDefaultFieldWhenSortByIsBlank() {
+    var sort = PaginationUtils.resolveSort("", "desc", "createdAt");
+    assertTrue(sort.getOrderFor("createdAt").isDescending());
   }
 }

@@ -3,7 +3,6 @@ package com.example.goodsprice.activity.application.domain.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +13,8 @@ import com.example.goodsprice.activity.application.port.in.dto.ActivityLogCriter
 import com.example.goodsprice.activity.application.port.out.ActivityLogRepositoryPort;
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.repository.GenericRepositoryPort;
+import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.common.service.AbstractGenericServiceTest;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -43,7 +44,7 @@ class ActivityLogServiceTest extends AbstractGenericServiceTest {
   private UUID logId;
 
   @Override
-  protected Object getService() {
+  protected AbstractGenericService getService() {
     return activityLogService;
   }
 
@@ -71,38 +72,8 @@ class ActivityLogServiceTest extends AbstractGenericServiceTest {
   }
 
   @Override
-  protected void mockFindByIdReturnsEntity() {
-    when(activityLogRepository.findById(logId)).thenReturn(activityLog);
-  }
-
-  @Override
-  protected void mockFindByIdReturnsNull() {
-    when(activityLogRepository.findById(NON_EXISTENT_UUID)).thenReturn(null);
-  }
-
-  @Override
-  protected void mockDeleteByIdSucceeds() {
-    when(activityLogRepository.findById(logId)).thenReturn(activityLog);
-  }
-
-  @Override
-  protected Object invokeFindById(Object id) {
-    return activityLogService.findById((UUID) id);
-  }
-
-  @Override
-  protected void invokeDeleteById(Object id) {
-    activityLogService.deleteById((UUID) id);
-  }
-
-  @Override
-  protected void verifyDeleteByIdPerformed(Object id) {
-    verify(activityLogRepository).deleteById((UUID) id);
-  }
-
-  @Override
-  protected void verifyDeleteByIdNotPerformed() {
-    verify(activityLogRepository, never()).deleteById(any());
+  protected GenericRepositoryPort getRepository() {
+    return activityLogRepository;
   }
 
   @BeforeEach

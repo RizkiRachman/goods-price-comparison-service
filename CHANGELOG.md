@@ -13,6 +13,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 ## [Unreleased]
 
 ### Changed
+- **Code duplication reduction (8 patterns refactored)**: Identified and refactored 8 duplication patterns across all domains. Added `AbstractCrudController` base class (5 controllers). Generic `update(id, merger, update)` template in `AbstractGenericService` (4 services refactored). `buildTypedListResponse()` in `AbstractCrudWebAdapter` (6 adapters simplified). `PaginationUtils.resolveSort()` consolidation from PaginationHelper. Test hooks reduced from 12 to 6 in `AbstractGenericServiceTest` (9 test classes simplified). Reusable DataJpaTest assertion helpers. Enhanced error logging in `AbstractAsyncPriceCalcHandler`. 37 files changed, +381/-1102 lines. Report at `toolkit/doc/gap/duplication-analysis.md`.
 - **Test pattern deduplication (Bucket C)**: Extracted `AbstractControllerWebMvcTest` base class (setUp, toJson, ObjectMapper, MockMvc with GlobalExceptionHandler) and `AbstractRepositoryAdapterDataJpaTest` base class (SpringBootTest, ActiveProfiles, Transactional, EntityManager) — 19 test files (10 WebMvcTest + 9 DataJpaTest) now extend these base classes, eliminating ~299 lines of duplicated boilerplate. Net: 106 insertions, 405 deletions across 20 files. 1024 tests/0 failures.
 - **Removed V19 & V21 Flyway migrations**: Deleted `V19__fix_receipt_date_type.sql` and `V21__fix_price_precision.sql`. The DDL + data migration is now a fully manual process to avoid long-running locks on large tables. Manual steps documented in commit message.
 - **buildCompleteListResponse() helper**: Added generic 3-type-param method to `AbstractCrudWebAdapter` — adopted by all 6 CRUD web adapters (CategoryWebAdapter, StoreWebAdapter, UnitWebAdapter, FeedbackQuestionWebAdapter, ActivityLogWebAdapter, PriceWebAdapter), collapsing 3-line response assembly (buildListResponse → setData/setPagination → return) to a single lambda expression. Architecture Improvement Plan Part C complete (10/10).
@@ -129,6 +130,7 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 - **Convention checker script**: `scripts/check-conventions.sh`
 
 ### Fixed
+- **Log Injection (GHAS/CodeQL):** `AbstractGenericService` now sanitizes user-controlled `id` before logging (`\r`, `\n`, `\t` replaced with `_`) in `findById()`, `update()`, and `deleteById()` methods. Added `sanitize(Object)` utility helper.
 - **Test anti-pattern**: Replaced `System.out.println` skip pattern with `Assumptions.assumeTrue()` in LlmServiceCacheTest — proper JUnit 5 conditional test skipping
 - **Validation Exception Handling**: Added a global exception handler for `MethodArgumentNotValidException` in `GlobalExceptionHandler` to map Spring validation errors (like `@NotNull` violations on request bodies) to `400 Bad Request` instead of falling back to `500 Internal Server Error`.
 - **Orphan ReceiptProcessedEvent**: Now has a handler (was published but unhandled)
