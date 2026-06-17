@@ -2,11 +2,12 @@ package com.example.goodsprice.feedbackquestion.application.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.repository.GenericRepositoryPort;
+import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.common.service.AbstractGenericServiceTest;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionType;
@@ -33,7 +34,7 @@ class FeedbackQuestionServiceTest extends AbstractGenericServiceTest {
   private UUID questionId;
 
   @Override
-  protected Object getService() {
+  protected AbstractGenericService getService() {
     return feedbackQuestionService;
   }
 
@@ -58,40 +59,8 @@ class FeedbackQuestionServiceTest extends AbstractGenericServiceTest {
   }
 
   @Override
-  protected void mockFindByIdReturnsEntity() {
-    when(feedbackQuestionRepository.findById(questionId)).thenReturn(existingQuestion);
-  }
-
-  @Override
-  protected void mockFindByIdReturnsNull() {
-    when(feedbackQuestionRepository.findById(
-            UUID.fromString("00000000-0000-0000-0000-000000000001")))
-        .thenReturn(null);
-  }
-
-  @Override
-  protected void mockDeleteByIdSucceeds() {
-    when(feedbackQuestionRepository.findById(questionId)).thenReturn(existingQuestion);
-  }
-
-  @Override
-  protected Object invokeFindById(Object id) {
-    return feedbackQuestionService.findById((UUID) id);
-  }
-
-  @Override
-  protected void invokeDeleteById(Object id) {
-    feedbackQuestionService.deleteById((UUID) id);
-  }
-
-  @Override
-  protected void verifyDeleteByIdPerformed(Object id) {
-    verify(feedbackQuestionRepository).deleteById((UUID) id);
-  }
-
-  @Override
-  protected void verifyDeleteByIdNotPerformed() {
-    verify(feedbackQuestionRepository, never()).deleteById(any());
+  protected GenericRepositoryPort getRepository() {
+    return feedbackQuestionRepository;
   }
 
   @BeforeEach

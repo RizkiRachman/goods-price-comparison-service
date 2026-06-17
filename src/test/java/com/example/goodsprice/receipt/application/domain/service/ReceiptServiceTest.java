@@ -10,6 +10,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.goodsprice.common.repository.GenericRepositoryPort;
+import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.common.service.AbstractGenericServiceTest;
 import com.example.goodsprice.common.service.ServiceLayerNotFoundExceptionTest;
 import com.example.goodsprice.common.util.JsonUtils;
@@ -69,7 +71,7 @@ class ReceiptServiceTest extends AbstractGenericServiceTest
   }
 
   @Override
-  protected Object getService() {
+  protected AbstractGenericService getService() {
     return receiptService;
   }
 
@@ -94,38 +96,8 @@ class ReceiptServiceTest extends AbstractGenericServiceTest
   }
 
   @Override
-  protected void mockFindByIdReturnsEntity() {
-    when(receiptRepository.findById(existingReceiptId)).thenReturn(existingReceipt);
-  }
-
-  @Override
-  protected void mockFindByIdReturnsNull() {
-    when(receiptRepository.findById(NOT_FOUND_ID)).thenReturn(null);
-  }
-
-  @Override
-  protected void mockDeleteByIdSucceeds() {
-    when(receiptRepository.findById(existingReceiptId)).thenReturn(existingReceipt);
-  }
-
-  @Override
-  protected Object invokeFindById(Object id) {
-    return receiptService.findById((UUID) id);
-  }
-
-  @Override
-  protected void invokeDeleteById(Object id) {
-    receiptService.deleteById((UUID) id);
-  }
-
-  @Override
-  protected void verifyDeleteByIdPerformed(Object id) {
-    verify(receiptRepository).deleteById((UUID) id);
-  }
-
-  @Override
-  protected void verifyDeleteByIdNotPerformed() {
-    verify(receiptRepository, never()).deleteById(any());
+  protected GenericRepositoryPort getRepository() {
+    return receiptRepository;
   }
 
   @BeforeEach

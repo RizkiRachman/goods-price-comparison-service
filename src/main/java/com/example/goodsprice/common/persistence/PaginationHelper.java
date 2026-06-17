@@ -43,8 +43,6 @@ public final class PaginationHelper {
   }
 
   private static Sort resolveSort(String sortBy, String sortDirection) {
-    return Sort.by(
-        "desc".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC,
-        PaginationUtils.resolveSortBy(sortBy, "id"));
+    return PaginationUtils.resolveSort(sortBy, sortDirection, "id");
   }
 }

@@ -50,14 +50,7 @@ public class FeedbackQuestionWebAdapter extends AbstractCrudWebAdapter {
     var criteria = new FeedbackQuestionCriteria(pageRequest, null, null);
     var pageResponse = feedbackQuestionInPort.findAll(criteria);
 
-    return buildCompleteListResponse(
-        pageResponse,
-        mapper::toApiFeedbackQuestion,
-        (data, pagination) -> {
-          var r = new FeedbackQuestionListResponse();
-          r.setData(data);
-          r.setPagination(pagination);
-          return r;
-        });
+    return buildTypedListResponse(
+        pageResponse, mapper::toApiFeedbackQuestion, FeedbackQuestionListResponse::new);
   }
 }

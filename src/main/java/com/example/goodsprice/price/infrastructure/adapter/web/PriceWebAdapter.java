@@ -104,15 +104,10 @@ public class PriceWebAdapter extends AbstractCrudWebAdapter {
             storeInPort::findAllById,
             StoreDomain::getId);
 
-    return buildCompleteListResponse(
+    return buildTypedListResponse(
         pageResponse,
         p -> mapper.toPriceRecord(p, storeMap.get(p.getStoreId())),
-        (data, pagination) -> {
-          var res = new PriceRecordListResponse();
-          res.setData(data);
-          res.setPagination(pagination);
-          return res;
-        });
+        PriceRecordListResponse::new);
   }
 
   public PriceRecord updatePriceRecord(Long id, UpdatePriceRecordRequest request) {

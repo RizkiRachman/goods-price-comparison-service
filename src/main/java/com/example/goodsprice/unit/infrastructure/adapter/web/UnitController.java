@@ -6,7 +6,7 @@ import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Unit;
 import com.example.goodsprice.api.model.UnitListResponse;
 import com.example.goodsprice.api.model.UpdateUnitRequest;
-import com.example.goodsprice.common.web.ControllerResponse;
+import com.example.goodsprice.common.web.AbstractCrudController;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,19 +14,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class UnitController implements UnitsApi {
+public class UnitController extends AbstractCrudController implements UnitsApi {
 
   private final UnitWebAdapter adapter;
 
   @Override
   public ResponseEntity<Unit> createUnit(@Valid CreateUnitRequest request) {
     var unit = adapter.create(request);
-    return ControllerResponse.created(unit);
+    return created(unit);
   }
 
   @Override
   public ResponseEntity<Unit> getUnit(String unitId) {
-    return ControllerResponse.ok(adapter.findById(unitId));
+    return ok(adapter.findById(unitId));
   }
 
   @Override
@@ -38,12 +38,11 @@ public class UnitController implements UnitsApi {
       EntityStatus status,
       String sortBy,
       String sortOrder) {
-    return ControllerResponse.ok(
-        adapter.list(page, pageSize, search, type, status, sortBy, sortOrder));
+    return ok(adapter.list(page, pageSize, search, type, status, sortBy, sortOrder));
   }
 
   @Override
   public ResponseEntity<Unit> updateUnit(String unitId, @Valid UpdateUnitRequest request) {
-    return ControllerResponse.ok(adapter.update(unitId, request));
+    return ok(adapter.update(unitId, request));
   }
 }

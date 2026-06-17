@@ -5,6 +5,7 @@ import com.example.goodsprice.common.dto.PageResponse;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import org.springframework.data.domain.Sort;
 
 public final class PaginationUtils {
 
@@ -86,5 +87,19 @@ public final class PaginationUtils {
    */
   public static String resolveSortOrder(String sortOrder, String defaultSortOrder) {
     return Objects.nonNull(sortOrder) && !sortOrder.isBlank() ? sortOrder : defaultSortOrder;
+  }
+
+  /**
+   * Resolves sort parameters into a Spring Data Sort object.
+   *
+   * @param sortBy sort field (nullable, falls back to defaultSortBy)
+   * @param sortDirection sort direction ("desc" or anything else for asc)
+   * @param defaultSortBy fallback sort field if sortBy is null/blank
+   * @return configured Sort object
+   */
+  public static Sort resolveSort(String sortBy, String sortDirection, String defaultSortBy) {
+    return Sort.by(
+        "desc".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC,
+        resolveSortBy(sortBy, defaultSortBy));
   }
 }

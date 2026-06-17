@@ -12,6 +12,8 @@ import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
+import com.example.goodsprice.common.repository.GenericRepositoryPort;
+import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.common.service.AbstractGenericServiceTest;
 import com.example.goodsprice.common.service.ServiceLayerNotFoundExceptionTest;
 import com.example.goodsprice.price.application.domain.model.PriceCreateItem;
@@ -43,7 +45,7 @@ class PriceServiceTest extends AbstractGenericServiceTest
   private PriceDomain price2;
 
   @Override
-  protected Object getService() {
+  protected AbstractGenericService getService() {
     return priceService;
   }
 
@@ -79,38 +81,8 @@ class PriceServiceTest extends AbstractGenericServiceTest
   }
 
   @Override
-  protected void mockFindByIdReturnsEntity() {
-    when(priceRepository.findById(1L)).thenReturn(price1);
-  }
-
-  @Override
-  protected void mockFindByIdReturnsNull() {
-    when(priceRepository.findById(999L)).thenReturn(null);
-  }
-
-  @Override
-  protected void mockDeleteByIdSucceeds() {
-    when(priceRepository.findById(1L)).thenReturn(price1);
-  }
-
-  @Override
-  protected Object invokeFindById(Object id) {
-    return priceService.findById((Long) id);
-  }
-
-  @Override
-  protected void invokeDeleteById(Object id) {
-    priceService.deleteById((Long) id);
-  }
-
-  @Override
-  protected void verifyDeleteByIdPerformed(Object id) {
-    verify(priceRepository).deleteById((Long) id);
-  }
-
-  @Override
-  protected void verifyDeleteByIdNotPerformed() {
-    verify(priceRepository, never()).deleteById(any());
+  protected GenericRepositoryPort getRepository() {
+    return priceRepository;
   }
 
   @BeforeEach

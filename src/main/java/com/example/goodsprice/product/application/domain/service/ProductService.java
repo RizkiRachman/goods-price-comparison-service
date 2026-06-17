@@ -164,17 +164,17 @@ public class ProductService extends AbstractGenericService<ProductDomain, Long>
   }
 
   @Override
-  @Transactional
   @ActivityLog
   public ProductDomain update(Long id, ProductDomain product) {
-    var existing = findById(id);
-    existing.setName(product.getName());
-    existing.setCategory(product.getCategory());
-    existing.setBrand(product.getBrand());
-    existing.setUnit(product.getUnit());
-    existing = save(existing);
-    log.info("Product updated: {} (id: {})", existing.getName(), id);
-    return existing;
+    return update(
+        id,
+        (existing, update) -> {
+          existing.setName(update.getName());
+          existing.setCategory(update.getCategory());
+          existing.setBrand(update.getBrand());
+          existing.setUnit(update.getUnit());
+        },
+        product);
   }
 
   @Override

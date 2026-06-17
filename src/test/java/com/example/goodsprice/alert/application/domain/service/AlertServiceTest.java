@@ -5,12 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.alert.application.domain.model.AlertSubscription;
 import com.example.goodsprice.alert.application.port.out.AlertRepositoryPort;
+import com.example.goodsprice.common.repository.GenericRepositoryPort;
+import com.example.goodsprice.common.service.AbstractGenericService;
 import com.example.goodsprice.common.service.AbstractGenericServiceTest;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.PriceInPort;
@@ -44,7 +45,7 @@ class AlertServiceTest extends AbstractGenericServiceTest {
   private AlertSubscription existingSubscription;
 
   @Override
-  protected Object getService() {
+  protected AbstractGenericService getService() {
     return alertService;
   }
 
@@ -69,38 +70,8 @@ class AlertServiceTest extends AbstractGenericServiceTest {
   }
 
   @Override
-  protected void mockFindByIdReturnsEntity() {
-    when(alertRepository.findById("SUB001")).thenReturn(existingSubscription);
-  }
-
-  @Override
-  protected void mockFindByIdReturnsNull() {
-    when(alertRepository.findById("NONEXISTENT")).thenReturn(null);
-  }
-
-  @Override
-  protected void mockDeleteByIdSucceeds() {
-    when(alertRepository.findById("SUB001")).thenReturn(existingSubscription);
-  }
-
-  @Override
-  protected Object invokeFindById(Object id) {
-    return alertService.findById((String) id);
-  }
-
-  @Override
-  protected void invokeDeleteById(Object id) {
-    alertService.deleteById((String) id);
-  }
-
-  @Override
-  protected void verifyDeleteByIdPerformed(Object id) {
-    verify(alertRepository).deleteById((String) id);
-  }
-
-  @Override
-  protected void verifyDeleteByIdNotPerformed() {
-    verify(alertRepository, never()).deleteById(any());
+  protected GenericRepositoryPort getRepository() {
+    return alertRepository;
   }
 
   @BeforeEach
