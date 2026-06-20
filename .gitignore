@@ -248,6 +248,9 @@ docs/superpowers/
 # AI agent CI workflows
 .github/workflows/pr-agent-context.yml
 
+# Orchestration session state (runtime artifacts per session)
+session/
+
 # Firecrawl CLI artifacts
 .firecrawl/
 benefit.md

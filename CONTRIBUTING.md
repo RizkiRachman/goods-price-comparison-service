@@ -52,17 +52,23 @@ Before you begin, ensure you have:
    cd common-exception-java && mvn clean install
    ```
 
-3. **Build the project:**
+3. **Initialize the workflow engine submodule:**
+   ```bash
+   git submodule update --init --recursive
+   git config core.hooksPath .githooks
+   ```
+
+4. **Build the project:**
    ```bash
    mvn clean compile -q
    ```
 
-4. **Run tests:**
+5. **Run tests:**
    ```bash
    mvn clean test
    ```
 
-5. **Run locally with H2 database:**
+6. **Run locally with H2 database:**
    ```bash
    mvn spring-boot:run -Dspring-boot.run.profiles=local
    ```
