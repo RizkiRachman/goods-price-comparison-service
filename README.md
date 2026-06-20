@@ -51,7 +51,10 @@ Key capabilities:
 
 ### Architecture
 
-Hexagonal (ports & adapters) architecture with **8 service domains** sharing a common infrastructure layer:
+Hexagonal (ports & adapters) architecture with **8 service domains** sharing a common infrastructure layer. The design is benchmarked against three reference catalogs:
+- [Awesome Scalability](https://github.com/binhnguyennus/awesome-scalability) — patterns of scalable, reliable, and performant large-scale systems
+- [Awesome Design Patterns](https://github.com/DovAmir/awesome-design-patterns) — curated catalog of software and architecture design patterns
+- [Awesome Java](https://github.com/akullpp/awesome-java) — curated list of frameworks, libraries, and software for the Java ecosystem
 
 ```
 common/ ← shared abstractions (services, web adapters, persistence, pagination)
@@ -165,6 +168,46 @@ For detailed API documentation, see the [Developer Guide](docs/DEVELOPER_GUIDE.m
 
 See the [Changelog](CHANGELOG.md) for full details. See the [open issues](https://github.com/RizkiRachman/goods-price-comparison-service/issues) for proposed features.
 
+## Scalability & Production Readiness
+
+Benchmarked against [Awesome Scalability](https://github.com/binhnguyennus/awesome-scalability) — a reference catalog of patterns from battle-tested systems.
+
+### Scorecard
+
+| Dimension | Score | Status |
+|-----------|-------|--------|
+| Architecture (Hexagonal, ports/adapters) | 9/10 | ✅ Separation is clean, ArchUnit enforced |
+| Event-Driven Design | 7/10 | ✅ Well-designed, 🚨 Kafka adapter is a skeleton — not deployed |
+| Async Processing (thread pools, event handlers) | 8/10 | ✅ @Async executors configured, multiple thread pools |
+| Local Caching (Caffeine) | 4/10 | ❌ No distributed cache — every instance has its own |
+| Database Scalability | 3/10 | ❌ Single DB, no read replicas, no sharding, no partitioning |
+| Observability (metrics, logging, correlation IDs) | 6/10 | ✅ Structured logging + Prometheus, ❌ no distributed tracing, no dashboards |
+| Rate Limiting (Bucket4j) | 5/10 | ✅ Per-instance, ❌ no global coordination, no edge layer |
+| Resilience / Fault Tolerance | 3/10 | ❌ No circuit breakers, no bulkheads, basic retry only |
+| Deployment Strategy | 3/10 | ✅ Docker/K8s ready, ❌ no blue-green, no canary rollouts |
+| Monitoring & Alerting | 2/10 | ❌ Prometheus endpoint exists, no alerts, no SLO dashboards |
+| Security | 6/10 | ✅ Log injection fix, OWASP dep check, FindSecBugs, ❌ no WAF/edge layer |
+
+**Overall: ~5/10** — solid foundation, critical gaps remain for production traffic.
+
+### Critical Gaps
+
+| Gap | Impact | Recommended Fix |
+|-----|--------|----------------|
+| No distributed messaging (Kafka adapter unused) | Events lost on crash. No replay. No backpressure. | Deploy Kafka, switch `events.mode=kafka` |
+| No distributed cache (Redis) | Cache stampede on deploy, high DB load with >1 instance | Add Redis as L2 cache (Caffeine = L1) |
+| No circuit breakers (Resilience4j) | One slow Gemini call saturates entire thread pool | Add circuit breaker + bulkhead around LLM calls |
+| No DB read replicas | Single point of failure; receipt OCR saturates connection pool | Read replicas for price queries; connection pool tuning |
+| No distributed tracing (Zipkin/Jaeger) | Cannot diagnose cross-service latency | Add Micrometer Tracing + Zipkin exporter |
+| No monitoring dashboards / alert rules | Won't know system is degrading until users complain | Grafana dashboards per service; p99 >500ms alert |
+| No blue-green / canary deployments | Bad deploy takes whole system down | K8s blue-green with proper readiness probes |
+
+### Top 3 Fixes (by impact)
+
+1. **Deploy Kafka** — the event-driven architecture is designed for it, the adapter is written. Without it: no durability, no replay, no backpressure.
+2. **Add Redis cache** — reduces DB load by an order of magnitude for price lookups (most-read data).
+3. **Add Resilience4j** — wrap the `AbstractRestLlmProvider` with circuit breaker + retry + bulkhead to protect against slow LLM providers.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Contributing
@@ -197,6 +240,9 @@ Project Link: [https://github.com/RizkiRachman/goods-price-comparison-service](h
 
 ## Acknowledgments
 
+- [Awesome Scalability](https://github.com/binhnguyennus/awesome-scalability) — patterns of scalable, reliable, and performant large-scale systems
+- [Awesome Design Patterns](https://github.com/DovAmir/awesome-design-patterns) — curated catalog of software and architecture design patterns
+- [Awesome Java](https://github.com/akullpp/awesome-java) — curated list of frameworks, libraries, and software for the Java ecosystem
 - [Spring Boot](https://spring.io/projects/spring-boot)
 - [Img Shields](https://shields.io) for repository badges
 - [Best-README-Template](https://github.com/othneildrew/Best-README-Template) for the README structure
