@@ -253,5 +253,4 @@ session/
 
 # Firecrawl CLI artifacts
 .firecrawl/
-benefit.md
 opencode.*.json
