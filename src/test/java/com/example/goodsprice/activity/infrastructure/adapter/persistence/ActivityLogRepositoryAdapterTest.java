@@ -215,4 +215,22 @@ class ActivityLogRepositoryAdapterTest {
     assertNotNull(result);
     assertTrue(result.content().isEmpty());
   }
+
+  @Test
+  @DisplayName("Should use default sort field when sortBy is null")
+  void shouldHandleNullSortBy() {
+    var pageRequest = new PageRequestDto(0, 20, null, "desc");
+    var criteria = new ActivityLogCriteria(pageRequest, null, null, null, null);
+
+    var entityPage = new PageImpl<>(List.of(entity));
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(entityPage);
+    when(mapper.toDomain(entity)).thenReturn(domain);
+
+    PageResponse<ActivityLogDomain> result = adapter.findAll(criteria);
+
+    assertNotNull(result);
+    assertEquals(1, result.content().size());
+    assertEquals(logId, result.content().get(0).getId());
+  }
 }
