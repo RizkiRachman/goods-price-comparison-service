@@ -4,12 +4,15 @@ import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
+import com.example.goodsprice.config.CacheConfiguration;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
 import com.example.goodsprice.product.application.port.out.ProductRepositoryPort;
 import com.example.goodsprice.product.infrastructure.adapter.persistence.entity.ProductEntity;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -24,6 +27,18 @@ public class ProductRepositoryAdapter
     super(jpaRepository, mapper::toEntity, mapper::toDomain);
     this.jpaProductRepository = jpaRepository;
     this.mapper = mapper;
+  }
+
+  @Override
+  @CachePut(value = CacheConfiguration.PRODUCTS_CACHE, key = "#result.id")
+  public ProductDomain save(ProductDomain domain) {
+    return super.save(domain);
+  }
+
+  @Override
+  @Cacheable(CacheConfiguration.PRODUCTS_CACHE)
+  public ProductDomain findById(Long id) {
+    return super.findById(id);
   }
 
   @Override

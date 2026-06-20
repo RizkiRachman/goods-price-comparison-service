@@ -3,6 +3,7 @@ package com.example.goodsprice.feedbackquestion.infrastructure.adapter.persisten
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
+import com.example.goodsprice.common.persistence.SpecificationBuilder;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.config.CacheConfiguration;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
@@ -44,7 +45,7 @@ public class FeedbackQuestionRepositoryAdapter
       PageRequestDto pageRequest, String search, String status) {
     return PaginationHelper.findAll(
         pageRequest,
-        (root, query, cb) -> cb.isTrue(cb.literal(true)),
+        new SpecificationBuilder<FeedbackQuestionEntity>().build(),
         jpaSpecificationExecutor(),
         mapper::toDomain);
   }

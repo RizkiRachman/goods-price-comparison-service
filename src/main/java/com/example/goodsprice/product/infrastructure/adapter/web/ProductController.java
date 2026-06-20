@@ -1,5 +1,9 @@
 package com.example.goodsprice.product.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.web.ControllerResponse.created;
+import static com.example.goodsprice.common.web.ControllerResponse.noContent;
+import static com.example.goodsprice.common.web.ControllerResponse.ok;
+
 import com.example.goodsprice.api.controller.ProductsApi;
 import com.example.goodsprice.api.model.CreateProductRequest;
 import com.example.goodsprice.api.model.EntityStatus;
@@ -7,7 +11,6 @@ import com.example.goodsprice.api.model.ListProducts200Response;
 import com.example.goodsprice.api.model.Product;
 import com.example.goodsprice.api.model.ProductTrendResponse;
 import com.example.goodsprice.api.model.UpdateProductRequest;
-import com.example.goodsprice.common.web.ControllerResponse;
 import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -23,18 +26,18 @@ public class ProductController implements ProductsApi {
 
   @Override
   public ResponseEntity<Product> createProduct(@Valid CreateProductRequest request) {
-    return ControllerResponse.created(adapter.create(request));
+    return created(adapter.create(request));
   }
 
   @Override
   public ResponseEntity<Product> getProduct(Long id) {
-    return ControllerResponse.ok(adapter.findById(id));
+    return ok(adapter.findById(id));
   }
 
   @Override
   public ResponseEntity<ProductTrendResponse> getProductTrend(
       Long productId, LocalDate startDate, LocalDate endDate, String granularity) {
-    return ControllerResponse.ok(adapter.getTrend(productId, startDate, endDate, granularity));
+    return ok(adapter.getTrend(productId, startDate, endDate, granularity));
   }
 
   @Override
@@ -53,7 +56,7 @@ public class ProductController implements ProductsApi {
       Double maxPrice,
       Boolean isPromo,
       String availability) {
-    return ControllerResponse.ok(
+    return ok(
         adapter.list(
             page,
             pageSize,
@@ -69,12 +72,12 @@ public class ProductController implements ProductsApi {
 
   @Override
   public ResponseEntity<Product> updateProduct(Long id, @Valid UpdateProductRequest request) {
-    return ControllerResponse.ok(adapter.update(id, request));
+    return ok(adapter.update(id, request));
   }
 
   @Override
   public ResponseEntity<Void> deleteProduct(Long id) {
     adapter.delete(id);
-    return ControllerResponse.noContent();
+    return noContent();
   }
 }

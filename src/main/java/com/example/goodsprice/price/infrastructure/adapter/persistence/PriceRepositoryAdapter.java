@@ -2,12 +2,15 @@ package com.example.goodsprice.price.infrastructure.adapter.persistence;
 
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
+import com.example.goodsprice.config.CacheConfiguration;
 import com.example.goodsprice.price.application.domain.model.PriceDomain;
 import com.example.goodsprice.price.application.port.in.dto.PriceCriteria;
 import com.example.goodsprice.price.application.port.out.PriceRepositoryPort;
 import com.example.goodsprice.price.infrastructure.adapter.persistence.entity.PriceEntity;
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
@@ -29,6 +32,18 @@ public class PriceRepositoryAdapter
   @Override
   public List<PriceDomain> saveAll(Iterable<PriceDomain> prices) {
     return super.saveAll(prices);
+  }
+
+  @Override
+  @CachePut(value = CacheConfiguration.PRICES_CACHE, key = "#result.id")
+  public PriceDomain save(PriceDomain domain) {
+    return super.save(domain);
+  }
+
+  @Override
+  @Cacheable(CacheConfiguration.PRICES_CACHE)
+  public PriceDomain findById(Long id) {
+    return super.findById(id);
   }
 
   @Override
