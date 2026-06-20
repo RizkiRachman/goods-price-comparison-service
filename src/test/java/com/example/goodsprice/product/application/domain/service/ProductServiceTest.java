@@ -3,6 +3,7 @@ package com.example.goodsprice.product.application.domain.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -233,5 +234,139 @@ class ProductServiceTest extends AbstractGenericServiceTest
     assertThat(result).hasSize(2);
     assertThat(result).containsKeys("Apple", "Banana");
     verify(productRepository, times(2)).save(any(ProductDomain.class));
+  }
+
+  @Test
+  void shouldReturnEmptyMapWhenCreateIfNotExistBatchWithNullItems() {
+    var result = productService.createIfNotExistBatch(null);
+
+    assertTrue(result.isEmpty());
+    verify(productRepository, never()).findAllByNames(any());
+    verify(productRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldReturnEmptyMapWhenCreateIfNotExistBatchWithEmptyList() {
+    var result = productService.createIfNotExistBatch(List.of());
+
+    assertTrue(result.isEmpty());
+    verify(productRepository, never()).findAllByNames(any());
+    verify(productRepository, never()).save(any());
+  }
+
+  @Test
+  void shouldSearchWithNumericStoreId() {
+    var criteria =
+        ProductSearchCriteria.builder().search("Susu").storeId("1").page(0).size(20).build();
+
+    when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(1L)))
+        .thenReturn(List.of(10L, 20L));
+    var pageResponse = PageResponse.of(List.of(product), 0, 20, 1);
+    when(productRepository.search(any())).thenReturn(pageResponse);
+
+    var result = productService.search(criteria);
+
+    assertEquals(1, result.content().size());
+    assertEquals("Susu Kotak", result.content().getFirst().getName());
+    verify(productPriceQueryInPort).findProductIdsByStoreIds(List.of(1L));
+    verify(productRepository).search(any());
+  }
+
+  @Test
+  void shouldSearchWithStoreName() {
+    var criteria =
+        ProductSearchCriteria.builder().search("Susu").storeId("Toko A").page(0).size(20).build();
+
+    when(storeLookupInPort.findStoreIdsByName("Toko A")).thenReturn(List.of(1L, 2L));
+    when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(1L, 2L)))
+        .thenReturn(List.of(10L, 20L));
+    var pageResponse = PageResponse.of(List.of(product), 0, 20, 1);
+    when(productRepository.search(any())).thenReturn(pageResponse);
+
+    var result = productService.search(criteria);
+
+    assertEquals(1, result.content().size());
+    verify(storeLookupInPort).findStoreIdsByName("Toko A");
+    verify(productPriceQueryInPort).findProductIdsByStoreIds(List.of(1L, 2L));
+  }
+
+  @Test
+  void shouldReturnEmptyWhenStoreNameNotFound() {
+    var criteria = ProductSearchCriteria.builder().storeId("Toko A").page(0).size(20).build();
+
+    when(storeLookupInPort.findStoreIdsByName("Toko A")).thenReturn(List.of());
+
+    var result = productService.search(criteria);
+
+    assertTrue(result.content().isEmpty());
+    verify(productRepository, never()).search(any());
+  }
+
+  @Test
+  void shouldReturnEmptyWhenNoProductsAtStore() {
+    var criteria = ProductSearchCriteria.builder().storeId("1").page(0).size(20).build();
+
+    when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(1L))).thenReturn(List.of());
+
+    var result = productService.search(criteria);
+
+    assertTrue(result.content().isEmpty());
+    verify(productRepository, never()).search(any());
+  }
+
+  @Test
+  void shouldReturnEmptyWhenStoreLookupReturnsNull() {
+    var criteria = ProductSearchCriteria.builder().storeId("Toko A").page(0).size(20).build();
+
+    when(storeLookupInPort.findStoreIdsByName("Toko A")).thenReturn(null);
+
+    var result = productService.search(criteria);
+
+    assertTrue(result.content().isEmpty());
+    verify(productRepository, never()).search(any());
+  }
+
+  @Test
+  void shouldReturnEmptyWhenProductIdsAreNull() {
+    var criteria = ProductSearchCriteria.builder().storeId("1").page(0).size(20).build();
+
+    when(productPriceQueryInPort.findProductIdsByStoreIds(List.of(1L))).thenReturn(null);
+
+    var result = productService.search(criteria);
+
+    assertTrue(result.content().isEmpty());
+    verify(productRepository, never()).search(any());
+  }
+
+  @Test
+  void shouldCreateIfNotExistBatchWithMixedExistingAndNew() {
+    var existingProduct =
+        ProductDomain.builder()
+            .id(10L)
+            .name("Apple")
+            .category("Fruit")
+            .unit("KG")
+            .status("ACTIVE")
+            .build();
+
+    var item1 = new ProductInPort.ProductCreateItem("Apple", "Fruit", "KG");
+    var item2 = new ProductInPort.ProductCreateItem("Banana", "Fruit", "KG");
+
+    when(productRepository.findAllByNames(any())).thenReturn(List.of(existingProduct));
+    when(productRepository.save(any(ProductDomain.class)))
+        .thenAnswer(
+            inv -> {
+              var p = inv.<ProductDomain>getArgument(0);
+              if (p.getId() == null) p.setId(2L);
+              return p;
+            });
+
+    var result = productService.createIfNotExistBatch(List.of(item1, item2));
+
+    assertThat(result).hasSize(2);
+    assertThat(result).containsKey("Apple");
+    assertThat(result).containsKey("Banana");
+    verify(productRepository, times(1)).save(any(ProductDomain.class));
+    verify(productRepository).findAllByNames(any());
   }
 }
