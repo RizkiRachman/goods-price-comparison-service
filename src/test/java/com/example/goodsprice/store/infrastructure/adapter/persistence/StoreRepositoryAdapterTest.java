@@ -1,14 +1,20 @@
 package com.example.goodsprice.store.infrastructure.adapter.persistence;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.goodsprice.common.dto.PageRequestDto;
+import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
+import com.example.goodsprice.store.application.port.in.dto.StoreCriteria;
 import com.example.goodsprice.store.infrastructure.adapter.persistence.entity.StoreEntity;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +23,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 @ExtendWith(MockitoExtension.class)
 class StoreRepositoryAdapterTest {
@@ -159,5 +169,168 @@ class StoreRepositoryAdapterTest {
     adapter.deleteById(1L);
 
     verify(jpaRepository).deleteById(1L);
+  }
+
+  @Test
+  @DisplayName("Should return false when store does not exist by name and location")
+  void shouldReturnFalseWhenStoreDoesNotExist() {
+    when(jpaRepository.existsByNameAndLocation("NonExistent", "Nowhere")).thenReturn(false);
+
+    var result = adapter.existsByNameAndLocation("NonExistent", "Nowhere");
+
+    assertFalse(result);
+  }
+
+  @Test
+  @DisplayName("Should return empty list when findAllById receives empty ids")
+  void shouldReturnEmptyListWhenFindAllByIdWithEmptyIds() {
+    when(jpaRepository.findAllById(Collections.emptyList())).thenReturn(Collections.emptyList());
+
+    var result = adapter.findAllById(Collections.emptyList());
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  @DisplayName("Should find all stores with no filters")
+  void shouldFindAllWithNoFilters() {
+    var pageRequest = new PageRequestDto(1, 10, "name", "asc");
+    var criteria = new StoreCriteria(pageRequest, null, null, null, null);
+    var entity = new StoreEntity();
+    entity.setName("Toko Segar");
+    var domain = StoreDomain.builder().name("Toko Segar").build();
+
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(mapper.toDomain(entity)).thenReturn(domain);
+
+    PageResponse<StoreDomain> result = adapter.findAll(criteria);
+
+    assertEquals(1, result.content().size());
+    assertEquals("Toko Segar", result.content().get(0).getName());
+    assertEquals(1, result.totalPages());
+  }
+
+  @Test
+  @DisplayName("Should find all stores with search filter")
+  void shouldFindAllWithSearchFilter() {
+    var pageRequest = new PageRequestDto(1, 5, "name", "asc");
+    var criteria = new StoreCriteria(pageRequest, "toko", null, null, null);
+    var entity = new StoreEntity();
+    entity.setName("Toko Makmur");
+    var domain = StoreDomain.builder().name("Toko Makmur").build();
+
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(mapper.toDomain(entity)).thenReturn(domain);
+
+    PageResponse<StoreDomain> result = adapter.findAll(criteria);
+
+    assertEquals(1, result.content().size());
+    assertEquals("Toko Makmur", result.content().get(0).getName());
+  }
+
+  @Test
+  @DisplayName("Should find all stores with status filter")
+  void shouldFindAllWithStatusFilter() {
+    var pageRequest = new PageRequestDto(1, 20, "id", "desc");
+    var criteria = new StoreCriteria(pageRequest, null, "ACTIVE", null, null);
+    var entity = new StoreEntity();
+    entity.setName("Toko Aktif");
+    entity.setStatus("ACTIVE");
+    var domain = StoreDomain.builder().name("Toko Aktif").status("ACTIVE").build();
+
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(mapper.toDomain(entity)).thenReturn(domain);
+
+    PageResponse<StoreDomain> result = adapter.findAll(criteria);
+
+    assertEquals(1, result.content().size());
+    assertEquals("ACTIVE", result.content().get(0).getStatus());
+  }
+
+  @Test
+  @DisplayName("Should find all stores with chain filter")
+  void shouldFindAllWithChainFilter() {
+    var pageRequest = new PageRequestDto(1, 10, "name", "asc");
+    var criteria = new StoreCriteria(pageRequest, null, null, "Segar", null);
+    var entity = new StoreEntity();
+    entity.setName("Toko Segar");
+    entity.setChain("Segar Group");
+    var domain = StoreDomain.builder().name("Toko Segar").chain("Segar Group").build();
+
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(mapper.toDomain(entity)).thenReturn(domain);
+
+    PageResponse<StoreDomain> result = adapter.findAll(criteria);
+
+    assertEquals(1, result.content().size());
+    assertEquals("Segar Group", result.content().get(0).getChain());
+  }
+
+  @Test
+  @DisplayName("Should find all stores with location filter")
+  void shouldFindAllWithLocationFilter() {
+    var pageRequest = new PageRequestDto(1, 10, "name", "asc");
+    var criteria = new StoreCriteria(pageRequest, null, null, null, "Jakarta");
+    var entity = new StoreEntity();
+    entity.setName("Toko Jakarta");
+    entity.setLocation("Jakarta");
+    var domain = StoreDomain.builder().name("Toko Jakarta").location("Jakarta").build();
+
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(mapper.toDomain(entity)).thenReturn(domain);
+
+    PageResponse<StoreDomain> result = adapter.findAll(criteria);
+
+    assertEquals(1, result.content().size());
+    assertEquals("Jakarta", result.content().get(0).getLocation());
+  }
+
+  @Test
+  @DisplayName("Should find all stores with all filters")
+  void shouldFindAllWithAllFilters() {
+    var pageRequest = new PageRequestDto(1, 10, "name", "asc");
+    var criteria = new StoreCriteria(pageRequest, "toko", "ACTIVE", "Segar", "Jakarta");
+    var entity = new StoreEntity();
+    entity.setName("Toko Segar Jakarta");
+    entity.setStatus("ACTIVE");
+    entity.setChain("Segar Group");
+    entity.setLocation("Jakarta");
+    var domain =
+        StoreDomain.builder()
+            .name("Toko Segar Jakarta")
+            .status("ACTIVE")
+            .chain("Segar Group")
+            .location("Jakarta")
+            .build();
+
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(new PageImpl<>(List.of(entity)));
+    when(mapper.toDomain(entity)).thenReturn(domain);
+
+    PageResponse<StoreDomain> result = adapter.findAll(criteria);
+
+    assertEquals(1, result.content().size());
+    assertEquals("Toko Segar Jakarta", result.content().get(0).getName());
+    assertEquals("ACTIVE", result.content().get(0).getStatus());
+  }
+
+  @Test
+  @DisplayName("Should return empty page when no stores match criteria")
+  void shouldReturnEmptyPageWhenNoStoresFound() {
+    var pageRequest = new PageRequestDto(1, 10, "name", "asc");
+    var criteria = new StoreCriteria(pageRequest, "NonExistent", null, null, null);
+
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(Page.empty());
+
+    PageResponse<StoreDomain> result = adapter.findAll(criteria);
+
+    assertTrue(result.content().isEmpty());
+    assertEquals(0, result.totalElements());
   }
 }

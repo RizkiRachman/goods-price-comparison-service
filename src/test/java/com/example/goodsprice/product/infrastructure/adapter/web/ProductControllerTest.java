@@ -75,6 +75,18 @@ class ProductControllerTest {
   }
 
   @Test
+  @DisplayName("Should list products with null storeId")
+  void shouldListProductsWithNullStoreId() {
+    var response =
+        controller.listProducts(
+            1, 20, "search", "cat", "brand", null, "name", "asc", false, null, null, null, null,
+            null);
+
+    assertNotNull(response);
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+  }
+
+  @Test
   @DisplayName("Should update product")
   void shouldUpdateProduct() {
     var request = new UpdateProductRequest();
