@@ -1,12 +1,14 @@
 package com.example.goodsprice.category.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.web.ControllerResponse.created;
+import static com.example.goodsprice.common.web.ControllerResponse.ok;
+
 import com.example.goodsprice.api.controller.CategoriesApi;
 import com.example.goodsprice.api.model.Category;
 import com.example.goodsprice.api.model.CategoryListResponse;
 import com.example.goodsprice.api.model.CreateCategoryRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.UpdateCategoryRequest;
-import com.example.goodsprice.common.web.AbstractCrudController;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class CategoryController extends AbstractCrudController implements CategoriesApi {
+public class CategoryController implements CategoriesApi {
 
   private final CategoryWebAdapter adapter;
 

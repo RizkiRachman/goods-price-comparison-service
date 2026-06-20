@@ -5,7 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionType;
 import com.example.goodsprice.feedbackquestion.infrastructure.adapter.persistence.entity.FeedbackQuestionEntity;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
@@ -42,7 +43,7 @@ class FeedbackQuestionMapperTest {
   @Test
   void shouldMapEntityToDomain() {
     var id = UUID.randomUUID();
-    var now = OffsetDateTime.now();
+    var now = LocalDateTime.of(2026, 6, 20, 12, 0, 0);
     var entity = new FeedbackQuestionEntity();
     entity.setId(id);
     entity.setUserName("Jane");
@@ -60,8 +61,8 @@ class FeedbackQuestionMapperTest {
     assertThat(domain.getUserEmail()).isEqualTo("jane@test.com");
     assertThat(domain.getType()).isEqualTo(FeedbackQuestionType.FEEDBACK);
     assertThat(domain.getMessage()).isEqualTo("Great app!");
-    assertThat(domain.getCreatedAt()).isEqualTo(now);
-    assertThat(domain.getUpdatedAt()).isEqualTo(now);
+    assertThat(domain.getCreatedAt()).isEqualTo(now.atOffset(ZoneOffset.UTC));
+    assertThat(domain.getUpdatedAt()).isEqualTo(now.atOffset(ZoneOffset.UTC));
   }
 
   @Test

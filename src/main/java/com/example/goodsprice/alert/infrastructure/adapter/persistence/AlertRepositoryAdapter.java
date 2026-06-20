@@ -11,12 +11,7 @@ public class AlertRepositoryAdapter
     extends AbstractRepositoryAdapter<AlertSubscription, String, AlertSubscriptionEntity>
     implements AlertRepositoryPort {
 
-  private final JpaAlertSubscriptionRepository jpaRepository;
-  private final AlertMapper mapper;
-
   public AlertRepositoryAdapter(JpaAlertSubscriptionRepository jpaRepository, AlertMapper mapper) {
     super(jpaRepository, mapper::toEntity, mapper::toDomain);
-    this.jpaRepository = jpaRepository;
-    this.mapper = mapper;
   }
 }

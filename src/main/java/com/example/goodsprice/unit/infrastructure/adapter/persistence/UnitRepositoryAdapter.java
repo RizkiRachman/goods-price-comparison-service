@@ -18,12 +18,10 @@ import org.springframework.stereotype.Component;
 public class UnitRepositoryAdapter extends AbstractRepositoryAdapter<UnitDomain, String, UnitEntity>
     implements UnitRepositoryPort {
 
-  private final JpaUnitRepository jpaRepo;
   private final UnitMapper mapper;
 
-  public UnitRepositoryAdapter(JpaUnitRepository jpaRepo, UnitMapper mapper) {
-    super(jpaRepo, mapper::toEntity, mapper::toDomain);
-    this.jpaRepo = jpaRepo;
+  public UnitRepositoryAdapter(JpaUnitRepository jpaRepository, UnitMapper mapper) {
+    super(jpaRepository, mapper::toEntity, mapper::toDomain);
     this.mapper = mapper;
   }
 
@@ -47,7 +45,8 @@ public class UnitRepositoryAdapter extends AbstractRepositoryAdapter<UnitDomain,
             .addEqualIgnoreCase("type", criteria.type())
             .addEqual("status", criteria.status())
             .build();
-    return PaginationHelper.findAll(criteria.pageRequest(), spec, jpaRepo, mapper::toDomain);
+    return PaginationHelper.findAll(
+        criteria.pageRequest(), spec, jpaSpecificationExecutor(), mapper::toDomain);
   }
 
   @Override

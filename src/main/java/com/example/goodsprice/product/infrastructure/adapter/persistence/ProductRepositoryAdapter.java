@@ -10,49 +10,42 @@ import com.example.goodsprice.product.application.port.out.ProductRepositoryPort
 import com.example.goodsprice.product.infrastructure.adapter.persistence.entity.ProductEntity;
 import java.time.LocalDateTime;
 import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-@Slf4j
 @Component
 public class ProductRepositoryAdapter
     extends AbstractRepositoryAdapter<ProductDomain, Long, ProductEntity>
     implements ProductRepositoryPort {
 
-  private final JpaProductRepository jpaRepo;
+  private final JpaProductRepository jpaProductRepository;
   private final ProductMapper mapper;
 
-  public ProductRepositoryAdapter(JpaProductRepository jpaRepo, ProductMapper mapper) {
-    super(jpaRepo, mapper::toEntity, mapper::toDomain);
-    this.jpaRepo = jpaRepo;
+  public ProductRepositoryAdapter(JpaProductRepository jpaRepository, ProductMapper mapper) {
+    super(jpaRepository, mapper::toEntity, mapper::toDomain);
+    this.jpaProductRepository = jpaRepository;
     this.mapper = mapper;
   }
 
   @Override
   public ProductDomain findByName(String name) {
-    return jpaRepo.findByName(name).map(mapper::toDomain).orElse(null);
+    return jpaProductRepository.findByName(name).map(mapper::toDomain).orElse(null);
   }
 
   @Override
   public List<ProductDomain> searchByName(String name) {
-    return jpaRepo.findByNameContainingIgnoreCase(name).stream().map(mapper::toDomain).toList();
+    return jpaProductRepository.findByNameContainingIgnoreCase(name).stream()
+        .map(mapper::toDomain)
+        .toList();
   }
 
   @Override
   public List<ProductDomain> findAllByNames(List<String> names) {
-    return jpaRepo.findByNameIn(names).stream().map(mapper::toDomain).toList();
+    return jpaProductRepository.findByNameIn(names).stream().map(mapper::toDomain).toList();
   }
 
   @Override
   public boolean existsByName(String name) {
-    return jpaRepo.existsByName(name);
-  }
-
-  @Override
-  @Deprecated(forRemoval = true)
-  public List<ProductDomain> findAll() {
-    log.warn("Unbounded findAll() called - this may cause performance issues for large datasets");
-    return jpaRepo.findAll().stream().map(mapper::toDomain).toList();
+    return jpaProductRepository.existsByName(name);
   }
 
   @Override
@@ -64,27 +57,29 @@ public class ProductRepositoryAdapter
             criteria.getSize(),
             criteria.getSortBy(),
             criteria.getSortDirection());
-    return PaginationHelper.findAll(pr, spec, jpaRepo, mapper::toDomain);
+    return PaginationHelper.findAll(pr, spec, jpaSpecificationExecutor(), mapper::toDomain);
   }
 
   @Override
   public List<ProductDomain> findProductsNeedingSummaryUpdate(int limit) {
-    return jpaRepo.findProductsNeedingSummaryUpdate(limit).stream().map(mapper::toDomain).toList();
+    return jpaProductRepository.findProductsNeedingSummaryUpdate(limit).stream()
+        .map(mapper::toDomain)
+        .toList();
   }
 
   @Override
   public void updateSummaryLastCalculated(Long productId, LocalDateTime timestamp) {
-    jpaRepo.updateSummaryLastCalculated(productId, timestamp);
+    jpaProductRepository.updateSummaryLastCalculated(productId, timestamp);
   }
 
   @Override
   public void updateSummaryLastCalculated(List<Long> productIds, LocalDateTime timestamp) {
     if (productIds.isEmpty()) return;
-    jpaRepo.updateSummaryLastCalculated(productIds, timestamp);
+    jpaProductRepository.updateSummaryLastCalculated(productIds, timestamp);
   }
 
   @Override
   public void updateLastPriceUpdate(Long productId, LocalDateTime timestamp) {
-    jpaRepo.updateLastPriceUpdate(productId, timestamp);
+    jpaProductRepository.updateLastPriceUpdate(productId, timestamp);
   }
 }

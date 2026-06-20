@@ -1,9 +1,10 @@
 package com.example.goodsprice.activity.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.web.ControllerResponse.ok;
+
 import com.example.goodsprice.api.controller.ActivityLogsApi;
 import com.example.goodsprice.api.model.ActivityLog;
 import com.example.goodsprice.api.model.ActivityLogListResponse;
-import com.example.goodsprice.common.web.AbstractCrudController;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class ActivityLogController extends AbstractCrudController implements ActivityLogsApi {
+public class ActivityLogController implements ActivityLogsApi {
 
   private final ActivityLogWebAdapter adapter;
 

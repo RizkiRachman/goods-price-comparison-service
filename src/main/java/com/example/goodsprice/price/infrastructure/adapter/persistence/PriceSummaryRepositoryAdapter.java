@@ -14,13 +14,13 @@ public class PriceSummaryRepositoryAdapter
     extends AbstractRepositoryAdapter<ProductPriceSummary, Long, PriceSummaryEntity>
     implements PriceSummaryRepositoryPort {
 
-  private final JpaPriceSummaryRepository jpaRepository;
+  private final JpaPriceSummaryRepository jpaPriceSummaryRepository;
   private final PriceSummaryMapper mapper;
 
   public PriceSummaryRepositoryAdapter(
       JpaPriceSummaryRepository jpaRepository, PriceSummaryMapper mapper) {
     super(jpaRepository, mapper::toEntity, mapper::toDomain);
-    this.jpaRepository = jpaRepository;
+    this.jpaPriceSummaryRepository = jpaRepository;
     this.mapper = mapper;
   }
 
@@ -30,7 +30,7 @@ public class PriceSummaryRepositoryAdapter
       return null;
     }
     var entity = mapper.toEntity(summary);
-    var saved = jpaRepository.save(entity);
+    var saved = jpaPriceSummaryRepository.save(entity);
     return mapper.toDomain(saved);
   }
 
@@ -40,7 +40,7 @@ public class PriceSummaryRepositoryAdapter
       return List.of();
     }
     var entities = summaries.stream().map(mapper::toEntity).toList();
-    var saved = jpaRepository.saveAll(entities);
+    var saved = jpaPriceSummaryRepository.saveAll(entities);
     return saved.stream().map(mapper::toDomain).toList();
   }
 
@@ -49,7 +49,7 @@ public class PriceSummaryRepositoryAdapter
     if (Objects.isNull(productId)) {
       return null;
     }
-    return jpaRepository.findById(productId).map(mapper::toDomain).orElse(null);
+    return jpaPriceSummaryRepository.findById(productId).map(mapper::toDomain).orElse(null);
   }
 
   @Override
@@ -57,6 +57,8 @@ public class PriceSummaryRepositoryAdapter
     if (Objects.isNull(productIds) || productIds.isEmpty()) {
       return List.of();
     }
-    return jpaRepository.findByProductIdIn(productIds).stream().map(mapper::toDomain).toList();
+    return jpaPriceSummaryRepository.findByProductIdIn(productIds).stream()
+        .map(mapper::toDomain)
+        .toList();
   }
 }

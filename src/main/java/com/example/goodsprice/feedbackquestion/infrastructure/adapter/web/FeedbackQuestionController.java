@@ -1,10 +1,12 @@
 package com.example.goodsprice.feedbackquestion.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.web.ControllerResponse.created;
+import static com.example.goodsprice.common.web.ControllerResponse.ok;
+
 import com.example.goodsprice.api.controller.FeedbackQuestionsApi;
 import com.example.goodsprice.api.model.CreateFeedbackQuestionRequest;
 import com.example.goodsprice.api.model.FeedbackQuestion;
 import com.example.goodsprice.api.model.FeedbackQuestionListResponse;
-import com.example.goodsprice.common.web.AbstractCrudController;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -13,8 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class FeedbackQuestionController extends AbstractCrudController
-    implements FeedbackQuestionsApi {
+public class FeedbackQuestionController implements FeedbackQuestionsApi {
 
   private final FeedbackQuestionWebAdapter adapter;
 

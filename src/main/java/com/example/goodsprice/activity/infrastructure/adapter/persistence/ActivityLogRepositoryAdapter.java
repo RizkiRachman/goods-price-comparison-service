@@ -11,11 +11,9 @@ import com.example.goodsprice.activity.infrastructure.adapter.persistence.entity
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.persistence.PaginationHelper;
+import com.example.goodsprice.common.persistence.SpecificationBuilder;
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
 import com.example.goodsprice.common.util.ObjectUtils;
-import jakarta.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.Objects;
 import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
@@ -54,25 +52,28 @@ public class ActivityLogRepositoryAdapter
     var pr =
         new PageRequestDto(
             pageRequest.page(), pageRequest.size(), actualSortBy, pageRequest.sortDirection());
-    return PaginationHelper.findAll(pr, spec, jpaRepository, mapper::toDomain);
+    return PaginationHelper.findAll(pr, spec, jpaSpecificationExecutor(), mapper::toDomain);
   }
 
   private Specification<ActivityLogEntity> buildSpecification(ActivityLogCriteria criteria) {
-    return (root, query, cb) -> {
-      var predicates = new ArrayList<Predicate>();
-      if (Objects.nonNull(criteria.type())) {
-        predicates.add(cb.equal(root.get(ENTITY_FIELD_TYPE), criteria.type().name()));
-      }
-      if (Objects.nonNull(criteria.action())) {
-        predicates.add(cb.equal(root.get(ENTITY_FIELD_ACTION), criteria.action().name()));
-      }
-      if (Objects.nonNull(criteria.startDate())) {
-        predicates.add(cb.greaterThanOrEqualTo(root.get(DEFAULT_SORT_FIELD), criteria.startDate()));
-      }
-      if (Objects.nonNull(criteria.endDate())) {
-        predicates.add(cb.lessThanOrEqualTo(root.get(DEFAULT_SORT_FIELD), criteria.endDate()));
-      }
-      return cb.and(predicates.toArray(new Predicate[0]));
-    };
+    return new SpecificationBuilder<ActivityLogEntity>()
+        .addIfPresent(
+            criteria,
+            ActivityLogCriteria::type,
+            type -> (root, query, cb) -> cb.equal(root.get(ENTITY_FIELD_TYPE), type.name()))
+        .addIfPresent(
+            criteria,
+            ActivityLogCriteria::action,
+            action -> (root, query, cb) -> cb.equal(root.get(ENTITY_FIELD_ACTION), action.name()))
+        // Date range: comparison operators not directly supported by SpecificationBuilder
+        .addIfPresent(
+            criteria,
+            ActivityLogCriteria::startDate,
+            sd -> (root, query, cb) -> cb.greaterThanOrEqualTo(root.get(DEFAULT_SORT_FIELD), sd))
+        .addIfPresent(
+            criteria,
+            ActivityLogCriteria::endDate,
+            ed -> (root, query, cb) -> cb.lessThanOrEqualTo(root.get(DEFAULT_SORT_FIELD), ed))
+        .build();
   }
 }

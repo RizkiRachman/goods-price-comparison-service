@@ -20,12 +20,12 @@ public class StoreRepositoryAdapter
     extends AbstractRepositoryAdapter<StoreDomain, Long, StoreEntity>
     implements StoreRepositoryPort {
 
-  private final JpaStoreRepository jpaRepo;
+  private final JpaStoreRepository jpaStoreRepository;
   private final StoreMapper mapper;
 
-  public StoreRepositoryAdapter(JpaStoreRepository jpaRepo, StoreMapper mapper) {
-    super(jpaRepo, mapper::toEntity, mapper::toDomain);
-    this.jpaRepo = jpaRepo;
+  public StoreRepositoryAdapter(JpaStoreRepository jpaRepository, StoreMapper mapper) {
+    super(jpaRepository, mapper::toEntity, mapper::toDomain);
+    this.jpaStoreRepository = jpaRepository;
     this.mapper = mapper;
   }
 
@@ -43,22 +43,25 @@ public class StoreRepositoryAdapter
 
   @Override
   public List<StoreDomain> findByName(String name) {
-    return jpaRepo.findByName(name).stream().map(mapper::toDomain).toList();
+    return jpaStoreRepository.findByName(name).stream().map(mapper::toDomain).toList();
   }
 
   @Override
   public List<StoreDomain> findAllById(List<Long> ids) {
-    return jpaRepo.findAllById(ids).stream().map(mapper::toDomain).toList();
+    return jpaStoreRepository.findAllById(ids).stream().map(mapper::toDomain).toList();
   }
 
   @Override
   public StoreDomain findByNameAndLocation(String name, String location) {
-    return jpaRepo.findByNameAndLocation(name, location).map(mapper::toDomain).orElse(null);
+    return jpaStoreRepository
+        .findByNameAndLocation(name, location)
+        .map(mapper::toDomain)
+        .orElse(null);
   }
 
   @Override
   public boolean existsByNameAndLocation(String name, String location) {
-    return jpaRepo.existsByNameAndLocation(name, location);
+    return jpaStoreRepository.existsByNameAndLocation(name, location);
   }
 
   @Override
@@ -76,6 +79,7 @@ public class StoreRepositoryAdapter
             .addSearchLike(criteria.chain(), "chain")
             .addSearchLike(criteria.location(), "location")
             .build();
-    return PaginationHelper.findAll(criteria.pageRequest(), spec, jpaRepo, mapper::toDomain);
+    return PaginationHelper.findAll(
+        criteria.pageRequest(), spec, jpaSpecificationExecutor(), mapper::toDomain);
   }
 }

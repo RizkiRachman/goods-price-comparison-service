@@ -1,12 +1,14 @@
 package com.example.goodsprice.unit.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.web.ControllerResponse.created;
+import static com.example.goodsprice.common.web.ControllerResponse.ok;
+
 import com.example.goodsprice.api.controller.UnitsApi;
 import com.example.goodsprice.api.model.CreateUnitRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Unit;
 import com.example.goodsprice.api.model.UnitListResponse;
 import com.example.goodsprice.api.model.UpdateUnitRequest;
-import com.example.goodsprice.common.web.AbstractCrudController;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class UnitController extends AbstractCrudController implements UnitsApi {
+public class UnitController implements UnitsApi {
 
   private final UnitWebAdapter adapter;
 
