@@ -19,13 +19,11 @@ public class FeedbackQuestionRepositoryAdapter
     extends AbstractRepositoryAdapter<FeedbackQuestionDomain, UUID, FeedbackQuestionEntity>
     implements FeedbackQuestionRepositoryPort {
 
-  private final JpaFeedbackQuestionRepository jpaRepo;
   private final FeedbackQuestionMapper mapper;
 
   public FeedbackQuestionRepositoryAdapter(
-      JpaFeedbackQuestionRepository jpaRepo, FeedbackQuestionMapper mapper) {
-    super(jpaRepo, mapper::toEntity, mapper::toDomain);
-    this.jpaRepo = jpaRepo;
+      JpaFeedbackQuestionRepository jpaRepository, FeedbackQuestionMapper mapper) {
+    super(jpaRepository, mapper::toEntity, mapper::toDomain);
     this.mapper = mapper;
   }
 
@@ -45,7 +43,10 @@ public class FeedbackQuestionRepositoryAdapter
   public PageResponse<FeedbackQuestionDomain> findAll(
       PageRequestDto pageRequest, String search, String status) {
     return PaginationHelper.findAll(
-        pageRequest, (root, query, cb) -> cb.isTrue(cb.literal(true)), jpaRepo, mapper::toDomain);
+        pageRequest,
+        (root, query, cb) -> cb.isTrue(cb.literal(true)),
+        jpaSpecificationExecutor(),
+        mapper::toDomain);
   }
 
   @Override

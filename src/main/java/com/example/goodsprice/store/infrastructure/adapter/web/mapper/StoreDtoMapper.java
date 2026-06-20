@@ -1,28 +1,27 @@
 package com.example.goodsprice.store.infrastructure.adapter.web.mapper;
 
-import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Store;
 import com.example.goodsprice.common.web.mapper.DtoMapperSupport;
 import com.example.goodsprice.store.application.domain.model.StoreDomain;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.NullValueMappingStrategy;
-import org.mapstruct.ReportingPolicy;
 
-@Mapper(
-    componentModel = "spring",
-    nullValueMappingStrategy = NullValueMappingStrategy.RETURN_NULL,
-    unmappedSourcePolicy = ReportingPolicy.IGNORE,
-    unmappedTargetPolicy = ReportingPolicy.IGNORE)
-@SuppressWarnings("PMD.ImplicitFunctionalInterface")
+@Mapper(componentModel = "spring")
 public interface StoreDtoMapper extends DtoMapperSupport {
 
-  @Mapping(target = "status", qualifiedByName = "mapStatus")
-  Store toApiStore(StoreDomain domain);
-
-  @Named("mapStatus")
-  default EntityStatus mapStatus(String status) {
-    return resolveStatusValue(status);
+  default Store toApiStore(StoreDomain domain) {
+    return mapIfNotNull(
+        domain,
+        d -> {
+          var result = new Store();
+          result.setId(d.getId());
+          result.setName(d.getName());
+          result.setLocation(d.getLocation());
+          result.setChain(d.getChain());
+          result.setAddress(d.getAddress());
+          result.setLatitude(d.getLatitude());
+          result.setLongitude(d.getLongitude());
+          result.setStatus(resolveStatusValue(d.getStatus()));
+          return result;
+        });
   }
 }

@@ -2,9 +2,12 @@ package com.example.goodsprice.common.repository;
 
 import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
+import java.util.List;
 import java.util.function.Function;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -25,7 +28,7 @@ import org.springframework.stereotype.Component;
 @SuppressWarnings("PMD.AbstractClassWithoutAbstractMethod")
 public abstract class AbstractRepositoryAdapter<T, ID, E> {
 
-  private final JpaRepository<E, ID> jpaRepository;
+  protected final JpaRepository<E, ID> jpaRepository;
   private final Function<T, E> toEntityFn;
   private final Function<E, T> toDomainFn;
 
@@ -42,6 +45,13 @@ public abstract class AbstractRepositoryAdapter<T, ID, E> {
     return toDomainFn.apply(saved);
   }
 
+  public List<T> saveAll(Iterable<T> domains) {
+    var entities = new java.util.ArrayList<E>();
+    domains.forEach(d -> entities.add(toEntityFn.apply(d)));
+    var saved = jpaRepository.saveAll(entities);
+    return saved.stream().map(toDomainFn::apply).toList();
+  }
+
   public T findById(ID id) {
     return jpaRepository.findById(id).map(toDomainFn::apply).orElse(null);
   }
@@ -52,6 +62,18 @@ public abstract class AbstractRepositoryAdapter<T, ID, E> {
 
   public void deleteById(ID id) {
     jpaRepository.deleteById(id);
+  }
+
+  @Deprecated(forRemoval = true)
+  public List<T> findAll() {
+    LoggerFactory.getLogger(getClass())
+        .warn("Unbounded findAll() called - this may cause performance issues for large datasets");
+    return jpaRepository.findAll().stream().map(toDomainFn::apply).toList();
+  }
+
+  @SuppressWarnings("unchecked")
+  protected JpaSpecificationExecutor<E> jpaSpecificationExecutor() {
+    return (JpaSpecificationExecutor<E>) jpaRepository;
   }
 
   public PageResponse<T> findAll(PageRequestDto pageRequest, String search, String status) {

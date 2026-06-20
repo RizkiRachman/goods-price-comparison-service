@@ -1,12 +1,15 @@
 package com.example.goodsprice.store.infrastructure.adapter.web;
 
+import static com.example.goodsprice.common.web.ControllerResponse.created;
+import static com.example.goodsprice.common.web.ControllerResponse.noContent;
+import static com.example.goodsprice.common.web.ControllerResponse.ok;
+
 import com.example.goodsprice.api.controller.StoresApi;
 import com.example.goodsprice.api.model.CreateStoreRequest;
 import com.example.goodsprice.api.model.EntityStatus;
 import com.example.goodsprice.api.model.Store;
 import com.example.goodsprice.api.model.StoreListResponse;
 import com.example.goodsprice.api.model.UpdateStoreRequest;
-import com.example.goodsprice.common.web.AbstractCrudController;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-public class StoreController extends AbstractCrudController implements StoresApi {
+public class StoreController implements StoresApi {
 
   private final StoreWebAdapter adapter;
 

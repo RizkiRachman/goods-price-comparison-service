@@ -13,29 +13,29 @@ public class ReceiptRepositoryAdapter
     extends AbstractRepositoryAdapter<ReceiptDomain, UUID, ReceiptEntity>
     implements ReceiptRepositoryPort {
 
-  private final JpaReceiptRepository jpaRepo;
+  private final JpaReceiptRepository jpaReceiptRepository;
   private final ReceiptMapper mapper;
 
-  public ReceiptRepositoryAdapter(JpaReceiptRepository jpaRepo, ReceiptMapper mapper) {
-    super(jpaRepo, mapper::toEntity, mapper::toDomain);
-    this.jpaRepo = jpaRepo;
+  public ReceiptRepositoryAdapter(JpaReceiptRepository jpaRepository, ReceiptMapper mapper) {
+    super(jpaRepository, mapper::toEntity, mapper::toDomain);
+    this.jpaReceiptRepository = jpaRepository;
     this.mapper = mapper;
   }
 
   @Override
   public ReceiptDomain findByImageHash(String imageHash) {
-    var entity = jpaRepo.findByImageHash(imageHash).orElse(null);
+    var entity = jpaReceiptRepository.findByImageHash(imageHash).orElse(null);
     if (Objects.isNull(entity)) return null;
     return mapper.toDomain(entity);
   }
 
   @Override
   public boolean existsByImageHash(String imageHash) {
-    return jpaRepo.existsByImageHash(imageHash);
+    return jpaReceiptRepository.existsByImageHash(imageHash);
   }
 
   @Override
   public void updateImageData(UUID id, byte[] imageData) {
-    jpaRepo.updateImageData(id, imageData);
+    jpaReceiptRepository.updateImageData(id, imageData);
   }
 }

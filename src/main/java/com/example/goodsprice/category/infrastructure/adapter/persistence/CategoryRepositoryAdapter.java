@@ -19,12 +19,10 @@ public class CategoryRepositoryAdapter
     extends AbstractRepositoryAdapter<CategoryDomain, String, CategoryEntity>
     implements CategoryRepositoryPort {
 
-  private final JpaCategoryRepository jpaRepo;
   private final CategoryMapper mapper;
 
-  public CategoryRepositoryAdapter(JpaCategoryRepository jpaRepo, CategoryMapper mapper) {
-    super(jpaRepo, mapper::toEntity, mapper::toDomain);
-    this.jpaRepo = jpaRepo;
+  public CategoryRepositoryAdapter(JpaCategoryRepository jpaRepository, CategoryMapper mapper) {
+    super(jpaRepository, mapper::toEntity, mapper::toDomain);
     this.mapper = mapper;
   }
 
@@ -47,7 +45,8 @@ public class CategoryRepositoryAdapter
             .addSearchLike(criteria.search(), "name", "id")
             .addEqual("status", criteria.status())
             .build();
-    return PaginationHelper.findAll(criteria.pageRequest(), spec, jpaRepo, mapper::toDomain);
+    return PaginationHelper.findAll(
+        criteria.pageRequest(), spec, jpaSpecificationExecutor(), mapper::toDomain);
   }
 
   @Override

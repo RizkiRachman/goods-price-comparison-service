@@ -1,5 +1,6 @@
 package com.example.goodsprice.feedbackquestion.infrastructure.adapter.persistence.entity;
 
+import com.example.goodsprice.common.persistence.BaseTimestampEntity;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,20 +10,19 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.time.OffsetDateTime;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "feedback_questions")
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
 @AllArgsConstructor
-public class FeedbackQuestionEntity {
+public class FeedbackQuestionEntity extends BaseTimestampEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -41,12 +41,4 @@ public class FeedbackQuestionEntity {
 
   @Column(name = "message", nullable = false, columnDefinition = "TEXT")
   private String message;
-
-  @CreationTimestamp
-  @Column(name = "created_at", updatable = false)
-  private OffsetDateTime createdAt;
-
-  @UpdateTimestamp
-  @Column(name = "updated_at")
-  private OffsetDateTime updatedAt;
 }

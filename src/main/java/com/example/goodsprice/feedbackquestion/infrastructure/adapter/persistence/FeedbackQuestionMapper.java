@@ -3,6 +3,9 @@ package com.example.goodsprice.feedbackquestion.infrastructure.adapter.persisten
 import com.example.goodsprice.common.persistence.EntityMapperConfig;
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionDomain;
 import com.example.goodsprice.feedbackquestion.infrastructure.adapter.persistence.entity.FeedbackQuestionEntity;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -14,4 +17,8 @@ public interface FeedbackQuestionMapper {
   FeedbackQuestionEntity toEntity(FeedbackQuestionDomain domain);
 
   FeedbackQuestionDomain toDomain(FeedbackQuestionEntity entity);
+
+  default OffsetDateTime map(LocalDateTime value) {
+    return value != null ? value.atOffset(ZoneOffset.UTC) : null;
+  }
 }
