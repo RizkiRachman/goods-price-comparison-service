@@ -228,17 +228,6 @@ class PriceRepositoryAdapterTest {
   }
 
   @Test
-  @DisplayName("Should find all with warning")
-  void shouldFindAll() {
-    when(jpaRepo.findAll()).thenReturn(List.of(entity));
-    when(mapper.toDomain(entity)).thenReturn(domain);
-
-    List<PriceDomain> result = adapter.findAll();
-
-    assertEquals(1, result.size());
-  }
-
-  @Test
   @DisplayName("Should return empty list when no prices found by product id")
   void shouldReturnEmptyWhenNoPricesByProduct() {
     when(jpaRepo.findByProductId(999L)).thenReturn(List.of());

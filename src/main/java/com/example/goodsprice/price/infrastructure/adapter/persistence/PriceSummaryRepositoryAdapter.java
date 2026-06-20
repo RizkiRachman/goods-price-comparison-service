@@ -1,12 +1,15 @@
 package com.example.goodsprice.price.infrastructure.adapter.persistence;
 
 import com.example.goodsprice.common.repository.AbstractRepositoryAdapter;
+import com.example.goodsprice.config.CacheConfiguration;
 import com.example.goodsprice.price.application.domain.model.ProductPriceSummary;
 import com.example.goodsprice.price.application.port.out.PriceSummaryRepositoryPort;
 import com.example.goodsprice.price.infrastructure.adapter.persistence.entity.PriceSummaryEntity;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,6 +28,7 @@ public class PriceSummaryRepositoryAdapter
   }
 
   @Override
+  @CachePut(value = CacheConfiguration.PRICES_CACHE, key = "#result.productId")
   public ProductPriceSummary save(ProductPriceSummary summary) {
     if (Objects.isNull(summary)) {
       return null;
@@ -45,6 +49,7 @@ public class PriceSummaryRepositoryAdapter
   }
 
   @Override
+  @Cacheable(value = CacheConfiguration.PRICES_CACHE, key = "#productId")
   public ProductPriceSummary findByProductId(Long productId) {
     if (Objects.isNull(productId)) {
       return null;
