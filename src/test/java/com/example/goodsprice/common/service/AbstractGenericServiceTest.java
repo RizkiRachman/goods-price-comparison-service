@@ -116,7 +116,7 @@ public abstract class AbstractGenericServiceTest {
     verify(repo).save(getExistingEntity());
   }
 
-  @SuppressWarnings("deprecation")
+  @SuppressWarnings({"deprecation", "removal"})
   @Test
   void shouldFindAllWithSearchAndStatus() {
     var repo = getRepository();

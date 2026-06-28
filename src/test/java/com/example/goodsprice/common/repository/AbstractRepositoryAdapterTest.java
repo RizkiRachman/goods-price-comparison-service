@@ -113,6 +113,7 @@ class AbstractRepositoryAdapterTest {
     assertThrows(NullPointerException.class, () -> adapter.saveAll(null));
   }
 
+  @SuppressWarnings({"deprecation", "removal"})
   @Test
   @DisplayName("Should return all mapped domains via deprecated findAll")
   void shouldFindAllDeprecatedReturnsAllDomains() {
@@ -125,6 +126,7 @@ class AbstractRepositoryAdapterTest {
     assertEquals("MAPPED(entity2)", result.get(1));
   }
 
+  @SuppressWarnings({"deprecation", "removal"})
   @Test
   @DisplayName("Should return empty list when deprecated findAll has no data")
   void shouldFindAllDeprecatedReturnsEmptyList() {
