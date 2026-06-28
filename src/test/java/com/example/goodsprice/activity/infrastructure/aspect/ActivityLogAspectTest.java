@@ -238,5 +238,6 @@ class ActivityLogAspectTest {
 
   static class UnknownTypeService {}
 
+  @SuppressWarnings("checkstyle:TypeName")
   static class PriceService$ {}
 }
