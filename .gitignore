@@ -269,6 +269,7 @@ logs
 graphify-out
 node_modules
 session
+doc
 target
 toolkit.zip
 

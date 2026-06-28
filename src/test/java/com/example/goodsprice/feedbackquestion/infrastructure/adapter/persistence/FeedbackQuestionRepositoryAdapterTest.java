@@ -144,4 +144,37 @@ class FeedbackQuestionRepositoryAdapterTest {
     assertNotNull(result);
     assertTrue(result.content().isEmpty());
   }
+
+  @Test
+  @DisplayName("Should find all with search term and status")
+  void shouldFindAllWithSearchAndStatus() {
+    var pageRequest = new PageRequestDto(0, 20, "createdAt", "desc");
+    var criteria = new FeedbackQuestionCriteria(pageRequest, "John", "FEEDBACK");
+    var page = new PageImpl<>(List.of(entity));
+
+    when(jpaRepo.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+    when(mapper.toDomain(entity)).thenReturn(domain);
+
+    PageResponse<FeedbackQuestionDomain> result = adapter.findAll(criteria);
+
+    assertNotNull(result);
+    assertEquals(1, result.content().size());
+    assertEquals(id, result.content().get(0).getId());
+  }
+
+  @Test
+  @DisplayName("Should find all with search and status via generic method")
+  void shouldFindAllWithSearchAndStatusGeneric() {
+    var pageRequest = new PageRequestDto(0, 20, "createdAt", "desc");
+    var page = new PageImpl<>(List.of(entity));
+
+    when(jpaRepo.findAll(any(Specification.class), any(Pageable.class))).thenReturn(page);
+    when(mapper.toDomain(entity)).thenReturn(domain);
+
+    PageResponse<FeedbackQuestionDomain> result = adapter.findAll(pageRequest, "John", "FEEDBACK");
+
+    assertNotNull(result);
+    assertEquals(1, result.content().size());
+    assertEquals(id, result.content().get(0).getId());
+  }
 }

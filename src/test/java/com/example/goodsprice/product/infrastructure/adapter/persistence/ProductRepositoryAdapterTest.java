@@ -5,12 +5,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import com.example.goodsprice.product.application.domain.model.ProductSearchCriteria;
 import com.example.goodsprice.product.infrastructure.adapter.persistence.entity.ProductEntity;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -172,5 +175,64 @@ class ProductRepositoryAdapterTest {
     adapter.deleteById(1L);
 
     verify(jpaRepository).deleteById(1L);
+  }
+
+  @Test
+  @DisplayName("Should find products needing summary update")
+  void shouldFindProductsNeedingSummaryUpdate() {
+    var entity = new ProductEntity();
+    entity.setId(1L);
+    entity.setName("Susu Kotak");
+    var domain = ProductDomain.builder().id(1L).name("Susu Kotak").build();
+
+    when(jpaRepository.findProductsNeedingSummaryUpdate(10)).thenReturn(List.of(entity));
+    when(mapper.toDomain(entity)).thenReturn(domain);
+
+    var result = adapter.findProductsNeedingSummaryUpdate(10);
+
+    assertEquals(1, result.size());
+    assertEquals(1L, result.getFirst().getId());
+    verify(jpaRepository).findProductsNeedingSummaryUpdate(10);
+  }
+
+  @Test
+  @DisplayName("Should update summaryLastCalculated for single product")
+  void shouldUpdateSummaryLastCalculatedForSingleProduct() {
+    var timestamp = LocalDateTime.of(2026, 6, 28, 10, 0);
+
+    adapter.updateSummaryLastCalculated(1L, timestamp);
+
+    verify(jpaRepository).updateSummaryLastCalculated(1L, timestamp);
+  }
+
+  @Test
+  @DisplayName("Should update summaryLastCalculated for multiple products")
+  void shouldUpdateSummaryLastCalculatedForMultipleProducts() {
+    var timestamp = LocalDateTime.of(2026, 6, 28, 10, 0);
+    var ids = List.of(1L, 2L, 3L);
+
+    adapter.updateSummaryLastCalculated(ids, timestamp);
+
+    verify(jpaRepository).updateSummaryLastCalculated(ids, timestamp);
+  }
+
+  @Test
+  @DisplayName("Should not update summaryLastCalculated for empty list")
+  void shouldNotUpdateSummaryLastCalculatedForEmptyList() {
+    var timestamp = LocalDateTime.of(2026, 6, 28, 10, 0);
+
+    adapter.updateSummaryLastCalculated(List.of(), timestamp);
+
+    verify(jpaRepository, never()).updateSummaryLastCalculated(anyList(), any());
+  }
+
+  @Test
+  @DisplayName("Should update lastPriceUpdate for single product")
+  void shouldUpdateLastPriceUpdate() {
+    var timestamp = LocalDateTime.of(2026, 6, 28, 10, 0);
+
+    adapter.updateLastPriceUpdate(1L, timestamp);
+
+    verify(jpaRepository).updateLastPriceUpdate(1L, timestamp);
   }
 }

@@ -2,6 +2,7 @@ package com.example.goodsprice.price.infrastructure.adapter.web;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -9,6 +10,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.goodsprice.api.model.CheapestPrice;
 import com.example.goodsprice.api.model.CreatePriceRecordRequest;
 import com.example.goodsprice.api.model.DateRange;
 import com.example.goodsprice.api.model.PriceRecord;
@@ -46,12 +48,15 @@ class PriceWebAdapterTest {
 
   private ProductDomain product;
   private PriceDomain price;
+  private PriceDomain cheapestPrice;
   private StoreDomain store;
 
   @BeforeEach
   void setUp() {
     product = ProductDomain.builder().id(1L).name("Susu Kotak").build();
     price = PriceDomain.builder().id(10L).productId(1L).storeId(100L).price(15000.0).build();
+    cheapestPrice =
+        PriceDomain.builder().id(11L).productId(1L).storeId(100L).price(10000.0).build();
     store = StoreDomain.builder().id(100L).name("Toko Segar").build();
   }
 
@@ -97,6 +102,102 @@ class PriceWebAdapterTest {
     assertEquals("Susu Kotak", response.getProductName());
     verify(productInPort).searchByName("Susu Kotak");
     verify(priceInPort).searchByProduct(eq(1L), eq(dateRange.getFrom()), eq(dateRange.getTo()));
+  }
+
+  @Test
+  @DisplayName("Should not include cheapest when findCheapestByProduct returns null")
+  void shouldReturnSearchResponseWithoutCheapestWhenNoCheapestPrice() {
+    var request = new PriceSearchRequest();
+    request.setProductName("Susu Kotak");
+
+    when(productInPort.searchByName("Susu Kotak")).thenReturn(List.of(product));
+    when(priceInPort.searchByProduct(eq(1L), any(), any())).thenReturn(List.of(price));
+    when(storeInPort.findAllById(any())).thenReturn(List.of());
+    when(priceInPort.findCheapestByProduct(1L)).thenReturn(null);
+
+    var response = priceWebAdapter.search(request);
+
+    assertNotNull(response);
+    assertEquals("Susu Kotak", response.getProductName());
+    assertNull(response.getCheapest());
+  }
+
+  @Test
+  @DisplayName("Should calculate savings in searchV1 with multiple prices")
+  void shouldCalculateSavingsInSearchV1WithMultiplePrices() {
+    var request = new PriceSearchRequest();
+    request.setProductName("Susu Kotak");
+
+    var price2 = PriceDomain.builder().id(12L).productId(1L).storeId(200L).price(15000.0).build();
+    var store2 = StoreDomain.builder().id(200L).name("Toko Laris").build();
+
+    when(productInPort.searchByName("Susu Kotak")).thenReturn(List.of(product));
+    when(priceInPort.searchByProduct(eq(1L), any(), any()))
+        .thenReturn(List.of(cheapestPrice, price2));
+    when(storeInPort.findAllById(any())).thenReturn(List.of(store, store2));
+    when(priceInPort.findCheapestByProduct(1L)).thenReturn(cheapestPrice);
+
+    var cheapestDto = new CheapestPrice();
+    cheapestDto.setStoreName("Toko Segar");
+    cheapestDto.setPrice(10000.0);
+    when(mapper.toCheapestPrice(cheapestPrice, store)).thenReturn(cheapestDto);
+
+    var response = priceWebAdapter.search(request);
+
+    assertNotNull(response);
+    assertNotNull(response.getCheapest());
+    assertEquals(10000.0, response.getCheapest().getPrice());
+    assertEquals(2500.0, response.getCheapest().getSavings(), 0.001);
+  }
+
+  @Test
+  @DisplayName("Should not calculate savings with single price")
+  void shouldNotCalculateSavingsWithSinglePrice() {
+    var request = new PriceSearchRequest();
+    request.setProductName("Susu Kotak");
+
+    when(productInPort.searchByName("Susu Kotak")).thenReturn(List.of(product));
+    when(priceInPort.searchByProduct(eq(1L), any(), any())).thenReturn(List.of(cheapestPrice));
+    when(storeInPort.findAllById(any())).thenReturn(List.of());
+    when(priceInPort.findCheapestByProduct(1L)).thenReturn(cheapestPrice);
+    when(storeInPort.findById(100L)).thenReturn(store);
+
+    var cheapestDto = new CheapestPrice();
+    cheapestDto.setStoreName("Toko Segar");
+    cheapestDto.setPrice(10000.0);
+    when(mapper.toCheapestPrice(cheapestPrice, store)).thenReturn(cheapestDto);
+
+    var response = priceWebAdapter.search(request);
+
+    assertNotNull(response);
+    assertNotNull(response.getCheapest());
+    assertNull(response.getCheapest().getSavings());
+  }
+
+  @Test
+  @DisplayName(
+      "Should fallback to storeInPort.findById when store not in storeMap for buildCheapest")
+  void shouldFallbackToStoreInPortWhenStoreNotInMap() {
+    var request = new PriceSearchRequest();
+    request.setProductName("Susu Kotak");
+
+    when(productInPort.searchByName("Susu Kotak")).thenReturn(List.of(product));
+    when(priceInPort.searchByProduct(eq(1L), any(), any())).thenReturn(List.of(cheapestPrice));
+    when(storeInPort.findAllById(any())).thenReturn(List.of());
+    when(priceInPort.findCheapestByProduct(1L)).thenReturn(cheapestPrice);
+    when(storeInPort.findById(100L)).thenReturn(store);
+
+    var cheapestDto = new CheapestPrice();
+    cheapestDto.setStoreName("Toko Segar");
+    cheapestDto.setPrice(10000.0);
+    when(mapper.toCheapestPrice(cheapestPrice, store)).thenReturn(cheapestDto);
+
+    var response = priceWebAdapter.search(request);
+
+    assertNotNull(response);
+    assertNotNull(response.getCheapest());
+    assertEquals("Toko Segar", response.getCheapest().getStoreName());
+    verify(storeInPort).findById(100L);
   }
 
   @Test

@@ -5,8 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.example.goodsprice.llm.application.port.out.LlmProviderPort;
+import com.example.goodsprice.llm.infrastructure.adapter.provider.GeminiLlmProvider;
+import com.example.goodsprice.llm.infrastructure.adapter.provider.GroqLlmProvider;
 import com.example.goodsprice.llm.infrastructure.adapter.provider.LocalLlmProvider;
+import com.example.goodsprice.llm.infrastructure.adapter.provider.SumopodLlmProvider;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -74,5 +78,53 @@ class LlmProviderConfigurationTest {
     RestTemplate restTemplate = configuration.restTemplate();
     assertNotNull(restTemplate);
     assertNotNull(restTemplate.getRequestFactory());
+  }
+
+  @Nested
+  @SpringBootTest(properties = {"llm.provider=gemini"})
+  @ActiveProfiles("test")
+  @DisplayName("When provider is GEMINI")
+  class GeminiProviderTest {
+
+    @Autowired private ApplicationContext context;
+
+    @Test
+    @DisplayName("Should select GeminiLlmProvider as llmProvider")
+    void shouldSelectGeminiProvider() {
+      var provider = context.getBean("llmProvider", LlmProviderPort.class);
+      assertTrue(provider instanceof GeminiLlmProvider);
+    }
+  }
+
+  @Nested
+  @SpringBootTest(properties = {"llm.provider=groq"})
+  @ActiveProfiles("test")
+  @DisplayName("When provider is GROQ")
+  class GroqProviderTest {
+
+    @Autowired private ApplicationContext context;
+
+    @Test
+    @DisplayName("Should select GroqLlmProvider as llmProvider")
+    void shouldSelectGroqProvider() {
+      var provider = context.getBean("llmProvider", LlmProviderPort.class);
+      assertTrue(provider instanceof GroqLlmProvider);
+    }
+  }
+
+  @Nested
+  @SpringBootTest(properties = {"llm.provider=sumopod"})
+  @ActiveProfiles("test")
+  @DisplayName("When provider is SUMOPOD")
+  class SumopodProviderTest {
+
+    @Autowired private ApplicationContext context;
+
+    @Test
+    @DisplayName("Should select SumopodLlmProvider as llmProvider")
+    void shouldSelectSumopodProvider() {
+      var provider = context.getBean("llmProvider", LlmProviderPort.class);
+      assertTrue(provider instanceof SumopodLlmProvider);
+    }
   }
 }
