@@ -8,10 +8,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.goodsprice.common.constant.HttpHeaderConstants;
+import com.example.goodsprice.config.ratelimit.RateLimitProperties.EndpointConfig;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -142,5 +144,65 @@ class RateLimitInterceptorTest {
 
     assertTrue(result);
     verify(response).addHeader(HttpHeaderConstants.X_RATE_LIMIT_LIMIT, "5");
+  }
+
+  @Test
+  void shouldUseEndpointConfigLimitWhenAnnotationAbsent() throws Exception {
+    when(properties.isEnabled()).thenReturn(true);
+    when(request.getRemoteAddr()).thenReturn("10.0.0.1");
+    when(request.getRequestURI()).thenReturn("/api/test");
+    when(handlerMethod.getMethodAnnotation(RateLimit.class)).thenReturn(null);
+
+    var endpointConfig = new EndpointConfig();
+    endpointConfig.setLimit(30);
+    endpointConfig.setWindowSeconds(120);
+    when(properties.getEndpoints()).thenReturn(Map.of("/api/test", endpointConfig));
+    when(bucketStore.getOrCreate(anyString(), anyLong(), anyLong())).thenReturn(bucket);
+    when(bucket.tryConsumeAndReturnRemaining(1)).thenReturn(probe);
+    when(probe.isConsumed()).thenReturn(true);
+    when(probe.getRemainingTokens()).thenReturn(29L);
+
+    var result = interceptor.preHandle(request, response, handlerMethod);
+
+    assertTrue(result);
+    verify(response).addHeader(HttpHeaderConstants.X_RATE_LIMIT_LIMIT, "30");
+  }
+
+  @Test
+  void shouldUseGlobalDefaultWhenNoAnnotationAndNoEndpointConfig() throws Exception {
+    when(properties.isEnabled()).thenReturn(true);
+    when(request.getRemoteAddr()).thenReturn("10.0.0.1");
+    when(request.getRequestURI()).thenReturn("/api/unknown");
+    when(handlerMethod.getMethodAnnotation(RateLimit.class)).thenReturn(null);
+    when(properties.getEndpoints()).thenReturn(Map.of());
+    when(properties.getLimit()).thenReturn(60L);
+    when(properties.getWindowSeconds()).thenReturn(60L);
+    when(bucketStore.getOrCreate(anyString(), anyLong(), anyLong())).thenReturn(bucket);
+    when(bucket.tryConsumeAndReturnRemaining(1)).thenReturn(probe);
+    when(probe.isConsumed()).thenReturn(true);
+    when(probe.getRemainingTokens()).thenReturn(59L);
+
+    var result = interceptor.preHandle(request, response, handlerMethod);
+
+    assertTrue(result);
+    verify(response).addHeader(HttpHeaderConstants.X_RATE_LIMIT_LIMIT, "60");
+  }
+
+  @Test
+  void shouldFallbackToRemoteAddrWhenXForwardedForIsBlank() throws Exception {
+    when(properties.isEnabled()).thenReturn(true);
+    when(request.getHeader(HttpHeaderConstants.X_FORWARDED_FOR)).thenReturn("  ");
+    when(request.getRemoteAddr()).thenReturn("10.0.0.1");
+    when(request.getRequestURI()).thenReturn("/api/test");
+    when(properties.getLimit()).thenReturn(60L);
+    when(properties.getWindowSeconds()).thenReturn(60L);
+    when(bucketStore.getOrCreate(anyString(), anyLong(), anyLong())).thenReturn(bucket);
+    when(bucket.tryConsumeAndReturnRemaining(1)).thenReturn(probe);
+    when(probe.isConsumed()).thenReturn(true);
+    when(probe.getRemainingTokens()).thenReturn(59L);
+
+    var result = interceptor.preHandle(request, response, handlerMethod);
+
+    assertTrue(result);
   }
 }

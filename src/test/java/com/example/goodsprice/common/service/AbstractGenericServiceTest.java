@@ -8,6 +8,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.goodsprice.common.dto.PageRequestDto;
+import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.exception.NotFoundException;
 import com.example.goodsprice.common.repository.GenericRepositoryPort;
 import org.junit.jupiter.api.Test;
@@ -101,5 +103,30 @@ public abstract class AbstractGenericServiceTest {
     assertNotNull(result);
     verify(repo).findById(getExistingId());
     verify(repo).save(any());
+  }
+
+  @Test
+  void shouldSaveEntity() {
+    var repo = getRepository();
+    when(repo.save(getExistingEntity())).thenReturn(getExistingEntity());
+
+    var result = getService().save(getExistingEntity());
+
+    assertNotNull(result);
+    verify(repo).save(getExistingEntity());
+  }
+
+  @SuppressWarnings("deprecation")
+  @Test
+  void shouldFindAllWithSearchAndStatus() {
+    var repo = getRepository();
+    var pageRequest = new PageRequestDto(0, 20, "createdAt", "desc");
+    when(repo.findAll(pageRequest, "search", "active"))
+        .thenReturn(PageResponse.of(java.util.List.of(getExistingEntity()), 0, 20, 1));
+
+    var result = getService().findAll(pageRequest, "search", "active");
+
+    assertNotNull(result);
+    verify(repo).findAll(pageRequest, "search", "active");
   }
 }

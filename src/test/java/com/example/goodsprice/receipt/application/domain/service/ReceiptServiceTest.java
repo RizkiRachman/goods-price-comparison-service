@@ -2,6 +2,7 @@ package com.example.goodsprice.receipt.application.domain.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
@@ -25,6 +26,7 @@ import com.example.goodsprice.receipt.application.port.out.ReceiptEventOutPort;
 import com.example.goodsprice.receipt.application.port.out.ReceiptRepositoryPort;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -422,6 +424,110 @@ class ReceiptServiceTest extends AbstractGenericServiceTest
     assertNotNull(result);
     assertEquals(ReceiptStatus.PENDING, result.getStatus());
     verify(receiptRepository, never()).updateImageData(any(), any());
+  }
+
+  // ===== extractTotalAmount branch tests =====
+
+  @Test
+  void shouldExtractTotalAmountAsNullWhenValueIsNull() throws Exception {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).build();
+    var llmData = new HashMap<String, Object>();
+    llmData.put("storeName", "Toko Segar");
+    llmData.put("totalAmount", null);
+
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
+    when(llmProvider.extractReceiptData(any())).thenReturn(llmData);
+    when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+    receiptService.process(id, "data".getBytes());
+
+    verify(receiptRepository, times(2)).save(receiptCaptor.capture());
+    assertNull(receiptCaptor.getAllValues().get(1).getTotalAmount());
+  }
+
+  @Test
+  void shouldHandleTotalAmountAsNumber() throws Exception {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).build();
+    var llmData = new HashMap<String, Object>();
+    llmData.put("storeName", "Toko Segar");
+    llmData.put("totalAmount", 15000);
+
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
+    when(llmProvider.extractReceiptData(any())).thenReturn(llmData);
+    when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+    receiptService.process(id, "data".getBytes());
+
+    verify(receiptRepository, times(2)).save(receiptCaptor.capture());
+    assertEquals(
+        0,
+        BigDecimal.valueOf(15000).compareTo(receiptCaptor.getAllValues().get(1).getTotalAmount()));
+  }
+
+  @Test
+  void shouldHandleTotalAmountAsString() throws Exception {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).build();
+    var llmData = new HashMap<String, Object>();
+    llmData.put("storeName", "Toko Segar");
+    llmData.put("totalAmount", "15000.50");
+
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
+    when(llmProvider.extractReceiptData(any())).thenReturn(llmData);
+    when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+    receiptService.process(id, "data".getBytes());
+
+    verify(receiptRepository, times(2)).save(receiptCaptor.capture());
+    assertEquals(
+        0,
+        new BigDecimal("15000.50").compareTo(receiptCaptor.getAllValues().get(1).getTotalAmount()));
+  }
+
+  @Test
+  void shouldHandleInvalidTotalAmountString() throws Exception {
+    var id = UUID.randomUUID();
+    var receipt = ReceiptDomain.builder().id(id).build();
+    var llmData = new HashMap<String, Object>();
+    llmData.put("storeName", "Toko Segar");
+    llmData.put("totalAmount", "N/A");
+
+    when(receiptRepository.findById(id)).thenReturn(receipt);
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
+    when(llmProvider.extractReceiptData(any())).thenReturn(llmData);
+    when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+    receiptService.process(id, "data".getBytes());
+
+    verify(receiptRepository, times(2)).save(receiptCaptor.capture());
+    assertNull(receiptCaptor.getAllValues().get(1).getTotalAmount());
+  }
+
+  @Test
+  void shouldProcessWithNullImageBytesFallingBackToRepositoryData() throws Exception {
+    var id = UUID.randomUUID();
+    var storedImageData = "stored-image-data".getBytes();
+    var receipt = ReceiptDomain.builder().id(id).build();
+    var receiptWithImageData = ReceiptDomain.builder().id(id).imageData(storedImageData).build();
+    var llmData = new HashMap<String, Object>();
+    llmData.put("storeName", "Toko Segar");
+    llmData.put("totalAmount", "15000");
+
+    when(receiptRepository.findById(id)).thenReturn(receipt).thenReturn(receiptWithImageData);
+    when(receiptRepository.save(any(ReceiptDomain.class))).thenReturn(receipt);
+    when(llmProvider.extractReceiptData(any())).thenReturn(llmData);
+    when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+    receiptService.process(id, null);
+
+    verify(receiptRepository, times(2)).save(any(ReceiptDomain.class));
+    verify(eventOutPort).publishReceiptProcessed(any());
+    verify(llmProvider).extractReceiptData(Base64.getEncoder().encodeToString(storedImageData));
   }
 
   private void mockSaveWithStore() {

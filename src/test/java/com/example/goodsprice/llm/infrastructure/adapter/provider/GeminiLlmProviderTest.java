@@ -1,7 +1,10 @@
 package com.example.goodsprice.llm.infrastructure.adapter.provider;
 
+import static com.example.goodsprice.llm.infrastructure.config.LlmConstants.KEY_ERROR;
+import static com.example.goodsprice.llm.infrastructure.config.LlmConstants.KEY_RAW_TEXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.doReturn;
@@ -97,5 +100,53 @@ class GeminiLlmProviderTest {
     doReturn(geminiConfig).when(llmProperties).getGemini();
 
     assertThrows(RuntimeException.class, () -> provider.extractReceiptData("invalid-base64!!"));
+  }
+
+  @Test
+  @DisplayName("Should return error when parseResponse receives null text")
+  void shouldReturnErrorWhenResponseIsNull() {
+    var result = provider.parseResponse(null);
+
+    assertNotNull(result);
+    assertEquals("Empty response from Gemini", result.get(KEY_ERROR));
+  }
+
+  @Test
+  @DisplayName("Should return error when parseResponse receives empty text")
+  void shouldReturnErrorWhenResponseIsEmpty() {
+    var result = provider.parseResponse("");
+
+    assertNotNull(result);
+    assertEquals("Empty response from Gemini", result.get(KEY_ERROR));
+  }
+
+  @Test
+  @DisplayName("Should parse JSON from code-fenced response with json marker")
+  void shouldParseJsonBlockFromCodeFencedResponse() {
+    var text = "```json\n{\"key\":\"value\"}\n```";
+    var result = provider.parseResponse(text);
+
+    assertNotNull(result);
+    assertEquals("value", result.get("key"));
+  }
+
+  @Test
+  @DisplayName("Should parse JSON from plain code-fenced response without json marker")
+  void shouldParseJsonBlockFromPlainCodeFencedResponse() {
+    var text = "```\n{\"key\":\"value\"}\n```";
+    var result = provider.parseResponse(text);
+
+    assertNotNull(result);
+    assertEquals("value", result.get("key"));
+  }
+
+  @Test
+  @DisplayName("Should return raw text when JSON parsing fails on non-JSON response")
+  void shouldReturnRawTextWhenJsonParsingFails() {
+    var text = "Sorry, I can't process this image";
+    var result = provider.parseResponse(text);
+
+    assertNotNull(result);
+    assertEquals(text, result.get(KEY_RAW_TEXT));
   }
 }

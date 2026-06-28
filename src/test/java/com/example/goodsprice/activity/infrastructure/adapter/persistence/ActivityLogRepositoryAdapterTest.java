@@ -233,4 +233,43 @@ class ActivityLogRepositoryAdapterTest {
     assertEquals(1, result.content().size());
     assertEquals(logId, result.content().get(0).getId());
   }
+
+  @Test
+  @DisplayName("Should find all with combined filters")
+  void shouldFindAllWithCombinedFilters() {
+    var startDate = OffsetDateTime.now().minusDays(7);
+    var endDate = OffsetDateTime.now();
+    var pageRequest = new PageRequestDto(0, 20, "createdAt", "desc");
+    var criteria =
+        new ActivityLogCriteria(
+            pageRequest, ActivityLogType.PRODUCT, ActivityLogAction.CREATE, startDate, endDate);
+
+    var entityPage = new PageImpl<>(List.of(entity));
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(entityPage);
+    when(mapper.toDomain(entity)).thenReturn(domain);
+
+    PageResponse<ActivityLogDomain> result = adapter.findAll(criteria);
+
+    assertNotNull(result);
+    assertEquals(1, result.content().size());
+    assertEquals(logId, result.content().get(0).getId());
+  }
+
+  @Test
+  @DisplayName("Should find all with custom sort field")
+  void shouldFindAllWithCustomSortField() {
+    var pageRequest = new PageRequestDto(0, 20, "updatedAt", "asc");
+    var criteria = new ActivityLogCriteria(pageRequest, null, null, null, null);
+
+    var entityPage = new PageImpl<>(List.of(entity));
+    when(jpaRepository.findAll(any(Specification.class), any(Pageable.class)))
+        .thenReturn(entityPage);
+    when(mapper.toDomain(entity)).thenReturn(domain);
+
+    PageResponse<ActivityLogDomain> result = adapter.findAll(criteria);
+
+    assertNotNull(result);
+    assertEquals(1, result.content().size());
+  }
 }

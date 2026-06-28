@@ -39,6 +39,16 @@ class ReceiptApprovedEventHandlerTest {
   }
 
   @Test
+  void shouldHandleReceiptApprovedEventWhenNotFound() {
+    var receiptId = UUID.randomUUID();
+    when(receiptInPort.findById(receiptId)).thenThrow(new RuntimeException("Database error"));
+
+    var event = new ReceiptApprovedEvent(receiptId);
+    handler.handle(event);
+    // Exception caught by try-catch in AbstractReceiptEventHandler.processReceiptEvent
+  }
+
+  @Test
   void shouldGetEventTypeLabel() {
     assert "approval".equals(handler.getEventTypeLabel());
   }

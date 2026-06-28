@@ -121,7 +121,8 @@ OUTPUT FORMAT (raw JSON, no markdown):
     }
   }
 
-  private Map<String, Object> parseResponse(String text) {
+  // package-private for testing
+  Map<String, Object> parseResponse(String text) {
     var result = new HashMap<String, Object>();
     if (Objects.isNull(text) || text.isEmpty()) {
       result.put(KEY_ERROR, "Empty response from Gemini");

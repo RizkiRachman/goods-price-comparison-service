@@ -149,6 +149,54 @@ class ActivityLogAspectTest {
   }
 
   @Test
+  @DisplayName("Should resolve Category entity type")
+  void shouldResolveCategoryEntityType() {
+    assertEquals(
+        ActivityLogType.CATEGORY, ActivityLogAspect.resolveEntityType(CategoryService.class));
+  }
+
+  @Test
+  @DisplayName("Should resolve Unit entity type")
+  void shouldResolveUnitEntityType() {
+    assertEquals(ActivityLogType.UNIT, ActivityLogAspect.resolveEntityType(UnitService.class));
+  }
+
+  @Test
+  @DisplayName("Should resolve Alert entity type")
+  void shouldResolveAlertEntityType() {
+    assertEquals(ActivityLogType.ALERT, ActivityLogAspect.resolveEntityType(AlertService.class));
+  }
+
+  @Test
+  @DisplayName("Should resolve FeedbackQuestion entity type")
+  void shouldResolveFeedbackQuestionEntityType() {
+    assertEquals(
+        ActivityLogType.FEEDBACK_QUESTION,
+        ActivityLogAspect.resolveEntityType(FeedbackQuestionService.class));
+  }
+
+  @Test
+  @DisplayName("Should resolve ReceiptCorrection as RECEIPT entity type")
+  void shouldResolveReceiptCorrectionAsReceipt() {
+    assertEquals(
+        ActivityLogType.RECEIPT,
+        ActivityLogAspect.resolveEntityType(ReceiptCorrectionService.class));
+  }
+
+  @Test
+  @DisplayName("Should return null for unknown entity type")
+  void shouldReturnNullForUnknownEntityType() {
+    assertNull(ActivityLogAspect.resolveEntityType(UnknownTypeService.class));
+  }
+
+  @Test
+  @DisplayName("Should strip dollar suffix from class name")
+  void shouldStripDollarSuffixFromClassName() {
+    assertEquals(
+        ActivityLogType.PRICE_RECORD, ActivityLogAspect.resolveEntityType(PriceService$.class));
+  }
+
+  @Test
   @DisplayName("Should return null when no id source available")
   void shouldReturnNullWhenNoEntityId() {
     assertNull(ActivityLogAspect.resolveEntityId(null, (Object[]) null));
@@ -177,4 +225,18 @@ class ActivityLogAspectTest {
   static class StoreService {}
 
   static class PriceService {}
+
+  static class CategoryService {}
+
+  static class UnitService {}
+
+  static class AlertService {}
+
+  static class FeedbackQuestionService {}
+
+  static class ReceiptCorrectionService {}
+
+  static class UnknownTypeService {}
+
+  static class PriceService$ {}
 }
