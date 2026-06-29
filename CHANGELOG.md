@@ -12,13 +12,8 @@ Changelog is generated via [changelogen](https://github.com/unjs/changelogen) fr
 
 ## [Unreleased]
 
-### Added
-- **Workflow state engine integration**: Added `.workflow-engine` git submodule (RizkiRachman/workflow-state-engine) for AI agent orchestration with contract-based state machine (INIT→PLAN→EXECUTE→REVIEW→COMPLETE), three-tier scoring pipeline, and cross-session learning.
-- **Git hooks for contract validation**: Added `.githooks/pre-commit` (validates orchestration contract before commit — blocks if score < 50) and `.githooks/post-commit` (auto re-indexes GitNexus code intelligence after code changes).
-- **Session state archive**: Added `session/` directory with per-branch contract snapshots, orchestration state log (`state.md`), and branch index (`index.md`) for audit trail and safe session resumption.
-- **OpenCode config template**: Added `opencode.backup.json` — template backup for future project bootstraps with 9 agent profiles and workflow engine configuration.
-
 ### Changed
+- **Removed AI tooling from git tracking**: Removed `.workflow-engine` submodule and `.gitmodules` from git tracking. These stay on disk for local development but no longer push to GitHub. Updated CONTRIBUTING.md with local clone instructions.
 - **Test coverage gap closure**: 14 files changed (+663/−2) across 18 under-covered packages. 35+ new test assertions targeting branch coverage gaps in `price/web` (branch 41.7%→threshold), `config/ratelimit` (65.4%→84.6%), `llm/config` (85%→89.3%), and 11 other packages. Includes @Nested config-switch testing pattern, AOP entity type tests, and one `private`→package-private visibility change on `GeminiLlmProvider.parseResponse()` to enable testing. 1,133 tests/0 failures.
 
 ### Added (from downstream PR #151)

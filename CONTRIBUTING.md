@@ -52,11 +52,13 @@ Before you begin, ensure you have:
    cd common-exception-java && mvn clean install
    ```
 
-3. **Initialize the workflow engine submodule:**
+3. **Set up the workflow engine (local AI tooling):**
    ```bash
-   git submodule update --init --recursive
+   git clone https://github.com/RizkiRachman/workflow-state-engine.git .workflow-engine
+   rm -rf .workflow-engine/.git
    git config core.hooksPath .githooks
    ```
+   > The `.workflow-engine/` directory is gitignored — it stays local and is not pushed to GitHub.
 
 4. **Build the project:**
    ```bash
