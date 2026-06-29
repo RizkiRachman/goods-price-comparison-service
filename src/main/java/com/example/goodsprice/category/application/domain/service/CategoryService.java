@@ -42,7 +42,7 @@ public class CategoryService extends AbstractGenericService<CategoryDomain, Stri
 
   @Override
   public PageResponse<CategoryDomain> findAll(CategoryCriteria criteria) {
-    return findAll(criteria.pageRequest(), criteria.search(), criteria.status());
+    return categoryRepository.findAll(criteria);
   }
 
   @Override

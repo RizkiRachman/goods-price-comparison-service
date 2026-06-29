@@ -31,6 +31,11 @@ public abstract class AbstractGenericService<T, ID> {
     return entity;
   }
 
+  @Transactional
+  public T create(T entity) {
+    return save(entity);
+  }
+
   public T save(T entity) {
     var saved = getRepository().save(entity);
     log.debug("{} saved", entityName);

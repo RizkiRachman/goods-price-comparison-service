@@ -13,7 +13,7 @@ import com.example.goodsprice.feedbackquestion.application.domain.model.Feedback
 import com.example.goodsprice.feedbackquestion.application.domain.model.FeedbackQuestionType;
 import com.example.goodsprice.feedbackquestion.application.port.in.dto.FeedbackQuestionCriteria;
 import com.example.goodsprice.feedbackquestion.application.port.out.FeedbackQuestionRepositoryPort;
-import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -101,13 +101,14 @@ class FeedbackQuestionServiceTest extends AbstractGenericServiceTest {
   void findAllSuccess() {
     FeedbackQuestionCriteria criteria = new FeedbackQuestionCriteria(null, null, null);
     PageResponse<FeedbackQuestionDomain> pageResponse =
-        new PageResponse<>(Collections.emptyList(), 0, 0, 0, 0, true, true);
-    when(feedbackQuestionRepository.findAll(any(), any(), any())).thenReturn(pageResponse);
+        new PageResponse<>(List.of(), 0, 0, 0, 0, true, true);
+    when(feedbackQuestionRepository.findAll(any(FeedbackQuestionCriteria.class)))
+        .thenReturn(pageResponse);
 
     PageResponse<FeedbackQuestionDomain> actualFeedbackQuestions =
         feedbackQuestionService.findAll(criteria);
 
     assertNotNull(actualFeedbackQuestions);
-    verify(feedbackQuestionRepository).findAll(any(), any(), any());
+    verify(feedbackQuestionRepository).findAll(any(FeedbackQuestionCriteria.class));
   }
 }

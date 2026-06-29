@@ -1,6 +1,5 @@
 package com.example.goodsprice.product.application.domain.service;
 
-import com.example.goodsprice.common.util.SortingUtils;
 import com.example.goodsprice.product.application.domain.model.ProductDomain;
 import java.util.Comparator;
 import java.util.Locale;
@@ -17,17 +16,19 @@ public class ProductComparators {
     this.comparators =
         Map.of(
             "name",
-            SortingUtils.comparingString(ProductDomain::getName),
+            Comparator.comparing(ProductDomain::getName, Comparator.nullsLast(String::compareTo)),
             "category",
-            SortingUtils.comparingString(ProductDomain::getCategory),
+            Comparator.comparing(
+                ProductDomain::getCategory, Comparator.nullsLast(String::compareTo)),
             "brand",
-            SortingUtils.comparingString(ProductDomain::getBrand),
+            Comparator.comparing(ProductDomain::getBrand, Comparator.nullsLast(String::compareTo)),
             "unit",
-            SortingUtils.comparingString(ProductDomain::getUnit),
+            Comparator.comparing(ProductDomain::getUnit, Comparator.nullsLast(String::compareTo)),
             "id",
             Comparator.comparing(ProductDomain::getId),
             "status",
-            SortingUtils.comparingString(ProductDomain::getStatus));
+            Comparator.comparing(
+                ProductDomain::getStatus, Comparator.nullsLast(String::compareTo)));
   }
 
   public Comparator<ProductDomain> resolve(String sortBy) {

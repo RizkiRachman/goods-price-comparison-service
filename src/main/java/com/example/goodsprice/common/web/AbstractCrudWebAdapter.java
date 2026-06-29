@@ -89,6 +89,11 @@ public class AbstractCrudWebAdapter {
     return new ListResponseData<>(data, pageResponse.toPagination());
   }
 
+  /**
+   * @deprecated Use {@link #buildTypedListResponse(PageResponse, Function, Supplier)} instead.
+   *     Removed in a future release — no remaining callers in the codebase.
+   */
+  @Deprecated(since = "1.0.0", forRemoval = true)
   protected <D, R, S> S buildCompleteListResponse(
       PageResponse<D> pageResponse,
       Function<D, R> mapper,
