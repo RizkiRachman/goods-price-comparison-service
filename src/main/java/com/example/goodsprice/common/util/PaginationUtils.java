@@ -29,19 +29,20 @@ public final class PaginationUtils {
     return PageResponse.of(content, page, size, totalElements);
   }
 
+  @Deprecated(forRemoval = true, since = "1.0.0")
   public static int normalizePage(Integer page) {
-    return Objects.nonNull(page) && page >= 0 ? page : 0;
+    return resolvePage(page, 0);
   }
 
+  @Deprecated(forRemoval = true, since = "1.0.0")
   public static int normalizeSize(Integer size, int defaultSize, int maxSize) {
-    if (Objects.isNull(size) || size <= 0) {
-      return defaultSize;
-    }
-    return Math.min(size, maxSize);
+    var clamped = resolveSize(size, defaultSize);
+    return clamped > maxSize ? maxSize : clamped;
   }
 
+  @Deprecated(forRemoval = true, since = "1.0.0")
   public static int normalizeSize(Integer size) {
-    return normalizeSize(size, 20, 100);
+    return resolveSize(size, 20);
   }
 
   /**

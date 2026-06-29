@@ -9,7 +9,6 @@ import static org.mockito.Mockito.when;
 import com.example.goodsprice.category.application.domain.model.CategoryDomain;
 import com.example.goodsprice.category.application.port.in.dto.CategoryCriteria;
 import com.example.goodsprice.category.application.port.out.CategoryRepositoryPort;
-import com.example.goodsprice.common.dto.PageRequestDto;
 import com.example.goodsprice.common.dto.PageResponse;
 import com.example.goodsprice.common.repository.GenericRepositoryPort;
 import com.example.goodsprice.common.service.AbstractGenericService;
@@ -125,16 +124,14 @@ class CategoryServiceTest extends AbstractGenericServiceTest {
   void shouldReturnAllCategories() {
     var categories = List.of(existingCategory);
     var pageResponse = PageResponse.of(categories, 0, 10, categories.size());
-    var pageRequest = new PageRequestDto(0, 10, "name", "asc");
-    var criteria = new CategoryCriteria(pageRequest, "", "ACTIVE");
-    when(categoryRepository.findAll(any(PageRequestDto.class), any(), any()))
-        .thenReturn(pageResponse);
+    var criteria = new CategoryCriteria(null, null, null);
+    when(categoryRepository.findAll(any(CategoryCriteria.class))).thenReturn(pageResponse);
 
     var result = categoryService.findAll(criteria);
 
     assertNotNull(result);
     assertEquals(1, result.totalElements());
     assertEquals("Fruits", result.content().get(0).getName());
-    verify(categoryRepository).findAll(any(PageRequestDto.class), any(), any());
+    verify(categoryRepository).findAll(any(CategoryCriteria.class));
   }
 }

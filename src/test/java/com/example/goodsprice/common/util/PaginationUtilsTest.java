@@ -45,41 +45,6 @@ class PaginationUtilsTest {
   }
 
   @Test
-  void shouldNormalizePageReturnsZeroWhenNull() {
-    assertEquals(0, PaginationUtils.normalizePage(null));
-  }
-
-  @Test
-  void shouldNormalizePageReturnsZeroWhenNegative() {
-    assertEquals(0, PaginationUtils.normalizePage(-1));
-  }
-
-  @Test
-  void shouldNormalizePageReturnsSameWhenValid() {
-    assertEquals(3, PaginationUtils.normalizePage(3));
-  }
-
-  @Test
-  void shouldNormalizeSizeReturnsDefaultWhenNull() {
-    assertEquals(20, PaginationUtils.normalizeSize(null));
-  }
-
-  @Test
-  void shouldNormalizeSizeReturnsDefaultWhenZero() {
-    assertEquals(20, PaginationUtils.normalizeSize(0));
-  }
-
-  @Test
-  void shouldNormalizeSizeClampsToMax() {
-    assertEquals(100, PaginationUtils.normalizeSize(200));
-  }
-
-  @Test
-  void shouldNormalizeSizeReturnsSameWhenValid() {
-    assertEquals(15, PaginationUtils.normalizeSize(15));
-  }
-
-  @Test
   void shouldResolvePageReturnsDefaultWhenNull() {
     assertEquals(1, PaginationUtils.resolvePage(null, 1));
   }

@@ -42,6 +42,6 @@ public class FeedbackQuestionService extends AbstractGenericService<FeedbackQues
 
   @Override
   public PageResponse<FeedbackQuestionDomain> findAll(FeedbackQuestionCriteria criteria) {
-    return findAll(criteria.pageRequest(), criteria.search(), criteria.status());
+    return feedbackQuestionRepository.findAll(criteria);
   }
 }
