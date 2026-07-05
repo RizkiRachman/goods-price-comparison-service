@@ -36,8 +36,8 @@
         <coverage.branch.minimum>0.85</coverage.branch.minimum>
 
         <!-- Database -->
-        <postgresql.version>42.7.11</postgresql.version>
-        <flyway.version>12.9.0</flyway.version>
+        <postgresql.version>42.7.12</postgresql.version>
+        <flyway.version>12.10.0</flyway.version>
 
         <!-- Build tools -->
         <lombok.version>1.18.46</lombok.version>
@@ -362,7 +362,7 @@
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
-                <version>3.7.0</version>
+                <version>3.8.0</version>
                 <configuration>
                     <java>
                         <googleJavaFormat>
